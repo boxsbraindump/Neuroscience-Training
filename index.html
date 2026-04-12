@@ -461,7 +461,7 @@
 
                     {!['home', 'result'].includes(view) && (
                         <div className="flex-1 flex flex-col">
-                            <div className="h-14 px-4 flex justify-between items-center bg-white border-b border-slate-100">
+                           <div className="h-14 px-4 flex-shrink-0 flex justify-between items-center bg-white border-b border-slate-100">
                                 <button onClick={() => setView('home')} className="p-2 text-slate-400"><Icon name="chevron-left" /></button>
                                 <div className="text-center">
                                     <div className="text-[9px] font-black text-indigo-500 brand-text">{mode === 'comp' ? 'ARENA MODE' : 'TRAINING'}</div>
