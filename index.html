@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Prefrontal Lab | 前额叶实验室 2.0</title>
+    <title>Prefrontal Lab | 前额叶实验室 5.0</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
     <style>
@@ -27,6 +27,8 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
+        
+        
 
         const Icon = ({ name, className = "w-6 h-6" }) => {
             const iconRef = useRef(null);
@@ -65,7 +67,7 @@
             const [isError, setIsError] = useState(false);
             const [showInfo, setShowInfo] = useState(null); 
             
-            // --- 数据迁移逻辑：确保 1.0 数据同步到 2.0 ---
+            // --- 数据迁移逻辑：确保 1.0 数据同步到 5.0 ---
             const [history, setHistory] = useState(() => {
                 const v1DataRaw = localStorage.getItem('brain_train_pro_data');
                 const v2DataRaw = localStorage.getItem('brain_train_pro_v5');
@@ -83,6 +85,21 @@
                 }
                 return base;
             });
+
+// ==========================================
+    // ✨ 在这里插入：更新公告状态管理
+    // ==========================================
+    const [showUpdateNote, setShowUpdateNote] = useState(() => {
+        // 检查本地存储，如果这个版本的 Key 不存在，说明是第一次见，返回 true
+        return !localStorage.getItem('prefrontal_lab_v2.1_update');
+    });
+
+    const closeUpdateNote = () => {
+        // 玩家点击按钮后，在本地存入 'true'，下次刷新就不会再弹了
+        localStorage.setItem('prefrontal_lab_v2.1_update', 'true');
+        setShowUpdateNote(false);
+    };
+    // ==========================================
 
             const TASK_DATA = {
     schulte: { 
@@ -191,7 +208,7 @@
         effect: "提升流体智力和工作记忆容量。" 
     },
     setgame: { 
-        title: "SET 逻辑", en: "Set Logic", icon: "shapes", color: "text-green-500", time: 300, 
+        title: "SET 逻辑", en: "Set Logic", icon: "shapes", color: "text-green-500", time: 60, 
         homeBasic: "逻辑处理", homeHard: "增加填充度维度",
         guide: { 
             goal: "识别属性的全同与全异", 
@@ -256,41 +273,51 @@
                     nbackSeq.current.push(num);
                     const match = nbackSeq.current.length > 2 && nbackSeq.current[nbackSeq.current.length-1] === nbackSeq.current[nbackSeq.current.length-3];
                     setNback({ current: num, isMatch: match });
-                     } else if(type === 'setgame') {
+                  // 在 initGameCore 的 setgame 分支中修改：
+} else if(type === 'setgame') {
     const shapes = ['circle', 'square', 'triangle'];
     const colors = ['#EF4444', '#3B82F6', '#10B981'];
-    // 关键：判断是否为进阶或竞技模式
     const isHard = mode === 'hard' || mode === 'comp';
     
-    // 1. 生成保底解
-    let solution = [];
-    const config = {
-        color: Math.random() > 0.5 ? 'same' : 'diff',
-        shape: Math.random() > 0.5 ? 'same' : 'diff'
+    // 逻辑判定：0代表全同，1代表全异
+    const logic = {
+        color: Math.floor(Math.random() * 2),
+        shape: Math.floor(Math.random() * 2),
+        fill: isHard ? Math.floor(Math.random() * 2) : 0 // 基础模式强制全同
     };
 
-    if (config.color === 'same' && config.shape === 'same') {
-        config.shape = 'diff'; 
-    }
+    // 强制至少有一个属性是“全异”，否则三张牌长得一模一样
+    if (Object.values(logic).every(v => v === 0)) logic.shape = 1;
 
+    // 1. 生成正确解 (3张)
+    let solution = [];
     for (let i = 0; i < 3; i++) {
         solution.push({
-            color: config.color === 'same' ? colors[0] : colors[i],
-            shape: config.shape === 'same' ? shapes[0] : shapes[i],
-            // 修改点：如果是普通模式，强制设为 true (实心)；如果是进阶模式，才随机透明度
-            fill: isHard ? Math.random() > 0.5 : true 
+            color: logic.color === 0 ? colors[0] : colors[i],
+            shape: logic.shape === 0 ? shapes[0] : shapes[i],
+            // 只有 true (全色) 和 false (半透)
+            fill: logic.fill === 0 ? true : (i === 0 ? true : false) // 这里注意：两个分类无法实现“全异”，只能实现“全同”
         });
     }
+    
+    /** 
+     * 逻辑修正：如果只有两个分类（全色/半透），在 3 张牌的情况下：
+     * - “全同”是可以实现的（全是实心 或 全是半透）。
+     * - “全异”逻辑上无法实现（因为只有两类，三张牌必有重复）。
+     * 因此，填充度的逻辑将自动退化为：必须全同。
+     **/
+    if (logic.fill === 1 && isHard) {
+        // 如果随机到了“全异”逻辑，由于只有两类，我们强制让解在填充度上“全同”但其他维度“全异”
+        solution.forEach(s => s.fill = Math.random() > 0.5); 
+    }
 
-    // 2. 生成干扰项
+    // 2. 生成干扰项 (6张)
     const fillers = Array.from({ length: 6 }, () => ({
         shape: shapes[Math.floor(Math.random() * 3)],
         color: colors[Math.floor(Math.random() * 3)],
-        // 修改点：干扰项同理，普通模式必须是实心
-        fill: isHard ? Math.random() > 0.5 : true
+        fill: isHard ? Math.random() > 0.5 : true 
     }));
 
-    // 3. 合并打乱
     const finalCards = [...solution, ...fillers]
         .sort(() => Math.random() - 0.5)
         .map((card, i) => ({ ...card, id: i }));
@@ -372,7 +399,7 @@
                         <div className="p-6 pt-10 flex flex-col items-center h-full overflow-y-auto no-scrollbar">
                             <div className="text-center mb-8">
                                 <div className="inline-flex items-center justify-center w-14 h-14 bg-indigo-600 text-white rounded-2xl mb-4 shadow-xl"><Icon name="brain-circuit" /></div>
-                                <h1 className="text-2xl font-black text-slate-800 mb-0.5">前额叶实验室 2.0</h1>
+                                <h1 className="text-2xl font-black text-slate-800 mb-0.5">前额叶实验室 5.0</h1>
                                 <div className="text-[10px] font-bold text-slate-400 brand-text">Prefrontal Lab</div>
                             </div>
                             
@@ -443,6 +470,48 @@
                         </div>
                     )}
 
+                        {/* 更新说明弹窗 */}
+{showUpdateNote && (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 backdrop-blur-xl bg-slate-900/60 animate-in fade-in duration-300">
+        <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-pop-center relative overflow-hidden">
+            {/* 背景装饰图层 */}
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+                <Icon name="wrench" className="w-20 h-20" />
+            </div>
+
+            <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                    <Icon name="rocket" className="w-6 h-6" />
+                </div>
+                <div>
+                    <h2 className="text-lg font-black text-slate-800">实验室更新公告</h2>
+                    <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Version 2.1 Patch</p>
+                </div>
+            </div>
+
+            <div className="space-y-4 mb-8">
+                {[
+                    "修复了 SET 逻辑 300s 的超长游戏 Bug",
+                    "修复了前额叶实验室的版本名称显示 Bug",
+                    "修复了 SET 逻辑无法生成正确答案的逻辑错误"
+                ].map((text, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
+                        <p className="text-sm text-slate-600 font-medium leading-relaxed">{text}</p>
+                    </div>
+                ))}
+            </div>
+
+            <button 
+                onClick={closeUpdateNote}
+                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform"
+            >
+                知道了，这就去练脑
+            </button>
+        </div>
+    </div>
+)}
+
                     {showInfo && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/40" onClick={() => setShowInfo(null)}>
                             <div className="bg-white w-full max-w-xs rounded-[2.8rem] p-8 relative animate-pop-center" onClick={e => e.stopPropagation()}>
@@ -461,7 +530,7 @@
 
                     {!['home', 'result'].includes(view) && (
                         <div className="flex-1 flex flex-col">
-                           <div className="h-14 px-4 flex-shrink-0 flex justify-between items-center bg-white border-b border-slate-100">
+                            <div className="h-14 px-4 flex-shrink-0 flex justify-between items-center bg-white border-b border-slate-100">
                                 <button onClick={() => setView('home')} className="p-2 text-slate-400"><Icon name="chevron-left" /></button>
                                 <div className="text-center">
                                     <div className="text-[9px] font-black text-indigo-500 brand-text">{mode === 'comp' ? 'ARENA MODE' : 'TRAINING'}</div>
@@ -616,6 +685,16 @@
                 </button>
             ))}
         </div>
+
+        {/* --- 新增：无惩罚刷新按钮 --- */}
+        <button 
+            onClick={() => initGameCore('setgame')}
+            className="flex items-center gap-2 mt-4 px-8 py-3 bg-white border border-slate-200 text-slate-400 rounded-2xl text-xs font-bold active:scale-95 transition-all shadow-sm"
+        >
+            <Icon name="refresh-cw" className="w-3.5 h-3.5" />
+            找不到？换一批
+        </button>
+
     </div>
 )}
                             </div>
