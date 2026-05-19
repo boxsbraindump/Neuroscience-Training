@@ -454,7 +454,18 @@ function App() {
         };
     };
 
-    const showAnswerFeedback = ({ correct, points = 0, penalty = 0, nextType, target, advance = true, event, flashError = true }) => {
+    const getCenteredFeedbackPosition = (element) => {
+        const rect = element?.getBoundingClientRect();
+        if (!rect) return { x: window.innerWidth / 2, y: 96, side: 'top' };
+
+        return {
+            x: rect.left + rect.width / 2,
+            y: rect.top - 12,
+            side: 'top'
+        };
+    };
+
+    const showAnswerFeedback = ({ correct, points = 0, penalty = 0, showPenalty = false, nextType, target, advance = true, event, position, flashError = true }) => {
         if (answerLock.current) return;
         answerLock.current = true;
 
@@ -465,7 +476,7 @@ function App() {
             handleArenaError({ flash: flashError });
         }
 
-        setAnswerFeedback({ status: correct ? 'correct' : 'wrong', points, target, ...getAnswerFeedbackPosition(event) });
+        setAnswerFeedback({ status: correct ? 'correct' : 'wrong', points, penalty, showPenalty, target, ...(position || getAnswerFeedbackPosition(event)) });
         if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
         feedbackTimer.current = setTimeout(() => finishAnswerFeedback(nextType, advance), correct ? 360 : 300);
     };
@@ -612,7 +623,7 @@ function App() {
                 >
                     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-xl text-white text-sm font-black whitespace-nowrap ${answerFeedback.status === 'correct' ? 'bg-emerald-500' : 'bg-red-500'}`}>
                         <Icon name={answerFeedback.status === 'correct' ? 'check' : 'x'} className="w-5 h-5" />
-                        <span>{answerFeedback.status === 'correct' ? `+${answerFeedback.points}` : '再试一次'}</span>
+                        <span>{answerFeedback.status === 'correct' ? `+${answerFeedback.points}` : (answerFeedback.showPenalty && answerFeedback.penalty > 0 ? `-${answerFeedback.penalty}` : '再试一次')}</span>
                     </div>
                 </div>
             )}
@@ -672,7 +683,7 @@ function App() {
                                 <div className="task-icon w-12 h-12 rounded-xl flex items-center justify-center mr-4 bg-amber-50 text-amber-500">
                                     <Icon name="zap" className="w-7 h-7" />
                                 </div>
-                                <div className="flex-1">
+                                <div className="task-copy flex-1">
                                     <div className="task-title font-bold text-lg text-slate-800">全能认知竞技场</div>
                                     <div className="task-subtitle text-[11px] text-slate-500 font-medium">混合：舒尔特方格 / Stroop反应 / 快速SET / N-Back / 神经元计数</div>
                                 </div>
@@ -686,7 +697,7 @@ function App() {
                                             <div className={`task-icon w-10 h-10 rounded-xl flex items-center justify-center mr-4 bg-slate-50 ${TASK_DATA[type].color}`}>
                                                 <Icon name={TASK_DATA[type].icon} />
                                             </div>
-                                            <div>
+                                            <div className="task-copy">
                                                 <div className="task-title font-bold text-base text-slate-800">{TASK_DATA[type].title}</div>
                                                 <div className="task-subtitle text-[11px] text-slate-500 font-medium">{mode === 'normal' ? TASK_DATA[type].homeBasic : TASK_DATA[type].homeHard}</div>
                                             </div>
@@ -860,13 +871,15 @@ function App() {
                             </div>
                         )}
                         {view === 'setgame' && (
-                            <div className="flex flex-col items-center w-full animate-pop-center">
+                            <div className="setgame-layout flex flex-col items-center w-full animate-pop-center">
                                 {/* --- 游戏网格 --- */}
-                                <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
+                                <div className="setgame-grid grid grid-cols-3 gap-2 w-full max-w-sm">
                                     {setGame.cards.map(card => (
                                         <button
                                             key={card.id}
-                                            onClick={() => {
+                                            disabled={!!answerFeedback}
+                                            onClick={(event) => {
+                                                if (answerLock.current) return;
                                                 const newSel = setGame.selected.includes(card.id) ? setGame.selected.filter(id => id !== card.id) : [...setGame.selected, card.id];
                                                 if (newSel.length === 3) {
                                                     const selectedCards = newSel.map(id => setGame.cards.find(c => c.id === id));
@@ -879,17 +892,32 @@ function App() {
                                                     const isFillMatch = checkProp(selectedCards[0].fill, selectedCards[1].fill, selectedCards[2].fill);
 
                                                     if (isColorMatch && isShapeMatch && isFillMatch) {
-                                                        setScore(s => s + 100);
-                                                        mode === 'comp' ? switchArenaTask() : initGameCore('setgame');
+                                                        showAnswerFeedback({
+                                                            correct: true,
+                                                            points: 100,
+                                                            nextType: 'setgame',
+                                                            target: `set-${card.id}`,
+                                                            position: getCenteredFeedbackPosition(event.currentTarget.closest('.setgame-grid')),
+                                                            flashError: false
+                                                        });
                                                     } else {
-                                                        handleArenaError();
+                                                        showAnswerFeedback({
+                                                            correct: false,
+                                                            penalty: 20,
+                                                            showPenalty: true,
+                                                            nextType: 'setgame',
+                                                            target: `set-${card.id}`,
+                                                            advance: false,
+                                                            position: getCenteredFeedbackPosition(event.currentTarget.closest('.setgame-grid')),
+                                                            flashError: false
+                                                        });
                                                         setSetGame(p => ({ ...p, selected: [] }));
                                                     }
                                                 } else {
                                                     setSetGame(p => ({ ...p, selected: newSel }));
                                                 }
                                             }}
-                                            className={`aspect-square rounded-3xl border-2 flex items-center justify-center transition-all duration-200 ${setGame.selected.includes(card.id)
+                                            className={`aspect-square rounded-3xl border-2 flex items-center justify-center transition-all duration-200 disabled:pointer-events-none ${setGame.selected.includes(card.id)
                                                 ? 'border-indigo-500 bg-indigo-50 shadow-md scale-95'
                                                 : 'border-slate-100 bg-white shadow-sm'
                                                 }`}

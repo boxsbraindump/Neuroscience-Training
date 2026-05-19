@@ -413,3 +413,16 @@ body {
         border-radius: 16px;
     }
 }
+
+.task-copy {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.task-copy .task-title {
+    margin-bottom: clamp(4px, 0.65vh, 7px);
+}
+
+.task-copy .task-subtitle {
+    line-height: 1.35 !important;
+}
