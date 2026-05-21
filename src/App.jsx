@@ -31,6 +31,156 @@ const LatexFmt = ({ text }) => {
     return <div ref={containerRef} className="inline leading-relaxed" />;
 };
 
+const UI_TEXT = {
+    zh: {
+        appTitle: "前额叶实验室 6.1.1",
+        bestSynced: "历史最高 (已同步)",
+        normal: "基础",
+        hard: "进阶",
+        hardLocked: "🔒 进阶",
+        comp: "竞技",
+        arenaTitle: "全能认知竞技场",
+        arenaShortTitle: "全能竞技",
+        arenaSubtitle: "混合：舒尔特方格 / Stroop反应 / 快速SET / N-Back / 神经元计数",
+        updateTitle: "实验室更新公告",
+        updateVersion: "Version 6.1.1 Patch",
+        updateButton: "知道了，这就去练脑",
+        startTraining: "开始训练",
+        moduleLabel: "TRAINING MODULE",
+        training: "TRAINING",
+        arenaMode: "ARENA MODE",
+        taskBest: "历史最高",
+        retry: "再试一次",
+        match: "匹配",
+        different: "不同",
+        continue: "继续",
+        refreshSet: "找不到？换一批",
+        neuronTarget: "目标图形",
+        neuronInstruction: "数出所有相同图形",
+        recorded: "已记录",
+        reset: "清零",
+        submit: "确认提交",
+        resultTitle: "测试结束 - 最终得分",
+        backHome: "返回大厅"
+    },
+    en: {
+        appTitle: "Prefrontal Lab 6.1.1",
+        bestSynced: "Personal Best",
+        normal: "Basic",
+        hard: "Advanced",
+        hardLocked: "🔒 Advanced",
+        comp: "Arena",
+        arenaTitle: "Cognitive Arena",
+        arenaShortTitle: "Arena",
+        arenaSubtitle: "Mixed training: Schulte Grid / Stroop / SET / N-Back / Neuron Counting",
+        updateTitle: "Lab Update",
+        updateVersion: "Version 6.1.1 Patch",
+        updateButton: "Got it, start training",
+        startTraining: "Start Training",
+        moduleLabel: "TRAINING MODULE",
+        training: "TRAINING",
+        arenaMode: "ARENA MODE",
+        taskBest: "Best",
+        retry: "Try again",
+        match: "Match",
+        different: "Different",
+        continue: "Continue",
+        refreshSet: "No set? Shuffle",
+        neuronTarget: "Target Shape",
+        neuronInstruction: "Count every matching shape",
+        recorded: "COUNT",
+        reset: "Reset",
+        submit: "Submit",
+        resultTitle: "Training Complete - Final Score",
+        backHome: "Back to Lobby"
+    }
+};
+
+const UPDATE_LINES = {
+    zh: [
+        "增加了双语系统。",
+        "修复动态分数更新时导致的标题布局异常问题。",
+        "更新了自适应化。"
+    ],
+    en: [
+        "Added a bilingual Chinese / English system.",
+        "Fixed title layout shifting when the score updates dynamically.",
+        "Improved responsive layout behavior."
+    ]
+};
+
+const RESULT_TEXT = {
+    zh: [
+        { max: 0, label: "实验室新人", sub: "别灰心，大脑正在热身！", color: "text-slate-400" },
+        { max: 200, label: "初露锋芒", sub: "神经元开始活跃，继续保持。", color: "text-blue-500" },
+        { max: 500, label: "脑力达人", sub: "专注力已经超过了 70% 的人！", color: "text-indigo-600" },
+        { max: 800, label: "认知巅峰", sub: "极速反应！你的大脑放电非常快。", color: "text-purple-600" },
+        { max: Infinity, label: "前额叶战神", sub: "你的大脑结构可能异于常人！", color: "text-amber-600" }
+    ],
+    en: [
+        { max: 0, label: "Lab Rookie", sub: "No worries. Your brain is warming up.", color: "text-slate-400" },
+        { max: 200, label: "Spark Starter", sub: "Your neurons are waking up. Keep going.", color: "text-blue-500" },
+        { max: 500, label: "Focus Builder", sub: "Your attention is getting sharp.", color: "text-indigo-600" },
+        { max: 800, label: "Cognitive Peak", sub: "Fast reactions. Your brain is firing cleanly.", color: "text-purple-600" },
+        { max: Infinity, label: "Prefrontal Master", sub: "That was seriously impressive.", color: "text-amber-600" }
+    ]
+};
+
+const TASK_TRANSLATIONS = {
+    schulte: {
+        title: "Schulte Grid",
+        homeBasic: "Focus and visual span",
+        homeHard: "Blind-spot mode",
+        guide: {
+            play: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Tap the numbers from <span class="text-blue-600 font-bold">1 to 25</span> in order.</p><div class="bg-blue-50/50 p-3 rounded-2xl border border-blue-100/50 text-[11px] text-slate-500">Tip: keep your eyes near the center and use peripheral vision to catch nearby numbers.</div></div>`,
+            playHard: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm"><span class="text-amber-600 font-bold">Advanced:</span> numbers disappear immediately after you tap them.</p><div class="bg-amber-50 p-4 rounded-3xl border border-amber-100 text-[11px] text-amber-700 leading-relaxed">Remember which positions are already cleared so you do not waste search time.</div></div>`
+        }
+    },
+    stroop: {
+        title: "Stroop Test",
+        homeBasic: "Inhibition control",
+        homeHard: "Double conflict",
+        guide: {
+            play: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Ignore the word meaning. Choose the button that matches the word's <span class="text-rose-600 font-bold">actual color</span>.</p><div class="bg-rose-50/50 p-3 rounded-2xl border border-rose-100/50 text-[11px] text-slate-500">Your brain wants to read the word first. Force attention onto the color.</div></div>`,
+            playHard: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm"><span class="text-rose-600 font-bold">Advanced:</span> color blocks disappear. Tap the written color name instead.</p><div class="bg-rose-50 p-4 rounded-3xl border border-rose-100 text-[11px] text-rose-700 leading-relaxed">If the word RED is shown in blue, choose the button labeled BLUE.</div></div>`
+        }
+    },
+    nback: {
+        title: "N-Back Memory",
+        homeBasic: "1-Back mode",
+        homeHard: "2-Back challenge",
+        guide: {
+            play: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Decide whether the current number matches the number from <span class="text-indigo-600 font-bold">1 step ago</span>.</p><div class="font-mono tracking-widest text-center py-2 bg-white rounded-lg border border-slate-100 text-[11px]">2 → 5 → <span class="bg-green-100 px-1 rounded text-green-700 font-bold">5</span> = Match</div></div>`,
+            playHard: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Decide whether the current number matches the number from <span class="text-purple-600 font-bold">2 steps ago</span>.</p><p class="text-[10px] text-center text-slate-400">Skip one number between the comparison and the current item.</p></div>`
+        }
+    },
+    setgame: {
+        title: "SET Logic",
+        homeBasic: "Logical processing",
+        homeHard: "Adds fill dimension",
+        guide: {
+            play: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Find 3 cards where each property is either <span class="text-indigo-600 font-bold">all the same</span> or <span class="text-indigo-600 font-bold">all different</span>.</p><div class="bg-indigo-50/50 p-2 rounded-xl border border-indigo-100/50 text-[10px] text-slate-500">Colors and shapes are both checked. Three circles in three different colors can still be valid.</div></div>`,
+            playHard: `<div class="space-y-4"><p class="text-slate-600 font-medium text-[11px]">Advanced mode also checks <span class="text-green-600 font-bold">fill level</span>.</p><div class="bg-green-50 p-3 rounded-2xl border border-green-100 text-[10px] text-green-700">A valid set must satisfy the same/all-different rule across every active property.</div></div>`
+        }
+    },
+    neuroncount: {
+        title: "Neuron Counting",
+        homeBasic: "Target count: circles",
+        homeHard: "More distractions",
+        guide: {
+            play: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Count every target shape on the screen, then submit the number.</p><div class="bg-slate-50 p-4 rounded-3xl flex flex-col items-center border"><p class="text-[10px] text-slate-400">Count carefully before using the plus and minus buttons.</p></div></div>`,
+            playHard: `<p class="text-slate-600 font-medium text-sm">Advanced mode adds more similar distractors and moving items.</p>`
+        }
+    }
+};
+
+const COLOR_LABELS = [
+    { key: 'red', zh: '红', en: 'Red', val: '#EF4444' },
+    { key: 'blue', zh: '蓝', en: 'Blue', val: '#3B82F6' },
+    { key: 'green', zh: '绿', en: 'Green', val: '#10B981' },
+    { key: 'yellow', zh: '黄', en: 'Yellow', val: '#F59E0B' }
+];
+
 function App() {
     const DEFAULT_TASK_BESTS = { schulte: 0, stroop: 0, nback: 0, setgame: 0, neuroncount: 0 };
     const [view, setView] = useState('home');
@@ -41,7 +191,31 @@ function App() {
     const [isError, setIsError] = useState(false);
     const [answerFeedback, setAnswerFeedback] = useState(null);
     const [showInfo, setShowInfo] = useState(null);
-    const [homeScroll, setHomeScroll] = useState(0);
+    const [lang, setLang] = useState(() => localStorage.getItem('prefrontal_lab_lang') || 'zh');
+    const ui = UI_TEXT[lang];
+    const isEnglish = lang === 'en';
+
+    const setLanguage = (nextLang) => {
+        localStorage.setItem('prefrontal_lab_lang', nextLang);
+        setLang(nextLang);
+    };
+
+    const getTaskTitle = (type) => isEnglish ? TASK_TRANSLATIONS[type]?.title || TASK_DATA[type].en : TASK_DATA[type].title;
+    const getTaskHome = (type, hardMode) => (
+        isEnglish
+            ? TASK_TRANSLATIONS[type]?.[hardMode ? 'homeHard' : 'homeBasic']
+            : TASK_DATA[type][hardMode ? 'homeHard' : 'homeBasic']
+    );
+    const getTaskGuide = (type) => {
+        if (!isEnglish) {
+            return (mode === 'hard' || mode === 'comp')
+                ? (TASK_DATA[type].guide.playHard || TASK_DATA[type].guide.play)
+                : TASK_DATA[type].guide.play;
+        }
+
+        const guide = TASK_TRANSLATIONS[type]?.guide;
+        return (mode === 'hard' || mode === 'comp') ? (guide?.playHard || guide?.play) : guide?.play;
+    };
 
     // --- 数据迁移逻辑：确保 1.0 数据同步到 5.0 ---
     const [history, setHistory] = useState(() => {
@@ -75,14 +249,19 @@ function App() {
     const [showUpdateNote, setShowUpdateNote] = useState(() => {
         // 检查本地存储，如果这个版本的 Key 不存在，说明是第一次见，返回 true
         const shouldPreviewUpdate = new URLSearchParams(window.location.search).has('showUpdate');
-        return shouldPreviewUpdate || !localStorage.getItem('prefrontal_lab_v6.1_update');
+        return shouldPreviewUpdate || !localStorage.getItem('prefrontal_lab_v6.1.1_update');
     });
 
     const closeUpdateNote = () => {
         // 玩家点击按钮后，在本地存入 'true'，下次刷新就不会再弹了
-        localStorage.setItem('prefrontal_lab_v6.1_update', 'true');
+        localStorage.setItem('prefrontal_lab_v6.1.1_update', 'true');
         setShowUpdateNote(false);
     };
+
+    useEffect(() => {
+        document.documentElement.lang = isEnglish ? 'en' : 'zh-CN';
+        document.title = isEnglish ? 'Prefrontal Lab 6.1.1' : '前额叶实验室 6.1.1';
+    }, [isEnglish]);
     // ==========================================
 
     const TASK_DATA = {
@@ -262,11 +441,7 @@ function App() {
     const answerLock = useRef(false);
 
     const getFeedback = (s) => {
-        if (s <= 0) return { label: "实验室新人", sub: "别灰心，大脑正在热身！", color: "text-slate-400" };
-        if (s < 200) return { label: "初露锋芒", sub: "神经元开始活跃，继续保持。", color: "text-blue-500" };
-        if (s < 500) return { label: "脑力达人", sub: "专注力已经超过了 70% 的人！", color: "text-indigo-600" };
-        if (s < 800) return { label: "认知巅峰", sub: "极速反应！你的大脑放电非常快。", color: "text-purple-600" };
-        return { label: "前额叶战神", sub: "你的大脑结构可能异于常人！", color: "text-amber-600" };
+        return RESULT_TEXT[lang].find(item => s <= item.max);
     };
 
     const initGameCore = (type) => {
@@ -275,10 +450,10 @@ function App() {
             const nums = Array.from({ length: 25 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
             setSchulte({ grid: nums, next: 1 });
         } else if (type === 'stroop') {
-            const colors = [{ name: '红', val: '#EF4444' }, { name: '蓝', val: '#3B82F6' }, { name: '绿', val: '#10B981' }, { name: '黄', val: '#F59E0B' }];
+            const colors = COLOR_LABELS;
             const t = Math.floor(Math.random() * 4);
             let c; do { c = Math.floor(Math.random() * 4); } while (c === t);
-            setStroop({ text: colors[t].name, color: colors[c].val, opts: [...colors].sort(() => Math.random() - 0.5) });
+            setStroop({ textZh: colors[t].zh, textEn: colors[t].en, color: colors[c].val, opts: [...colors].sort(() => Math.random() - 0.5) });
         } else if (type === 'nback') {
             const level = isHard ? 2 : 1;
             const round = createNbackRound(nbackSeq.current, level);
@@ -614,7 +789,7 @@ function App() {
     }, [timeLeft, view]);
 
     return (
-        <div className={`h-full flex flex-col relative overflow-hidden transition-colors duration-200 ${isError ? 'arena-flash' : 'bg-slate-50'} text-slate-900 select-none`}>
+        <div className={`app-shell h-full flex flex-col relative overflow-hidden transition-colors duration-200 ${isError ? 'arena-flash' : 'bg-slate-50'} text-slate-900 select-none`}>
 
             {answerFeedback && (
                 <div
@@ -623,30 +798,37 @@ function App() {
                 >
                     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-xl text-white text-sm font-black whitespace-nowrap ${answerFeedback.status === 'correct' ? 'bg-emerald-500' : 'bg-red-500'}`}>
                         <Icon name={answerFeedback.status === 'correct' ? 'check' : 'x'} className="w-5 h-5" />
-                        <span>{answerFeedback.status === 'correct' ? `+${answerFeedback.points}` : (answerFeedback.showPenalty && answerFeedback.penalty > 0 ? `-${answerFeedback.penalty}` : '再试一次')}</span>
+                        <span>{answerFeedback.status === 'correct' ? `+${answerFeedback.points}` : (answerFeedback.showPenalty && answerFeedback.penalty > 0 ? `-${answerFeedback.penalty}` : ui.retry)}</span>
                     </div>
                 </div>
             )}
 
             {view === 'home' && (
-                <div className="home-screen p-6 pt-10 flex flex-col items-center h-full overflow-y-auto no-scrollbar" onScroll={(event) => setHomeScroll(event.currentTarget.scrollTop)}>
-                    <div
-                        className="home-header text-center mb-8 shrink-0"
-                        style={{
-                            '--home-header-scroll-y': `-${Math.min(28, homeScroll * 0.35)}px`,
-                            '--home-header-scroll-scale': Math.max(0.88, 1 - homeScroll / 900),
-                            opacity: Math.max(0, 1 - homeScroll / 90),
-                            pointerEvents: homeScroll > 80 ? 'none' : 'auto',
-                        }}
+                <div className="home-screen p-6 pt-10 flex flex-col items-center h-full overflow-y-auto no-scrollbar relative">
+                    <button
+                        onClick={() => setLanguage(isEnglish ? 'zh' : 'en')}
+                        className="language-toggle absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full bg-white/80 border border-slate-200 text-[10px] font-black text-indigo-600 shadow-sm backdrop-blur"
                     >
+                        {isEnglish ? '中文' : 'EN'}
+                    </button>
+                    <div className="home-mini-brand hidden w-full max-w-sm items-center gap-2 shrink-0">
+                        <div className="w-9 h-9 bg-indigo-600 text-white rounded-xl shadow-md flex items-center justify-center shrink-0">
+                            <Icon name="brain-circuit" className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                            <div className="text-sm font-black text-slate-800 leading-tight truncate">{ui.appTitle}</div>
+                            <div className="text-[8px] font-bold text-slate-400 brand-text leading-tight">Prefrontal Lab</div>
+                        </div>
+                    </div>
+                    <div className="home-header text-center mb-8 shrink-0">
                         <div className="home-logo inline-flex items-center justify-center w-14 h-14 bg-indigo-600 text-white rounded-2xl shadow-xl"><Icon name="brain-circuit" /></div>
-                        <h1 className="home-title text-2xl font-black text-slate-800 mt-4 mb-0.5">前额叶实验室 6.1</h1>
+                        <h1 className="home-title text-2xl font-black text-slate-800 mt-4 mb-0.5">{ui.appTitle}</h1>
                         <div className="text-[10px] font-bold text-slate-400 brand-text">Prefrontal Lab</div>
                     </div>
 
                     <div className={`score-card w-full max-w-sm p-6 rounded-[2.2rem] text-white mb-6 shadow-lg flex justify-between items-end relative overflow-hidden shrink-0 ${mode === 'comp' ? 'bg-amber-500' : 'bg-indigo-600'}`}>
                         <div className="z-10">
-                            <div className="text-[10px] opacity-60 font-bold uppercase tracking-widest">历史最高 (已同步)</div>
+                            <div className="text-[10px] opacity-60 font-bold uppercase tracking-widest">{ui.bestSynced}</div>
                             <div className="score-value text-4xl font-black">{mode === 'comp' ? (history.bestCompScore || 0) : (history.bestScore || 0)}</div>
                         </div>
                         <div className="unlock-pill z-10 text-[10px] font-bold bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md">
@@ -671,7 +853,7 @@ function App() {
                                 ${isLocked ? 'opacity-30 cursor-not-allowed' : ''} 
                                 ${mode === m ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
                                 >
-                                    {m === 'normal' ? '基础' : m === 'hard' ? (isLocked ? '🔒 进阶' : '进阶') : '竞技'}
+                                    {m === 'normal' ? ui.normal : m === 'hard' ? (isLocked ? ui.hardLocked : ui.hard) : ui.comp}
                                 </button>
                             );
                         })}
@@ -684,8 +866,8 @@ function App() {
                                     <Icon name="zap" className="w-7 h-7" />
                                 </div>
                                 <div className="task-copy flex-1">
-                                    <div className="task-title font-bold text-lg text-slate-800">全能认知竞技场</div>
-                                    <div className="task-subtitle text-[11px] text-slate-500 font-medium">混合：舒尔特方格 / Stroop反应 / 快速SET / N-Back / 神经元计数</div>
+                                    <div className="task-title font-bold text-lg text-slate-800">{ui.arenaTitle}</div>
+                                    <div className="task-subtitle text-[11px] text-slate-500 font-medium">{ui.arenaSubtitle}</div>
                                 </div>
                                 <Icon name="swords" className="w-5 h-5 text-amber-300" />
                             </div>
@@ -698,8 +880,8 @@ function App() {
                                                 <Icon name={TASK_DATA[type].icon} />
                                             </div>
                                             <div className="task-copy">
-                                                <div className="task-title font-bold text-base text-slate-800">{TASK_DATA[type].title}</div>
-                                                <div className="task-subtitle text-[11px] text-slate-500 font-medium">{mode === 'normal' ? TASK_DATA[type].homeBasic : TASK_DATA[type].homeHard}</div>
+                                                <div className="task-title font-bold text-base text-slate-800">{getTaskTitle(type)}</div>
+                                                <div className="task-subtitle text-[11px] text-slate-500 font-medium">{getTaskHome(type, mode !== 'normal')}</div>
                                             </div>
                                         </div>
                                         <button onClick={(event) => { event.stopPropagation(); setShowInfo(type); }} className="info-button p-2 ml-1 text-slate-300"><Icon name="info" className="w-5 h-5" /></button>
@@ -725,21 +907,13 @@ function App() {
                                 <Icon name="rocket" className="w-6 h-6" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-black text-slate-800">实验室更新公告</h2>
-                                <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Version 6.1 Patch</p>
+                                <h2 className="text-lg font-black text-slate-800">{ui.updateTitle}</h2>
+                                <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">{ui.updateVersion}</p>
                             </div>
                         </div>
 
                         <div className="space-y-4 mb-8">
-                            {[
-                                "修复了 N-Back 无法看清就进入下一关的问题。",
-                                "修复了 N-Back 无限点“不同”卡分的问题。",
-                                "新增点击反馈，去掉全屏红/绿背景反馈，只保留按钮附近反馈。",
-                                "神经元计数的视觉更集中了！",
-                                "增加了神经元计数的图形出场动画，并在进阶模式新增难度。",
-                                "增加了每个小游戏的历史最高纪录。",
-                                "解决了 SET 逻辑看不到最下面按钮的问题，删除了游戏内页的游戏玩法说明。"
-                            ].map((text, i) => (
+                            {UPDATE_LINES[lang].map((text, i) => (
                                 <div key={i} className="flex items-start gap-3">
                                     <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
                                     <p className="text-sm text-slate-600 font-medium leading-relaxed">{text}</p>
@@ -751,7 +925,7 @@ function App() {
                             onClick={closeUpdateNote}
                             className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform"
                         >
-                            知道了，这就去练脑
+                            {ui.updateButton}
                         </button>
                     </div>
                 </div>
@@ -761,35 +935,33 @@ function App() {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/40" onClick={() => setShowInfo(null)}>
                     <div className="bg-white w-full max-w-xs rounded-[2.8rem] p-8 relative animate-pop-center" onClick={e => e.stopPropagation()}>
                         <div className={`w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-6 ${TASK_DATA[showInfo].color}`}><Icon name={TASK_DATA[showInfo].icon} className="w-7 h-7" /></div>
-                        <h2 className="text-xl font-black mb-1">{TASK_DATA[showInfo].title}</h2>
-                        <div className="text-[9px] font-bold text-slate-400 brand-text mb-6">{TASK_DATA[showInfo].en}</div>
-                        <div className="text-xs text-slate-600 leading-relaxed font-medium mb-8"><LatexFmt text={
-                            (mode === 'hard' || mode === 'comp')
-                                ? (TASK_DATA[showInfo].guide.playHard || TASK_DATA[showInfo].guide.play)
-                                : TASK_DATA[showInfo].guide.play
-                        } /></div>
-                        <button onClick={() => { startChallenge(showInfo); setShowInfo(null); }} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg">开始训练</button>
+                        <h2 className="text-xl font-black mb-1">{getTaskTitle(showInfo)}</h2>
+                        <div className="text-[9px] font-bold text-slate-400 brand-text mb-6">{isEnglish ? ui.moduleLabel : TASK_DATA[showInfo].en}</div>
+                        <div className="text-xs text-slate-600 leading-relaxed font-medium mb-8"><LatexFmt text={getTaskGuide(showInfo)} /></div>
+                        <button onClick={() => { startChallenge(showInfo); setShowInfo(null); }} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg">{ui.startTraining}</button>
                     </div>
                 </div>
             )}
 
             {!['home', 'result'].includes(view) && (
-                <div className="flex-1 flex flex-col">
-                    <div className="h-14 px-4 flex-shrink-0 flex justify-between items-center bg-white border-b border-slate-100">
-                        <button onClick={() => { clearAnswerFeedback(); setView('home'); }} className="p-2 text-slate-400"><Icon name="chevron-left" /></button>
+                <div className="game-screen flex-1 flex flex-col">
+                    <div className="game-topbar h-14 px-4 flex-shrink-0 grid grid-cols-[1fr_auto_1fr] items-center bg-white border-b border-slate-100">
+                        <div className="flex justify-start">
+                            <button onClick={() => { clearAnswerFeedback(); setView('home'); }} className="p-2 text-slate-400"><Icon name="chevron-left" /></button>
+                        </div>
                         <div className="text-center">
-                            <div className="text-[9px] font-black text-indigo-500 brand-text">{mode === 'comp' ? 'ARENA MODE' : 'TRAINING'}</div>
-                            <div className="text-sm font-bold">{mode === 'comp' ? '全能竞技' : TASK_DATA[view]?.title}</div>
+                            <div className="text-[9px] font-black text-indigo-500 brand-text">{mode === 'comp' ? ui.arenaMode : ui.training}</div>
+                            <div className="text-sm font-bold">{mode === 'comp' ? ui.arenaShortTitle : getTaskTitle(view)}</div>
                             {mode !== 'comp' && TASK_DATA[view] && (
-                                <div className="text-[9px] font-black text-slate-400 font-mono">历史最高 {history.taskBestScores?.[view] || 0}</div>
+                                <div className="text-[9px] font-black text-slate-400 font-mono">{ui.taskBest} {history.taskBestScores?.[view] || 0}</div>
                             )}
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-end gap-3">
                             <div className={`text-xs font-mono font-bold px-2 py-1 rounded ${isError ? 'bg-red-500 text-white' : 'bg-slate-100'}`}>{timeLeft}s</div>
                             <div className="font-mono text-xl font-black text-indigo-600">{score}</div>
                         </div>
                     </div>
-                    <div className="flex-1 flex items-center justify-center p-6">
+                    <div className="game-stage flex-1 flex items-center justify-center p-6">
                         {view === 'schulte' && (
                             <div className="grid grid-cols-5 gap-1.5 w-full max-w-sm aspect-square">
                                 {schulte.grid.map(n => {
@@ -832,7 +1004,7 @@ function App() {
                         )}
                         {view === 'stroop' && (
                             <div className="flex flex-col items-center space-y-12 w-full">
-                                <div className="text-7xl font-black" style={{ color: stroop.color }}>{stroop.text}</div>
+                                <div className="text-7xl font-black" style={{ color: stroop.color }}>{isEnglish ? stroop.textEn : stroop.textZh}</div>
                                 <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
                                     {stroop.opts.map(o => (
                                         <button key={o.val} disabled={!!answerFeedback} onClick={(event) => {
@@ -846,7 +1018,7 @@ function App() {
                                                 event,
                                                 flashError: false
                                             });
-                                        }} className={`py-6 rounded-2xl border font-bold shadow-sm transition-all duration-200 disabled:pointer-events-none ${answerFeedback?.target === o.val ? (answerFeedback.status === 'correct' ? 'bg-emerald-500 text-white border-emerald-400 scale-105 ring-4 ring-emerald-100' : 'bg-red-50 text-red-600 border-red-200 ring-4 ring-red-100') : 'bg-white border-slate-100'}`}>{mode === 'normal' ? <div className="w-8 h-8 rounded-full mx-auto" style={{ backgroundColor: o.val }}></div> : o.name}</button>
+                                        }} className={`py-6 rounded-2xl border font-bold shadow-sm transition-all duration-200 disabled:pointer-events-none ${answerFeedback?.target === o.val ? (answerFeedback.status === 'correct' ? 'bg-emerald-500 text-white border-emerald-400 scale-105 ring-4 ring-emerald-100' : 'bg-red-50 text-red-600 border-red-200 ring-4 ring-red-100') : 'bg-white border-slate-100'}`}>{mode === 'normal' ? <div className="w-8 h-8 rounded-full mx-auto" style={{ backgroundColor: o.val }}></div> : (isEnglish ? o.en : o.zh)}</button>
                                     ))}
                                 </div>
                             </div>
@@ -858,15 +1030,15 @@ function App() {
                                     <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
                                         <button disabled={!!answerFeedback} onClick={(event) => {
                                             handleNbackAnswer(true, event);
-                                        }} className={`py-5 rounded-2xl font-bold shadow-lg transition-all duration-200 disabled:pointer-events-none ${answerFeedback?.target === 'match' ? (answerFeedback.status === 'correct' ? 'bg-emerald-500 text-white scale-105 ring-4 ring-emerald-100' : 'bg-red-500 text-white ring-4 ring-red-100') : 'bg-indigo-600 text-white'}`}>匹配</button>
+                                        }} className={`py-5 rounded-2xl font-bold shadow-lg transition-all duration-200 disabled:pointer-events-none ${answerFeedback?.target === 'match' ? (answerFeedback.status === 'correct' ? 'bg-emerald-500 text-white scale-105 ring-4 ring-emerald-100' : 'bg-red-500 text-white ring-4 ring-red-100') : 'bg-indigo-600 text-white'}`}>{ui.match}</button>
                                         <button disabled={!!answerFeedback} onClick={(event) => {
                                             handleNbackAnswer(false, event);
-                                        }} className={`py-5 rounded-2xl font-bold transition-all duration-200 disabled:pointer-events-none ${answerFeedback?.target === 'different' ? (answerFeedback.status === 'correct' ? 'bg-emerald-500 text-white scale-105 ring-4 ring-emerald-100' : 'bg-red-500 text-white ring-4 ring-red-100') : 'bg-slate-200 text-slate-600'}`}>不同</button>
+                                        }} className={`py-5 rounded-2xl font-bold transition-all duration-200 disabled:pointer-events-none ${answerFeedback?.target === 'different' ? (answerFeedback.status === 'correct' ? 'bg-emerald-500 text-white scale-105 ring-4 ring-emerald-100' : 'bg-red-500 text-white ring-4 ring-red-100') : 'bg-slate-200 text-slate-600'}`}>{ui.different}</button>
                                     </div>
                                 ) : (
                                     <button disabled={!!answerFeedback} onClick={() => {
                                         handleNbackAnswer(false);
-                                    }} className="py-5 w-full max-w-xs bg-indigo-600 text-white rounded-2xl font-bold shadow-lg disabled:pointer-events-none">继续</button>
+                                    }} className="py-5 w-full max-w-xs bg-indigo-600 text-white rounded-2xl font-bold shadow-lg disabled:pointer-events-none">{ui.continue}</button>
                                 )}
                             </div>
                         )}
@@ -935,7 +1107,7 @@ function App() {
                                     className="flex items-center gap-2 mt-4 px-8 py-3 bg-white border border-slate-200 text-slate-400 rounded-2xl text-xs font-bold active:scale-95 transition-all shadow-sm"
                                 >
                                     <Icon name="refresh-cw" className="w-3.5 h-3.5" />
-                                    找不到？换一批
+                                    {ui.refreshSet}
                                 </button>
 
                             </div>
@@ -948,8 +1120,8 @@ function App() {
                                             <Icon name="scan-search" className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <div className="text-[10px] font-black text-indigo-500 brand-text">目标图形</div>
-                                            <div className="text-sm font-black text-slate-700">数出所有相同图形</div>
+                                            <div className="text-[10px] font-black text-indigo-500 brand-text">{ui.neuronTarget}</div>
+                                            <div className="text-sm font-black text-slate-700">{ui.neuronInstruction}</div>
                                         </div>
                                     </div>
                                     <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
@@ -992,7 +1164,7 @@ function App() {
                                             <Icon name="minus" className="w-5 h-5" />
                                         </button>
                                         <div className="flex-1 h-14 bg-indigo-600 text-white rounded-2xl shadow-md flex flex-col items-center justify-center">
-                                            <div className="text-[9px] opacity-70 font-black brand-text leading-none mb-0.5">已记录</div>
+                                            <div className="text-[9px] opacity-70 font-black brand-text leading-none mb-0.5">{ui.recorded}</div>
                                             <div className="text-3xl font-black font-mono leading-none">{neuronCount.currentCount}</div>
                                         </div>
                                         <button
@@ -1008,7 +1180,7 @@ function App() {
                                             onClick={() => setNeuronCount(p => ({ ...p, currentCount: 0 }))}
                                             className="h-11 bg-indigo-50 text-indigo-500 rounded-[1.1rem] font-bold border border-indigo-100 active:scale-95 transition-transform flex items-center justify-center gap-1 text-xs"
                                         >
-                                            <Icon name="rotate-ccw" className="w-4 h-4" /> 清零
+                                            <Icon name="rotate-ccw" className="w-4 h-4" /> {ui.reset}
                                         </button>
                                         <button
                                             disabled={!!answerFeedback}
@@ -1029,7 +1201,7 @@ function App() {
                                             }}
                                             className="h-11 bg-slate-900 text-white rounded-[1.1rem] font-bold shadow-md active:scale-95 transition-transform flex items-center justify-center gap-1 text-sm"
                                         >
-                                            <Icon name="check" className="w-5 h-5" /> 确认提交
+                                            <Icon name="check" className="w-5 h-5" /> {ui.submit}
                                         </button>
                                     </div>
                                 </div>
@@ -1044,11 +1216,11 @@ function App() {
                 return (
                     <div className="flex-1 flex flex-col items-center justify-center px-8 text-center animate-pop-center">
                         <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-6 text-indigo-500 shadow-sm"><Icon name="sparkles" className="w-10 h-10" /></div>
-                        <div className="text-[10px] font-black brand-text text-slate-400 mb-1">测试结束 - 最终得分</div>
+                        <div className="text-[10px] font-black brand-text text-slate-400 mb-1">{ui.resultTitle}</div>
                         <div className="text-6xl font-black text-indigo-600 mb-6 font-mono">{lastScore}</div>
                         <div className={`text-xl font-black mb-1 ${feedback.color}`}>{feedback.label}</div>
                         <div className="text-xs text-slate-500 mb-12 font-medium leading-relaxed max-w-[200px]">{feedback.sub}</div>
-                        <button onClick={() => setView('home')} className="w-full max-w-sm py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg">返回大厅</button>
+                        <button onClick={() => setView('home')} className="w-full max-w-sm py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg">{ui.backHome}</button>
                     </div>
                 );
             })()}
