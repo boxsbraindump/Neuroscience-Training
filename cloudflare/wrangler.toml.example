@@ -1,0 +1,12 @@
+name = "prefrontal-lab-retention"
+main = "retention-worker.js"
+compatibility_date = "2026-05-30"
+
+[[d1_databases]]
+binding = "ANALYTICS_DB"
+database_name = "prefrontal-lab-analytics"
+database_id = "PASTE_YOUR_D1_DATABASE_ID_HERE"
+
+# Put these in Cloudflare as secrets, not in GitHub:
+# ANALYTICS_READ_TOKEN = owner password for reading summary
+# VISITOR_SALT = any long random text for hashing anonymous visitor ids

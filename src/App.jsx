@@ -181,9 +181,205 @@ const COLOR_LABELS = [
     { key: 'yellow', zh: '黄', en: 'Yellow', val: '#F59E0B' }
 ];
 
+const RETENTION_STORAGE_KEY = 'prefrontal_lab_retention_v1';
+const RETENTION_VISITOR_KEY = 'prefrontal_lab_visitor_id';
+const OWNER_ACCESS_KEY = 'prefrontal_lab_owner_access';
+const OWNER_TOKEN_KEY = 'prefrontal_lab_owner_token';
+const CLOUD_ANALYTICS_ENDPOINT = window.PFL_ANALYTICS_ENDPOINT || '/api/retention';
+
+const getDayKey = (date = new Date()) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const getVisitorId = () => {
+    let visitorId = localStorage.getItem(RETENTION_VISITOR_KEY);
+    if (!visitorId) {
+        const randomPart = window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        visitorId = `pfl-${randomPart}`;
+        localStorage.setItem(RETENTION_VISITOR_KEY, visitorId);
+    }
+    return visitorId;
+};
+
+const readRetentionData = () => {
+    const visitorId = getVisitorId();
+    const now = new Date();
+    const fallback = {
+        visitorId,
+        firstSeen: now.toISOString(),
+        lastSeen: now.toISOString(),
+        activeDays: [],
+        visitsByDay: {},
+        sessions: [],
+        events: []
+    };
+
+    try {
+        const stored = JSON.parse(localStorage.getItem(RETENTION_STORAGE_KEY) || 'null');
+        if (!stored) return fallback;
+        return {
+            ...fallback,
+            ...stored,
+            visitorId,
+            activeDays: Array.isArray(stored.activeDays) ? stored.activeDays : [],
+            visitsByDay: stored.visitsByDay || {},
+            sessions: Array.isArray(stored.sessions) ? stored.sessions : [],
+            events: Array.isArray(stored.events) ? stored.events : []
+        };
+    } catch (error) {
+        return fallback;
+    }
+};
+
+const writeRetentionData = (data) => {
+    localStorage.setItem(RETENTION_STORAGE_KEY, JSON.stringify(data));
+};
+
+const trackRetentionEvent = (eventName, payload = {}) => {
+    const now = new Date();
+    const day = getDayKey(now);
+    const data = readRetentionData();
+    const activeDays = Array.from(new Set([...data.activeDays, day])).sort();
+    const events = [
+        ...data.events,
+        {
+            name: eventName,
+            at: now.toISOString(),
+            day,
+            path: window.location.pathname,
+            ...payload
+        }
+    ].slice(-500);
+
+    const nextData = {
+        ...data,
+        lastSeen: now.toISOString(),
+        activeDays,
+        visitsByDay: {
+            ...data.visitsByDay,
+            [day]: eventName === 'session_start' ? (data.visitsByDay[day] || 0) + 1 : (data.visitsByDay[day] || 0)
+        },
+        sessions: eventName === 'session_start'
+            ? [
+                ...data.sessions,
+                {
+                    id: payload.sessionId,
+                    startedAt: now.toISOString(),
+                    day,
+                    source: payload.source || 'direct'
+                }
+            ].slice(-120)
+            : data.sessions,
+        events
+    };
+
+    writeRetentionData(nextData);
+    sendCloudRetentionEvent(eventName, nextData.visitorId, nextData.firstSeen, payload);
+    return nextData;
+};
+
+const sendCloudRetentionEvent = (eventName, visitorId, firstSeen, payload = {}) => {
+    if (!CLOUD_ANALYTICS_ENDPOINT || !window.fetch) return;
+
+    const now = new Date();
+    const body = {
+        name: eventName,
+        visitorId,
+        firstSeen,
+        at: now.toISOString(),
+        day: getDayKey(now),
+        path: window.location.pathname,
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        screen: {
+            width: window.screen?.width,
+            height: window.screen?.height
+        },
+        ...payload
+    };
+
+    fetch(`${CLOUD_ANALYTICS_ENDPOINT}/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        keepalive: true
+    }).catch(() => {});
+};
+
+const getDaysBetween = (startDay, endDay) => {
+    const start = new Date(`${startDay}T00:00:00`);
+    const end = new Date(`${endDay}T00:00:00`);
+    return Math.round((end - start) / 86400000);
+};
+
+const getStreak = (activeDays, today = getDayKey()) => {
+    const activeSet = new Set(activeDays);
+    let streak = 0;
+    const cursor = new Date(`${today}T00:00:00`);
+    while (activeSet.has(getDayKey(cursor))) {
+        streak += 1;
+        cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+};
+
+const buildRetentionSummary = (data) => {
+    const activeDays = [...new Set(data.activeDays || [])].sort();
+    const firstDay = activeDays[0] || getDayKey();
+    const today = getDayKey();
+    const gaps = activeDays.slice(1).map((day, index) => getDaysBetween(activeDays[index], day)).filter(gap => gap > 0);
+    const completions = (data.events || []).filter(event => event.name === 'game_complete');
+    const starts = (data.events || []).filter(event => event.name === 'game_start');
+    const taskCounts = completions.reduce((acc, event) => {
+        const task = event.task || 'arena';
+        acc[task] = (acc[task] || 0) + 1;
+        return acc;
+    }, {});
+    const topTask = Object.entries(taskCounts).sort((a, b) => b[1] - a[1])[0];
+    const last7Days = Array.from({ length: 7 }, (_, index) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - index));
+        const day = getDayKey(date);
+        return { day, visits: data.visitsByDay?.[day] || 0, active: activeDays.includes(day) };
+    });
+
+    return {
+        firstDay,
+        activeDays,
+        totalVisits: Object.values(data.visitsByDay || {}).reduce((sum, count) => sum + count, 0),
+        totalSessions: data.sessions?.length || 0,
+        totalStarts: starts.length,
+        totalCompletions: completions.length,
+        completionRate: starts.length ? Math.round((completions.length / starts.length) * 100) : 0,
+        currentStreak: getStreak(activeDays, today),
+        averageReturnGap: gaps.length ? (gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length).toFixed(1) : '-',
+        d1: activeDays.includes(getDayKey(new Date(new Date(`${firstDay}T00:00:00`).getTime() + 86400000))),
+        d7: activeDays.includes(getDayKey(new Date(new Date(`${firstDay}T00:00:00`).getTime() + 7 * 86400000))),
+        d30: activeDays.includes(getDayKey(new Date(new Date(`${firstDay}T00:00:00`).getTime() + 30 * 86400000))),
+        topTask: topTask ? topTask[0] : '-',
+        topTaskCount: topTask ? topTask[1] : 0,
+        last7Days
+    };
+};
+
 function App() {
     const DEFAULT_TASK_BESTS = { schulte: 0, stroop: 0, nback: 0, setgame: 0, neuroncount: 0 };
-    const [view, setView] = useState('home');
+    const urlParams = new URLSearchParams(window.location.search);
+    const [isOwner, setIsOwner] = useState(() => {
+        if (urlParams.get('owner') === '1') {
+            localStorage.setItem(OWNER_ACCESS_KEY, 'true');
+            return true;
+        }
+        if (urlParams.get('owner') === '0') {
+            localStorage.removeItem(OWNER_ACCESS_KEY);
+            return false;
+        }
+        return localStorage.getItem(OWNER_ACCESS_KEY) === 'true';
+    });
+    const [view, setView] = useState(() => (urlParams.has('analytics') && (urlParams.get('owner') === '1' || localStorage.getItem(OWNER_ACCESS_KEY) === 'true')) ? 'analytics' : 'home');
     const [mode, setMode] = useState('normal');
     const [score, setScore] = useState(0);
     const [timeLeft, setTimeLeft] = useState(0);
@@ -192,12 +388,144 @@ function App() {
     const [answerFeedback, setAnswerFeedback] = useState(null);
     const [showInfo, setShowInfo] = useState(null);
     const [lang, setLang] = useState(() => localStorage.getItem('prefrontal_lab_lang') || 'zh');
+    const [retentionData, setRetentionData] = useState(() => readRetentionData());
+    const [cloudSummary, setCloudSummary] = useState(null);
+    const [cloudStatus, setCloudStatus] = useState('idle');
+    const [ownerToken, setOwnerToken] = useState(() => localStorage.getItem(OWNER_TOKEN_KEY) || '');
     const ui = UI_TEXT[lang];
     const isEnglish = lang === 'en';
+    const isGameView = !['home', 'result', 'analytics'].includes(view);
+    const localRetentionSummary = buildRetentionSummary(retentionData);
+    const retentionSummary = cloudSummary || localRetentionSummary;
+    const analyticsText = isEnglish
+        ? {
+            title: 'Retention Analyzer',
+            subtitle: 'Local prototype for return visits and training completion.',
+            back: 'Back',
+            reset: 'Reset test data',
+            export: 'Export',
+            cloud: 'Cloud data',
+            local: 'Local test data',
+            password: 'Owner password',
+            loadCloud: 'Load cloud',
+            wrongPassword: 'Cloud data needs your owner password.',
+            users: 'Users',
+            firstSeen: 'First seen',
+            activeDays: 'Active days',
+            visits: 'Visits',
+            streak: 'Current streak',
+            avgGap: 'Avg return gap',
+            completion: 'Completion',
+            topTask: 'Top return task',
+            d1: 'D1',
+            d7: 'D7',
+            d30: 'D30',
+            last7: 'Last 7 days',
+            starts: 'Starts',
+            completes: 'Completes',
+            days: 'days'
+        }
+        : {
+            title: '留存分析',
+            subtitle: '本地测试版：看同一设备是否回来、多久回来、回来后完成了什么训练。',
+            back: '返回',
+            reset: '清空测试数据',
+            export: '导出',
+            cloud: '云端数据',
+            local: '本地测试数据',
+            password: 'Owner 密码',
+            loadCloud: '读取云端',
+            wrongPassword: '云端数据需要你的 owner 密码。',
+            users: '用户数',
+            firstSeen: '首次访问',
+            activeDays: '活跃天数',
+            visits: '访问次数',
+            streak: '连续回访',
+            avgGap: '平均间隔',
+            completion: '完成率',
+            topTask: '最常完成',
+            d1: '次日',
+            d7: '7日',
+            d30: '30日',
+            last7: '近7天',
+            starts: '开始',
+            completes: '完成',
+            days: '天'
+        };
 
     const setLanguage = (nextLang) => {
         localStorage.setItem('prefrontal_lab_lang', nextLang);
         setLang(nextLang);
+    };
+
+    const refreshRetention = () => setRetentionData(readRetentionData());
+
+    const recordRetention = (eventName, payload = {}) => {
+        const nextData = trackRetentionEvent(eventName, payload);
+        setRetentionData(nextData);
+        return nextData;
+    };
+
+    const resetRetentionData = () => {
+        localStorage.removeItem(RETENTION_STORAGE_KEY);
+        const fresh = readRetentionData();
+        writeRetentionData(fresh);
+        setRetentionData(fresh);
+    };
+
+    const lockOwnerAccess = () => {
+        localStorage.removeItem(OWNER_ACCESS_KEY);
+        localStorage.removeItem(OWNER_TOKEN_KEY);
+        setIsOwner(false);
+        setOwnerToken('');
+        setCloudSummary(null);
+        setCloudStatus('idle');
+        setView('home');
+    };
+
+    const exportRetentionData = async () => {
+        const payload = JSON.stringify(cloudSummary || readRetentionData(), null, 2);
+        try {
+            await navigator.clipboard.writeText(payload);
+        } catch (error) {
+            const blob = new Blob([payload], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `prefrontal-retention-${getDayKey()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+    };
+
+    const loadCloudRetentionSummary = async (token = ownerToken) => {
+        if (!token) {
+            setCloudStatus('locked');
+            return;
+        }
+
+        setCloudStatus('loading');
+        try {
+            const response = await fetch(`${CLOUD_ANALYTICS_ENDPOINT}/summary`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                setCloudStatus('locked');
+                setCloudSummary(null);
+                return;
+            }
+
+            if (!response.ok) throw new Error(`Cloud summary failed: ${response.status}`);
+
+            const data = await response.json();
+            setCloudSummary(data.summary);
+            setCloudStatus('ready');
+            localStorage.setItem(OWNER_TOKEN_KEY, token);
+        } catch (error) {
+            setCloudStatus('local');
+            setCloudSummary(null);
+        }
     };
 
     const getTaskTitle = (type) => isEnglish ? TASK_TRANSLATIONS[type]?.title || TASK_DATA[type].en : TASK_DATA[type].title;
@@ -262,6 +590,30 @@ function App() {
         document.documentElement.lang = isEnglish ? 'en' : 'zh-CN';
         document.title = isEnglish ? 'Prefrontal Lab 6.1.1' : '前额叶实验室 6.1.1';
     }, [isEnglish]);
+
+    useEffect(() => {
+        recordRetention('session_start', {
+            sessionId: sessionIdRef.current,
+            source: document.referrer ? 'referral' : 'direct'
+        });
+
+        const markSessionEnd = () => {
+            trackRetentionEvent('session_end', { sessionId: sessionIdRef.current });
+        };
+
+        window.addEventListener('pagehide', markSessionEnd);
+        return () => {
+            markSessionEnd();
+            window.removeEventListener('pagehide', markSessionEnd);
+        };
+    }, []);
+
+    useEffect(() => {
+        recordRetention('view_change', { view });
+        if (view === 'analytics' && isOwner) {
+            loadCloudRetentionSummary();
+        }
+    }, [view]);
     // ==========================================
 
     const TASK_DATA = {
@@ -439,6 +791,8 @@ function App() {
     const feedbackTimer = useRef(null);
     const neuronMoveTimer = useRef(null);
     const answerLock = useRef(false);
+    const sessionIdRef = useRef(`session-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+    const currentRunRef = useRef(null);
 
     const getFeedback = (s) => {
         return RESULT_TEXT[lang].find(item => s <= item.max);
@@ -582,6 +936,17 @@ function App() {
         clearAnswerFeedback();
         setScore(0);
         nbackSeq.current = [];
+        const taskName = mode === 'comp' ? 'arena' : type;
+        currentRunRef.current = {
+            task: taskName,
+            mode,
+            startedAt: new Date().toISOString()
+        };
+        recordRetention('game_start', {
+            sessionId: sessionIdRef.current,
+            task: taskName,
+            mode
+        });
         if (mode === 'comp') {
             setTimeLeft(90);
             switchArenaTask();
@@ -719,6 +1084,17 @@ function App() {
         setLastScore(currentFinalScore);
 
         const isComp = mode === 'comp';
+        const completedTask = currentRunRef.current?.task || (isComp ? 'arena' : view);
+        recordRetention('game_complete', {
+            sessionId: sessionIdRef.current,
+            task: completedTask,
+            mode,
+            score: currentFinalScore,
+            durationSeconds: currentRunRef.current?.startedAt
+                ? Math.max(0, Math.round((Date.now() - new Date(currentRunRef.current.startedAt).getTime()) / 1000))
+                : null
+        });
+        currentRunRef.current = null;
 
         setHistory(prev => {
             // 计算新的最高分
@@ -780,9 +1156,9 @@ function App() {
 
     useEffect(() => {
         let timer;
-        if (!['home', 'result'].includes(view) && timeLeft > 0) {
+        if (isGameView && timeLeft > 0) {
             timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
-        } else if (timeLeft === 0 && !['home', 'result'].includes(view)) {
+        } else if (timeLeft === 0 && isGameView) {
             endGame();
         }
         return () => clearInterval(timer);
@@ -805,6 +1181,15 @@ function App() {
 
             {view === 'home' && (
                 <div className="home-screen p-6 pt-10 flex flex-col items-center h-full overflow-y-auto no-scrollbar relative">
+                    {isOwner && (
+                        <button
+                            onClick={() => { refreshRetention(); setView('analytics'); }}
+                            className="analytics-open absolute top-4 left-4 z-20 w-9 h-9 rounded-full bg-white/80 border border-slate-200 text-indigo-600 shadow-sm backdrop-blur flex items-center justify-center"
+                            aria-label={analyticsText.title}
+                        >
+                            <Icon name="chart-no-axes-combined" className="w-4 h-4" />
+                        </button>
+                    )}
                     <button
                         onClick={() => setLanguage(isEnglish ? 'zh' : 'en')}
                         className="language-toggle absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full bg-white/80 border border-slate-200 text-[10px] font-black text-indigo-600 shadow-sm backdrop-blur"
@@ -893,8 +1278,151 @@ function App() {
                 </div>
             )}
 
+            {view === 'analytics' && isOwner && (
+                <div className="analytics-screen h-full overflow-y-auto no-scrollbar bg-slate-50 px-5 py-5">
+                    <div className="w-full max-w-md mx-auto">
+                        <div className="flex items-center justify-between mb-5">
+                            <button
+                                onClick={() => setView('home')}
+                                className="w-10 h-10 rounded-2xl bg-white border border-slate-100 text-slate-500 shadow-sm flex items-center justify-center"
+                                aria-label={analyticsText.back}
+                            >
+                                <Icon name="chevron-left" className="w-5 h-5" />
+                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={exportRetentionData}
+                                    className="w-10 h-10 rounded-2xl bg-white border border-slate-100 text-indigo-600 shadow-sm flex items-center justify-center"
+                                    aria-label={analyticsText.export}
+                                >
+                                    <Icon name="download" className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={resetRetentionData}
+                                    className="w-10 h-10 rounded-2xl bg-white border border-slate-100 text-rose-500 shadow-sm flex items-center justify-center"
+                                    aria-label={analyticsText.reset}
+                                >
+                                    <Icon name="trash-2" className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={lockOwnerAccess}
+                                    className="w-10 h-10 rounded-2xl bg-white border border-slate-100 text-slate-500 shadow-sm flex items-center justify-center"
+                                    aria-label="Lock analytics"
+                                >
+                                    <Icon name="lock" className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white shadow-lg flex items-center justify-center mb-4">
+                                <Icon name="chart-no-axes-combined" className="w-6 h-6" />
+                            </div>
+                            <h2 className="text-2xl font-black text-slate-900 leading-tight">{analyticsText.title}</h2>
+                            <p className="text-xs text-slate-500 font-medium leading-relaxed mt-2 max-w-sm">{analyticsText.subtitle}</p>
+                            <div className={`inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full text-[10px] font-black ${cloudSummary ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-200 text-slate-500'}`}>
+                                <Icon name={cloudSummary ? 'cloud' : 'hard-drive'} className="w-3.5 h-3.5" />
+                                {cloudSummary ? analyticsText.cloud : analyticsText.local}
+                            </div>
+                            {!cloudSummary && (
+                                <div className="mt-4 bg-white rounded-2xl border border-slate-100 p-3 shadow-sm">
+                                    <div className="flex gap-2">
+                                        <input
+                                            value={ownerToken}
+                                            onChange={(event) => setOwnerToken(event.target.value)}
+                                            type="password"
+                                            placeholder={analyticsText.password}
+                                            className="min-w-0 flex-1 h-11 rounded-xl bg-slate-50 border border-slate-100 px-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-200"
+                                        />
+                                        <button
+                                            onClick={() => loadCloudRetentionSummary(ownerToken)}
+                                            className="h-11 px-4 rounded-xl bg-slate-900 text-white text-xs font-black"
+                                        >
+                                            {cloudStatus === 'loading' ? '...' : analyticsText.loadCloud}
+                                        </button>
+                                    </div>
+                                    {cloudStatus === 'locked' && (
+                                        <div className="text-[10px] font-bold text-rose-500 mt-2">{analyticsText.wrongPassword}</div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="analytics-card bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.users}</div>
+                                <div className="text-3xl font-black text-slate-900 mt-1">{retentionSummary.totalUsers || 1}</div>
+                            </div>
+                            <div className="analytics-card bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.visits}</div>
+                                <div className="text-3xl font-black text-slate-900 mt-1">{retentionSummary.totalVisits}</div>
+                            </div>
+                            <div className="analytics-card bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.activeDays}</div>
+                                <div className="text-3xl font-black text-indigo-600 mt-1">{retentionSummary.activeDays.length}</div>
+                            </div>
+                            <div className="analytics-card bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.streak}</div>
+                                <div className="text-3xl font-black text-emerald-600 mt-1">{retentionSummary.currentStreak}</div>
+                            </div>
+                            <div className="analytics-card bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.avgGap}</div>
+                                <div className="text-3xl font-black text-amber-500 mt-1">{retentionSummary.averageReturnGap}</div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm mb-3">
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.firstSeen}</div>
+                                    <div className="text-sm font-black text-slate-800 mt-1">{retentionSummary.firstDay}</div>
+                                </div>
+                                <div className="flex gap-2">
+                                    {[
+                                        { label: retentionSummary.d1Value ? `${analyticsText.d1} ${retentionSummary.d1Value}` : analyticsText.d1, active: retentionSummary.d1 },
+                                        { label: retentionSummary.d7Value ? `${analyticsText.d7} ${retentionSummary.d7Value}` : analyticsText.d7, active: retentionSummary.d7 },
+                                        { label: retentionSummary.d30Value ? `${analyticsText.d30} ${retentionSummary.d30Value}` : analyticsText.d30, active: retentionSummary.d30 }
+                                    ].map(item => (
+                                        <div key={item.label} className={`px-3 py-2 rounded-xl text-[10px] font-black ${item.active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                                            {item.label}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-7 gap-2 h-20 items-end">
+                                {retentionSummary.last7Days.map(day => (
+                                    <div key={day.day} className="flex flex-col items-center gap-2 h-full justify-end">
+                                        <div
+                                            className={`w-full rounded-t-lg ${day.active ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                                            style={{ height: `${day.active ? Math.min(100, 28 + day.visits * 18) : 14}%` }}
+                                        />
+                                        <div className="text-[9px] font-bold text-slate-400">{day.day.slice(5).replace('-', '/')}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="text-[10px] font-black text-slate-400 brand-text mt-3">{analyticsText.last7}</div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 pb-6">
+                            <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.completion}</div>
+                                <div className="text-3xl font-black text-slate-900 mt-1">{retentionSummary.completionRate}%</div>
+                                <div className="text-[10px] font-bold text-slate-400 mt-2">
+                                    {analyticsText.starts} {retentionSummary.totalStarts} / {analyticsText.completes} {retentionSummary.totalCompletions}
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.topTask}</div>
+                                <div className="text-lg font-black text-slate-900 mt-2 truncate">{retentionSummary.topTask}</div>
+                                <div className="text-[10px] font-bold text-slate-400 mt-2">{retentionSummary.topTaskCount} {analyticsText.completes}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* 更新说明弹窗 */}
-            {showUpdateNote && (
+            {showUpdateNote && view !== 'analytics' && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 backdrop-blur-xl bg-slate-900/60 animate-in fade-in duration-300">
                     <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-pop-center relative overflow-hidden">
                         {/* 背景装饰图层 */}
@@ -943,11 +1471,22 @@ function App() {
                 </div>
             )}
 
-            {!['home', 'result'].includes(view) && (
+            {isGameView && (
                 <div className="game-screen flex-1 flex flex-col">
                     <div className="game-topbar h-14 px-4 flex-shrink-0 grid grid-cols-[1fr_auto_1fr] items-center bg-white border-b border-slate-100">
                         <div className="flex justify-start">
-                            <button onClick={() => { clearAnswerFeedback(); setView('home'); }} className="p-2 text-slate-400"><Icon name="chevron-left" /></button>
+                            <button onClick={() => {
+                                clearAnswerFeedback();
+                                if (currentRunRef.current) {
+                                    recordRetention('game_abandon', {
+                                        sessionId: sessionIdRef.current,
+                                        task: currentRunRef.current.task,
+                                        mode
+                                    });
+                                    currentRunRef.current = null;
+                                }
+                                setView('home');
+                            }} className="p-2 text-slate-400"><Icon name="chevron-left" /></button>
                         </div>
                         <div className="text-center">
                             <div className="text-[9px] font-black text-indigo-500 brand-text">{mode === 'comp' ? ui.arenaMode : ui.training}</div>
