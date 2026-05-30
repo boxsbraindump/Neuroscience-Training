@@ -1,0 +1,13 @@
+name = "prefrontal-lab-retention"
+main = "retention-worker.js"
+compatibility_date = "2026-05-30"
+
+routes = [
+    { pattern = "prefrontal-lab.com/api/retention*", zone_name = "prefrontal-lab.com" },
+    { pattern = "www.prefrontal-lab.com/api/retention*", zone_name = "prefrontal-lab.com" }
+]
+
+[[d1_databases]]
+binding = "ANALYTICS_DB"
+database_name = "prefrontal-lab-analytics"
+database_id = "c89ddc21-ddcc-4df2-9d5b-e22cfada1f67"
