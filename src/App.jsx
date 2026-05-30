@@ -333,12 +333,22 @@ const buildRetentionSummary = (data) => {
     const gaps = activeDays.slice(1).map((day, index) => getDaysBetween(activeDays[index], day)).filter(gap => gap > 0);
     const completions = (data.events || []).filter(event => event.name === 'game_complete');
     const starts = (data.events || []).filter(event => event.name === 'game_start');
+    const clicks = (data.events || []).filter(event => event.name === 'click');
     const taskCounts = completions.reduce((acc, event) => {
         const task = event.task || 'arena';
         acc[task] = (acc[task] || 0) + 1;
         return acc;
     }, {});
     const topTask = Object.entries(taskCounts).sort((a, b) => b[1] - a[1])[0];
+    const clickCounts = clicks.reduce((acc, event) => {
+        const label = event.clickLabel || event.clickRole || 'Unknown';
+        acc[label] = (acc[label] || 0) + 1;
+        return acc;
+    }, {});
+    const topClicks = Object.entries(clickCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([label, count]) => ({ label, count }));
     const last7Days = Array.from({ length: 7 }, (_, index) => {
         const date = new Date();
         date.setDate(date.getDate() - (6 - index));
@@ -361,6 +371,8 @@ const buildRetentionSummary = (data) => {
         d30: activeDays.includes(getDayKey(new Date(new Date(`${firstDay}T00:00:00`).getTime() + 30 * 86400000))),
         topTask: topTask ? topTask[0] : '-',
         topTaskCount: topTask ? topTask[1] : 0,
+        totalClicks: clicks.length,
+        topClicks,
         last7Days
     };
 };
@@ -410,6 +422,9 @@ function App() {
             loadCloud: 'Load cloud',
             wrongPassword: 'Cloud data needs your owner password.',
             users: 'Users',
+            clicks: 'Clicks',
+            topClicks: 'Top clicks',
+            noClicks: 'No clicks yet',
             firstSeen: 'First seen',
             activeDays: 'Active days',
             visits: 'Visits',
@@ -437,6 +452,9 @@ function App() {
             loadCloud: '读取云端',
             wrongPassword: '云端数据需要你的 owner 密码。',
             users: '用户数',
+            clicks: '点击数',
+            topClicks: '最常点击',
+            noClicks: '还没有点击数据',
             firstSeen: '首次访问',
             activeDays: '活跃天数',
             visits: '访问次数',
@@ -614,6 +632,41 @@ function App() {
             loadCloudRetentionSummary();
         }
     }, [view]);
+
+    useEffect(() => {
+        if (view === 'analytics') return undefined;
+
+        const handleTrackedClick = (event) => {
+            const clickable = event.target?.closest?.('button, a, [role="button"], .task-card');
+            if (!clickable) return;
+            if (clickable.closest('.analytics-open')) return;
+
+            const rawLabel = clickable.getAttribute('aria-label')
+                || clickable.getAttribute('title')
+                || clickable.innerText
+                || clickable.textContent
+                || clickable.dataset?.analyticsLabel
+                || clickable.className
+                || clickable.tagName;
+            const clickLabel = String(rawLabel).replace(/\s+/g, ' ').trim().slice(0, 120) || clickable.tagName.toLowerCase();
+            const rect = clickable.getBoundingClientRect();
+
+            recordRetention('click', {
+                sessionId: sessionIdRef.current,
+                view,
+                mode,
+                clickLabel,
+                clickRole: clickable.getAttribute('role') || clickable.tagName.toLowerCase(),
+                clickX: Math.round(event.clientX),
+                clickY: Math.round(event.clientY),
+                clickXPercent: rect.width ? Math.round(((event.clientX - rect.left) / rect.width) * 100) : null,
+                clickYPercent: rect.height ? Math.round(((event.clientY - rect.top) / rect.height) * 100) : null
+            });
+        };
+
+        document.addEventListener('click', handleTrackedClick, true);
+        return () => document.removeEventListener('click', handleTrackedClick, true);
+    }, [view, mode]);
     // ==========================================
 
     const TASK_DATA = {
@@ -1358,6 +1411,10 @@ function App() {
                                 <div className="text-3xl font-black text-slate-900 mt-1">{retentionSummary.totalVisits}</div>
                             </div>
                             <div className="analytics-card bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.clicks}</div>
+                                <div className="text-3xl font-black text-rose-500 mt-1">{retentionSummary.totalClicks || 0}</div>
+                            </div>
+                            <div className="analytics-card bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
                                 <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.activeDays}</div>
                                 <div className="text-3xl font-black text-indigo-600 mt-1">{retentionSummary.activeDays.length}</div>
                             </div>
@@ -1415,6 +1472,26 @@ function App() {
                                 <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.topTask}</div>
                                 <div className="text-lg font-black text-slate-900 mt-2 truncate">{retentionSummary.topTask}</div>
                                 <div className="text-[10px] font-bold text-slate-400 mt-2">{retentionSummary.topTaskCount} {analyticsText.completes}</div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm mb-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.topClicks}</div>
+                                <div className="text-[10px] font-black text-rose-400">{retentionSummary.totalClicks || 0}</div>
+                            </div>
+                            <div className="space-y-2">
+                                {(retentionSummary.topClicks || []).length ? retentionSummary.topClicks.map((item, index) => (
+                                    <div key={`${item.label}-${index}`} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2">
+                                        <div className="min-w-0 flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-lg bg-white text-slate-400 text-[10px] font-black flex items-center justify-center border border-slate-100">{index + 1}</div>
+                                            <div className="truncate text-xs font-black text-slate-700">{item.label}</div>
+                                        </div>
+                                        <div className="text-xs font-black text-rose-500 shrink-0">{item.count}</div>
+                                    </div>
+                                )) : (
+                                    <div className="rounded-xl bg-slate-50 px-3 py-3 text-xs font-bold text-slate-400">{analyticsText.noClicks}</div>
+                                )}
                             </div>
                         </div>
                     </div>

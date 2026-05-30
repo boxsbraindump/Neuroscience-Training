@@ -55,9 +55,10 @@ const handleEvent = async (request, env) => {
     await env.ANALYTICS_DB.prepare(`
         INSERT INTO analytics_events (
             visitor_id, event_name, event_day, event_at, path, session_id,
-            task, mode, score, duration_seconds, source, user_agent, language,
+            task, mode, score, duration_seconds, source, click_label, click_role,
+            click_x, click_y, click_x_percent, click_y_percent, user_agent, language,
             screen_width, screen_height
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
         visitorId,
         cleanText(event.name, 80),
@@ -70,6 +71,12 @@ const handleEvent = async (request, env) => {
         Number.isFinite(event.score) ? event.score : null,
         Number.isFinite(event.durationSeconds) ? event.durationSeconds : null,
         cleanText(event.source, 80),
+        cleanText(event.clickLabel, 200),
+        cleanText(event.clickRole, 80),
+        Number.isFinite(event.clickX) ? event.clickX : null,
+        Number.isFinite(event.clickY) ? event.clickY : null,
+        Number.isFinite(event.clickXPercent) ? event.clickXPercent : null,
+        Number.isFinite(event.clickYPercent) ? event.clickYPercent : null,
         cleanText(event.userAgent, 500),
         cleanText(event.language, 40),
         Number.isFinite(event.screen?.width) ? event.screen.width : null,
@@ -91,6 +98,7 @@ const handleSummary = async (request, env) => {
             SUM(CASE WHEN event_name = 'session_start' THEN 1 ELSE 0 END) AS totalVisits,
             SUM(CASE WHEN event_name = 'game_start' THEN 1 ELSE 0 END) AS totalStarts,
             SUM(CASE WHEN event_name = 'game_complete' THEN 1 ELSE 0 END) AS totalCompletions,
+            SUM(CASE WHEN event_name = 'click' THEN 1 ELSE 0 END) AS totalClicks,
             MIN(event_day) AS firstDay
         FROM analytics_events
     `).first();
@@ -121,6 +129,15 @@ const handleSummary = async (request, env) => {
         ORDER BY count DESC
         LIMIT 1
     `).first();
+
+    const topClicks = await env.ANALYTICS_DB.prepare(`
+        SELECT COALESCE(click_label, click_role, 'Unknown') AS label, COUNT(*) AS count
+        FROM analytics_events
+        WHERE event_name = 'click'
+        GROUP BY COALESCE(click_label, click_role, 'Unknown')
+        ORDER BY count DESC
+        LIMIT 6
+    `).all();
 
     const activeByVisitor = new Map();
     for (const row of activeRows.results || []) {
@@ -183,6 +200,8 @@ const handleSummary = async (request, env) => {
             d30Value: `${rate(d30Count)}%`,
             topTask: topTask?.task || '-',
             topTaskCount: topTask?.count || 0,
+            totalClicks: counts?.totalClicks || 0,
+            topClicks: topClicks.results || [],
             last7Days
         }
     });

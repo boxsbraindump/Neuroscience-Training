@@ -8,6 +8,7 @@ This folder contains the cloud version of the retention analyzer.
 - It stores those events in Cloudflare D1.
 - Your analyzer page reads the aggregate report from `/api/retention/summary`.
 - The summary endpoint requires `ANALYTICS_READ_TOKEN`.
+- It tracks retention plus top clicked buttons/cards/links.
 
 ## Deploy Steps
 
@@ -23,5 +24,7 @@ This folder contains the cloud version of the retention analyzer.
 7. Open your analyzer:
    - `https://your-domain.com/?owner=1&analytics`
 8. Enter your owner password once. The browser will remember it locally.
+
+If you already created the D1 table before click tracking was added, run `migration-clicks.sql` once against the same D1 database.
 
 Keep `ANALYTICS_READ_TOKEN` private. Do not commit it to GitHub.
