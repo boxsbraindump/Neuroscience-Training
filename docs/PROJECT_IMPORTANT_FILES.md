@@ -80,7 +80,7 @@ This file is a recovery map for the Prefrontal Lab website, retention analyzer, 
 
 ## Cloudflare Resources
 
-- Worker name: `prefrontal-lab-retention`
+- Worker name: `prefrontal`
 - D1 database name: `prefrontal-lab-analytics`
 - D1 database id: `c89ddc21-ddcc-4df2-9d5b-e22cfada1f67`
 - Worker routes:
