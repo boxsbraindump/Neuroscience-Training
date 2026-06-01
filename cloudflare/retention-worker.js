@@ -98,7 +98,7 @@ const handleSummary = async (request, env) => {
             SUM(CASE WHEN event_name = 'session_start' THEN 1 ELSE 0 END) AS totalVisits,
             SUM(CASE WHEN event_name = 'game_start' THEN 1 ELSE 0 END) AS totalStarts,
             SUM(CASE WHEN event_name = 'game_complete' THEN 1 ELSE 0 END) AS totalCompletions,
-            SUM(CASE WHEN event_name = 'click' THEN 1 ELSE 0 END) AS totalClicks,
+            SUM(CASE WHEN event_name = 'click' AND click_role = 'game_card' THEN 1 ELSE 0 END) AS totalClicks,
             MIN(event_day) AS firstDay
         FROM analytics_events
     `).first();
@@ -133,7 +133,7 @@ const handleSummary = async (request, env) => {
     const topClicks = await env.ANALYTICS_DB.prepare(`
         SELECT COALESCE(click_label, click_role, 'Unknown') AS label, COUNT(*) AS count
         FROM analytics_events
-        WHERE event_name = 'click'
+        WHERE event_name = 'click' AND click_role = 'game_card'
         GROUP BY COALESCE(click_label, click_role, 'Unknown')
         ORDER BY count DESC
         LIMIT 6

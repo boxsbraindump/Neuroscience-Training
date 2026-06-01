@@ -186,6 +186,14 @@ const RETENTION_VISITOR_KEY = 'prefrontal_lab_visitor_id';
 const OWNER_ACCESS_KEY = 'prefrontal_lab_owner_access';
 const OWNER_TOKEN_KEY = 'prefrontal_lab_owner_token';
 const CLOUD_ANALYTICS_ENDPOINT = window.PFL_ANALYTICS_ENDPOINT || '/api/retention';
+const GAME_CLICK_LABELS = {
+    arena: 'Cognitive Arena',
+    schulte: 'Schulte Grid',
+    stroop: 'Stroop Test',
+    setgame: 'SET Logic',
+    nback: 'N-Back Memory',
+    neuroncount: 'Neuron Counting'
+};
 
 const getDayKey = (date = new Date()) => {
     const year = date.getFullYear();
@@ -333,7 +341,7 @@ const buildRetentionSummary = (data) => {
     const gaps = activeDays.slice(1).map((day, index) => getDaysBetween(activeDays[index], day)).filter(gap => gap > 0);
     const completions = (data.events || []).filter(event => event.name === 'game_complete');
     const starts = (data.events || []).filter(event => event.name === 'game_start');
-    const clicks = (data.events || []).filter(event => event.name === 'click');
+    const clicks = (data.events || []).filter(event => event.name === 'click' && event.clickRole === 'game_card');
     const taskCounts = completions.reduce((acc, event) => {
         const task = event.task || 'arena';
         acc[task] = (acc[task] || 0) + 1;
@@ -422,9 +430,9 @@ function App() {
             loadCloud: 'Load cloud',
             wrongPassword: 'Cloud data needs your owner password.',
             users: 'Users',
-            clicks: 'Clicks',
-            topClicks: 'Top clicks',
-            noClicks: 'No clicks yet',
+            clicks: 'Game clicks',
+            topClicks: 'Top games',
+            noClicks: 'No game clicks yet',
             firstSeen: 'First seen',
             activeDays: 'Active days',
             visits: 'Visits',
@@ -452,9 +460,9 @@ function App() {
             loadCloud: '读取云端',
             wrongPassword: '云端数据需要你的 owner 密码。',
             users: '用户数',
-            clicks: '点击数',
-            topClicks: '最常点击',
-            noClicks: '还没有点击数据',
+            clicks: '游戏点击',
+            topClicks: '最常点击的游戏',
+            noClicks: '还没有游戏点击数据',
             firstSeen: '首次访问',
             activeDays: '活跃天数',
             visits: '访问次数',
@@ -634,29 +642,24 @@ function App() {
     }, [view]);
 
     useEffect(() => {
-        if (view === 'analytics') return undefined;
+        if (view !== 'home') return undefined;
 
         const handleTrackedClick = (event) => {
-            const clickable = event.target?.closest?.('button, a, [role="button"], .task-card');
-            if (!clickable) return;
-            if (clickable.closest('.analytics-open')) return;
+            const taskCard = event.target?.closest?.('.task-card[data-analytics-task]');
+            if (!taskCard) return;
+            if (event.target?.closest?.('button, a, .info-button, .analytics-open, .language-toggle')) return;
 
-            const rawLabel = clickable.getAttribute('aria-label')
-                || clickable.getAttribute('title')
-                || clickable.innerText
-                || clickable.textContent
-                || clickable.dataset?.analyticsLabel
-                || clickable.className
-                || clickable.tagName;
-            const clickLabel = String(rawLabel).replace(/\s+/g, ' ').trim().slice(0, 120) || clickable.tagName.toLowerCase();
-            const rect = clickable.getBoundingClientRect();
+            const task = taskCard.dataset.analyticsTask;
+            const clickLabel = taskCard.dataset.analyticsLabel || GAME_CLICK_LABELS[task] || task || 'Unknown game';
+            const rect = taskCard.getBoundingClientRect();
 
             recordRetention('click', {
                 sessionId: sessionIdRef.current,
                 view,
                 mode,
+                task,
                 clickLabel,
-                clickRole: clickable.getAttribute('role') || clickable.tagName.toLowerCase(),
+                clickRole: 'game_card',
                 clickX: Math.round(event.clientX),
                 clickY: Math.round(event.clientY),
                 clickXPercent: rect.width ? Math.round(((event.clientX - rect.left) / rect.width) * 100) : null,
@@ -1299,7 +1302,12 @@ function App() {
 
                     <div className="task-section w-full max-w-sm mb-12 shrink-0">
                         {mode === 'comp' ? (
-                            <div onClick={() => startChallenge()} className="task-card flex items-center p-5 bg-white rounded-[1.8rem] border-2 border-amber-100 shadow-md active:scale-[0.98] transition-transform cursor-pointer">
+                            <div
+                                onClick={() => startChallenge()}
+                                data-analytics-task="arena"
+                                data-analytics-label={GAME_CLICK_LABELS.arena}
+                                className="task-card flex items-center p-5 bg-white rounded-[1.8rem] border-2 border-amber-100 shadow-md active:scale-[0.98] transition-transform cursor-pointer"
+                            >
                                 <div className="task-icon w-12 h-12 rounded-xl flex items-center justify-center mr-4 bg-amber-50 text-amber-500">
                                     <Icon name="zap" className="w-7 h-7" />
                                 </div>
@@ -1312,7 +1320,13 @@ function App() {
                         ) : (
                             <div className="task-list grid gap-3">
                                 {Object.keys(TASK_DATA).map(type => (
-                                    <div key={type} onClick={() => startChallenge(type)} className="task-card flex items-center p-5 bg-white rounded-[1.8rem] border border-slate-100 shadow-sm active:scale-[0.98] transition-transform cursor-pointer">
+                                    <div
+                                        key={type}
+                                        onClick={() => startChallenge(type)}
+                                        data-analytics-task={type}
+                                        data-analytics-label={GAME_CLICK_LABELS[type] || getTaskTitle(type)}
+                                        className="task-card flex items-center p-5 bg-white rounded-[1.8rem] border border-slate-100 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
+                                    >
                                         <div className="flex items-center flex-1">
                                             <div className={`task-icon w-10 h-10 rounded-xl flex items-center justify-center mr-4 bg-slate-50 ${TASK_DATA[type].color}`}>
                                                 <Icon name={TASK_DATA[type].icon} />

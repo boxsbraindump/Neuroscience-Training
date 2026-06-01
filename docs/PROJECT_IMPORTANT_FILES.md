@@ -56,8 +56,8 @@ This file is a recovery map for the Prefrontal Lab website, retention analyzer, 
     - game starts
     - game completions
     - top completed task
-    - total clicks
-    - top clicked elements
+    - total game-card clicks
+    - top clicked game entries
 
 - `cloudflare/schema.sql`
   - D1 table creation script.

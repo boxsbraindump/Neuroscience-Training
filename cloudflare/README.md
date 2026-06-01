@@ -8,7 +8,7 @@ This folder contains the cloud version of the retention analyzer.
 - It stores those events in Cloudflare D1.
 - Your analyzer page reads the aggregate report from `/api/retention/summary`.
 - The summary endpoint requires `ANALYTICS_READ_TOKEN`.
-- It tracks retention plus top clicked buttons/cards/links.
+- It tracks retention plus top clicked game entry cards.
 
 ## Deploy Steps
 
