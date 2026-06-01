@@ -146,6 +146,7 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 - Frontend is a static React app loaded by `index.html` with React, ReactDOM, Babel, Tailwind, lucide, and KaTeX from CDNs.
 - `index.html` currently cache-busts `styles.css`, `gameLogic.js`, and `App.jsx` with `v=retention-20260530`.
 - Default analytics endpoint is `/api/retention`, overrideable by `window.PFL_ANALYTICS_ENDPOINT`.
+- Cloudflare Worker name used by Git builds: `prefrontal`.
 - Cloudflare Worker routes listed in the project map are `prefrontal-lab.com/api/retention*` and `www.prefrontal-lab.com/api/retention*`.
 - D1 table name from schema: `analytics_events`.
 - Cloudflare database name from project map: `prefrontal-lab-analytics`.
