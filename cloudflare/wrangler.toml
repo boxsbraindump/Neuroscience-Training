@@ -11,3 +11,9 @@ routes = [
 binding = "ANALYTICS_DB"
 database_name = "prefrontal-lab-analytics"
 database_id = "c89ddc21-ddcc-4df2-9d5b-e22cfada1f67"
+
+[assets]
+directory = "../"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/retention*"]

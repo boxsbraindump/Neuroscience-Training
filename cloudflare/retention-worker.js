@@ -212,11 +212,17 @@ export default {
         if (request.method === 'OPTIONS') return json({ ok: true });
 
         const url = new URL(request.url);
-        if (url.pathname.endsWith('/events') && request.method === 'POST') {
+        const isRetentionApi = url.pathname.startsWith('/api/retention');
+
+        if (isRetentionApi && url.pathname.endsWith('/events') && request.method === 'POST') {
             return handleEvent(request, env);
         }
-        if (url.pathname.endsWith('/summary') && request.method === 'GET') {
+        if (isRetentionApi && url.pathname.endsWith('/summary') && request.method === 'GET') {
             return handleSummary(request, env);
+        }
+
+        if (env.ASSETS) {
+            return env.ASSETS.fetch(request);
         }
 
         return json({ ok: false, error: 'Not found' }, 404);
