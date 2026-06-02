@@ -29,7 +29,7 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 
 | Screen | Purpose | Entry point | Success result | Notes |
 | --- | --- | --- | --- | --- |
-| Home | Landing surface for score, language, mode, and task selection. | Default `view = home`. | User starts one training task, endless practice, daily challenge, or arena mode. | Uses responsive app navigation: mobile bottom nav and desktop top nav. Basic/Advanced/Endless remain as mode tabs inside training; Daily Challenge and Arena are primary nav entries. Has settings, best score card, task cards, and owner analytics nav item when unlocked. |
+| Home | Landing surface for score, language, mode, and task selection. | Default `view = home`. | User starts one training task, endless practice, daily challenge, or arena mode. | Uses responsive app navigation: mobile bottom nav and desktop top nav. Basic/Advanced/Endless remain as mode tabs inside training; Daily Challenge and Arena are primary nav entries. Analytics is not shown in normal navigation. |
 | Daily Challenge | Shows the current date's fixed challenge theme, goal, today's best score, completion status, Monday-first weekly check-in row, and local streak. | Home nav `mode = daily`. | User starts today's generated task and can complete today's check-in. | MVP uses a shared weekday-rotation pool of six Daily challenges, so every user gets the same challenge on the same day. Monday starts from the first challenge in the pool. Stores local daily progress only. |
 | Update note modal | Shows version/update announcement. | First visit without `prefrontal_lab_v6.1.2_update`, or URL has `showUpdate`. | User dismisses and app stores seen flag. | Not shown while analytics page is active. |
 | Info modal | Explains task goal/rules/effect. | User taps info icon on a task card. | User closes modal or starts task from context. | Content changes by language and mode. |
@@ -41,7 +41,7 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 | Arena mode | Mixed-task challenge. | Home mode `comp`, then arena card. | User plays rotating tasks under 90s timer. | Errors subtract time in arena. Analytics task name is `arena`. |
 | Endless mode | Free practice without timer pressure. | Training mode tab `infinite`, then any task card. | User practices until tapping back, then sees the session result. | Uses basic task difficulty, shows `∞` instead of a timer, and does not update personal best, per-task best, hard unlock, Daily streak, or arena best. |
 | Result | Shows final score and feedback. | Timer ends or solo task completes. | User returns home or starts again. | Updates best scores and unlock state. |
-| Hidden analytics | Owner-only retention and click dashboard. | `?owner=1&analytics`, or owner shortcut after unlock. | Owner loads local or cloud summary and can export/reset/lock. | `?owner=0` removes owner access locally. |
+| Hidden analytics | Owner-only retention and click dashboard. | `?owner=1&analytics` for the current URL only. | Owner loads local or cloud summary and can export/reset/lock. | No normal user navigation entry. |
 
 ## Training Tasks
 
@@ -67,8 +67,7 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 | `brain_train_pro_data` | object | no | Not directly | Legacy `localStorage` | Migrated into `brain_train_pro_v5` when v5 data does not exist. |
 | `prefrontal_lab_lang` | string | no | Whole app | Browser `localStorage` | `zh` or `en`; defaults to `zh`. |
 | `prefrontal_lab_v6.1.2_update` | string flag | no | Update note visibility | Browser `localStorage` | Stored after user closes update note. |
-| `prefrontal_lab_owner_access` | string flag | no | Analytics shortcut visibility | Browser `localStorage` and URL | Set by `?owner=1`, removed by `?owner=0` or lock button. |
-| `prefrontal_lab_owner_token` | string | no | Analytics password input memory | Browser `localStorage` | Stores owner analytics token locally after successful cloud load. |
+| `prefrontal_lab_owner_token` | string | no | Analytics password input memory | Browser `localStorage` | Stores owner analytics token locally after successful cloud load. Owner page itself is only reachable with the hidden `?owner=1&analytics` URL. |
 | `prefrontal_lab_daily_v4` | object | yes for Daily Challenge | Daily card and score card | Browser `localStorage` | Stores per-day completion, challenge id, daily instance id, task key, variant, completion rule, duration, best score, last score, and completion timestamp. Streak is recalculated from completed days. |
 | `prefrontal_lab_visitor_id` | string | yes for analytics | Not shown | Browser `localStorage` | Anonymous local visitor id; hashed before D1 storage. |
 | `prefrontal_lab_retention_v1` | object | yes for local analytics | Analytics page | Browser `localStorage` | Local fallback analytics summary, sessions, active days, and recent events. |
@@ -146,8 +145,8 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 
 | Role | Can view | Can create | Can edit | Can delete | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Ordinary visitor | Home, tasks, result. | Local scores and anonymous analytics events. | Own local language, scores, and local analytics state through app behavior. | Can clear only own browser data outside app. | Cannot see analytics shortcut unless owner access is set locally. |
-| Owner | All visitor screens plus hidden analytics page. | Same as visitor; can also request cloud summary. | Can store/remove local owner token and owner access flag. | Can reset local analytics data from dashboard; cannot delete D1 data from app. | Owner access is a local browser flag set by URL, but cloud summary still requires Worker secret token. |
+| Ordinary visitor | Home, tasks, result. | Local scores and anonymous analytics events. | Own local language, scores, and local analytics state through app behavior. | Can clear only own browser data outside app. | Cannot see an analytics shortcut in normal navigation. |
+| Owner | All visitor screens plus hidden analytics page. | Same as visitor; can also request cloud summary. | Can store/remove local owner token. | Can reset local analytics data from dashboard; cannot delete D1 data from app. | Owner page requires the hidden `?owner=1&analytics` URL each time; cloud summary still requires Worker secret token. |
 | Cloudflare Worker | No UI. | Inserts analytics events into D1. | Does not update existing event rows. | Does not delete rows. | Requires `ANALYTICS_DB`, `VISITOR_SALT`, and `ANALYTICS_READ_TOKEN` environment config/secrets. |
 
 ## Deployment And Runtime Notes

@@ -245,7 +245,6 @@ const COLOR_LABELS = [
 
 const RETENTION_STORAGE_KEY = 'prefrontal_lab_retention_v1';
 const RETENTION_VISITOR_KEY = 'prefrontal_lab_visitor_id';
-const OWNER_ACCESS_KEY = 'prefrontal_lab_owner_access';
 const OWNER_TOKEN_KEY = 'prefrontal_lab_owner_token';
 const DAILY_STORAGE_KEY = 'prefrontal_lab_daily_v4';
 const CLOUD_ANALYTICS_ENDPOINT = window.PFL_ANALYTICS_ENDPOINT || '/api/retention';
@@ -602,18 +601,8 @@ const buildRetentionSummary = (data) => {
 function App() {
     const DEFAULT_TASK_BESTS = { schulte: 0, stroop: 0, nback: 0, setgame: 0, neuroncount: 0 };
     const urlParams = new URLSearchParams(window.location.search);
-    const [isOwner, setIsOwner] = useState(() => {
-        if (urlParams.get('owner') === '1') {
-            localStorage.setItem(OWNER_ACCESS_KEY, 'true');
-            return true;
-        }
-        if (urlParams.get('owner') === '0') {
-            localStorage.removeItem(OWNER_ACCESS_KEY);
-            return false;
-        }
-        return localStorage.getItem(OWNER_ACCESS_KEY) === 'true';
-    });
-    const [view, setView] = useState(() => (urlParams.has('analytics') && (urlParams.get('owner') === '1' || localStorage.getItem(OWNER_ACCESS_KEY) === 'true')) ? 'analytics' : 'home');
+    const [isOwner, setIsOwner] = useState(() => urlParams.get('owner') === '1');
+    const [view, setView] = useState(() => (urlParams.has('analytics') && urlParams.get('owner') === '1') ? 'analytics' : 'home');
     const [mode, setMode] = useState('normal');
     const [score, setScore] = useState(0);
     const [timeLeft, setTimeLeft] = useState(0);
@@ -729,7 +718,6 @@ function App() {
     };
 
     const lockOwnerAccess = () => {
-        localStorage.removeItem(OWNER_ACCESS_KEY);
         localStorage.removeItem(OWNER_TOKEN_KEY);
         setIsOwner(false);
         setOwnerToken('');
@@ -868,15 +856,14 @@ function App() {
             icon: 'swords',
             active: view === 'home' && mode === 'comp',
             onClick: () => goHomeMode('comp')
-        },
-        ...(isOwner ? [{
-            key: 'analytics',
-            label: ui.navAnalytics,
-            icon: 'chart-no-axes-combined',
-            active: view === 'analytics',
-            onClick: () => { refreshRetention(); setView('analytics'); }
-        }] : [])
+        }
     ];
+
+    useEffect(() => {
+        if (view === 'analytics' && !isOwner) {
+            setView('home');
+        }
+    }, [view, isOwner]);
 
     const renderSettingsControl = (className = '') => (
         <div className={`settings-control ${className}`}>
