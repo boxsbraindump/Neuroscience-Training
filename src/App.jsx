@@ -33,19 +33,49 @@ const LatexFmt = ({ text }) => {
 
 const UI_TEXT = {
     zh: {
-        appTitle: "前额叶实验室 6.1.1",
+        appTitle: "前额叶实验室 6.1.2",
         bestSynced: "历史最高 (已同步)",
         normal: "基础",
         hard: "进阶",
         hardLocked: "🔒 进阶",
+        infinite: "无限",
+        infiniteMode: "无限模式",
+        infiniteScore: "自由练习",
+        infinitePill: "不计入历史",
         comp: "竞技",
         arenaTitle: "全能认知竞技场",
         arenaShortTitle: "全能竞技",
         arenaSubtitle: "混合：舒尔特方格 / Stroop反应 / 快速SET / N-Back / 神经元计数",
         updateTitle: "实验室更新公告",
-        updateVersion: "Version 6.1.1 Patch",
+        updateVersion: "Version 6.1.2",
         updateButton: "知道了，这就去练脑",
         startTraining: "开始训练",
+        navTrain: "训练",
+        navDaily: "每日挑战",
+        navArena: "竞技",
+        navAnalytics: "分析",
+        settings: "设置",
+        settingsLanguage: "语言",
+        settingsData: "数据与同步",
+        settingsSoon: "稍后开放",
+        dailyTitle: "每日挑战",
+        dailyToday: "今日任务",
+        dailyBest: "今日最好",
+        dailyStreak: "连续",
+        dailyDone: "今日已完成",
+        dailyStart: "开始今日挑战",
+        dailyCheckIn: "今日打卡",
+        dailyWeek: "本周",
+        dailyCompleted: "总打卡",
+        dailyGoal: "60 秒限时挑战",
+        dailyGoalFinish: "完成目标",
+        dailyGoalTimed: "限时挑战",
+        dailyReward: "完成后点亮今天的打卡记录",
+        dailyReplay: "再冲一次",
+        dailyDays: "天",
+        dailyFinishedTitle: "今日已打卡",
+        dailyFinishedSub: "连续记录保持中，明天会刷新新的挑战。",
+        dailyTomorrow: "明天解锁新挑战",
         moduleLabel: "TRAINING MODULE",
         training: "TRAINING",
         arenaMode: "ARENA MODE",
@@ -64,19 +94,49 @@ const UI_TEXT = {
         backHome: "返回大厅"
     },
     en: {
-        appTitle: "Prefrontal Lab 6.1.1",
+        appTitle: "Prefrontal Lab 6.1.2",
         bestSynced: "Personal Best",
         normal: "Basic",
         hard: "Advanced",
         hardLocked: "🔒 Advanced",
+        infinite: "Endless",
+        infiniteMode: "Endless Mode",
+        infiniteScore: "Free Practice",
+        infinitePill: "Not saved as best",
         comp: "Arena",
         arenaTitle: "Cognitive Arena",
         arenaShortTitle: "Arena",
         arenaSubtitle: "Mixed training: Schulte Grid / Stroop / SET / N-Back / Neuron Counting",
         updateTitle: "Lab Update",
-        updateVersion: "Version 6.1.1 Patch",
+        updateVersion: "Version 6.1.2",
         updateButton: "Got it, start training",
         startTraining: "Start Training",
+        navTrain: "Train",
+        navDaily: "Daily",
+        navArena: "Arena",
+        navAnalytics: "Analytics",
+        settings: "Settings",
+        settingsLanguage: "Language",
+        settingsData: "Data & Sync",
+        settingsSoon: "Coming soon",
+        dailyTitle: "Daily Challenge",
+        dailyToday: "Today's Task",
+        dailyBest: "Today Best",
+        dailyStreak: "Streak",
+        dailyDone: "Done today",
+        dailyStart: "Start Daily",
+        dailyCheckIn: "Check in",
+        dailyWeek: "This Week",
+        dailyCompleted: "Total",
+        dailyGoal: "60-second challenge",
+        dailyGoalFinish: "Goal clear",
+        dailyGoalTimed: "Timed run",
+        dailyReward: "Finish to light up today's check-in",
+        dailyReplay: "Try again",
+        dailyDays: "days",
+        dailyFinishedTitle: "Daily checked in",
+        dailyFinishedSub: "Your streak is alive. A new challenge unlocks tomorrow.",
+        dailyTomorrow: "New challenge tomorrow",
         moduleLabel: "TRAINING MODULE",
         training: "TRAINING",
         arenaMode: "ARENA MODE",
@@ -98,14 +158,16 @@ const UI_TEXT = {
 
 const UPDATE_LINES = {
     zh: [
-        "增加了双语系统。",
-        "修复动态分数更新时导致的标题布局异常问题。",
-        "更新了自适应化。"
+        "新增每日挑战：固定周节奏、今日最好、连续打卡、本周打卡进度。",
+        "新增无限模式：无倒计时自由练习，不影响历史最高分。",
+        "优化网页/移动端导航、设置入口、Daily 与竞技页视觉层级。",
+        "优化 Stroop、SET 等任务反馈，让答对状态更清楚。"
     ],
     en: [
-        "Added a bilingual Chinese / English system.",
-        "Fixed title layout shifting when the score updates dynamically.",
-        "Improved responsive layout behavior."
+        "Added Daily Challenge with weekday rotation, today best, streaks, and weekly check-ins.",
+        "Added Endless Mode for no-timer free practice without changing personal bests.",
+        "Refined responsive navigation, settings, Daily layout, and Arena visual hierarchy.",
+        "Improved Stroop and SET feedback so correct answers feel clearer."
     ]
 };
 
@@ -185,8 +247,10 @@ const RETENTION_STORAGE_KEY = 'prefrontal_lab_retention_v1';
 const RETENTION_VISITOR_KEY = 'prefrontal_lab_visitor_id';
 const OWNER_ACCESS_KEY = 'prefrontal_lab_owner_access';
 const OWNER_TOKEN_KEY = 'prefrontal_lab_owner_token';
+const DAILY_STORAGE_KEY = 'prefrontal_lab_daily_v4';
 const CLOUD_ANALYTICS_ENDPOINT = window.PFL_ANALYTICS_ENDPOINT || '/api/retention';
 const GAME_CLICK_LABELS = {
+    daily: 'Daily Challenge',
     arena: 'Cognitive Arena',
     schulte: 'Schulte Grid',
     stroop: 'Stroop Test',
@@ -195,11 +259,103 @@ const GAME_CLICK_LABELS = {
     neuroncount: 'Neuron Counting'
 };
 
+const DAILY_CHALLENGES = [
+    {
+        id: 'schulte-forward',
+        task: 'schulte',
+        variant: 'forward',
+        completion: 'finish-grid',
+        duration: 90,
+        ruleLabel: { zh: '完成目标', en: 'Goal clear' },
+        theme: {
+            zh: { title: '视觉闪电', subtitle: '在数字网格里快速锁定目标。', goal: '按 1 到 25 的顺序完成舒尔特方格。' },
+            en: { title: 'Visual Lightning', subtitle: 'Lock onto targets inside the number grid.', goal: 'Clear the Schulte grid from 1 to 25.' }
+        }
+    },
+    {
+        id: 'schulte-reverse',
+        task: 'schulte',
+        variant: 'reverse',
+        completion: 'finish-grid',
+        duration: 90,
+        ruleLabel: { zh: '完成目标', en: 'Goal clear' },
+        theme: {
+            zh: { title: '倒序雷达', subtitle: '反向扫描数字，打破自动化顺序。', goal: '按 25 到 1 的顺序完成舒尔特方格。' },
+            en: { title: 'Reverse Radar', subtitle: 'Scan numbers backward and break the default order.', goal: 'Clear the Schulte grid from 25 to 1.' }
+        }
+    },
+    {
+        id: 'stroop-color',
+        task: 'stroop',
+        variant: 'color-conflict',
+        completion: 'timed-score',
+        duration: 60,
+        ruleLabel: { zh: '60 秒限时', en: '60s timed' },
+        theme: {
+            zh: { title: '颜色逆转日', subtitle: '压住本能阅读冲动，只相信颜色。', goal: '在 60 秒内完成颜色抑制挑战。' },
+            en: { title: 'Color Override', subtitle: 'Suppress the reading impulse and trust the color.', goal: 'Complete a 60-second color inhibition challenge.' }
+        }
+    },
+    {
+        id: 'nback-2step',
+        task: 'nback',
+        variant: 'two-back',
+        completion: 'timed-score',
+        duration: 60,
+        ruleLabel: { zh: '60 秒限时', en: '60s timed' },
+        theme: {
+            zh: { title: '记忆回路', subtitle: '持续刷新脑中的暂存信息。', goal: '完成 2-Back 工作记忆挑战。' },
+            en: { title: 'Memory Loop', subtitle: 'Keep refreshing the sequence in working memory.', goal: 'Complete a 2-back working-memory challenge.' }
+        }
+    },
+    {
+        id: 'set-triad',
+        task: 'setgame',
+        variant: 'triad',
+        completion: 'timed-score',
+        duration: 60,
+        ruleLabel: { zh: '60 秒限时', en: '60s timed' },
+        theme: {
+            zh: { title: '逻辑校准', subtitle: '在相同与不同之间找出隐藏结构。', goal: '完成进阶 SET 逻辑挑战。' },
+            en: { title: 'Logic Calibration', subtitle: 'Find the hidden structure across same and different.', goal: 'Complete an advanced SET logic challenge.' }
+        }
+    },
+    {
+        id: 'neuron-storm',
+        task: 'neuroncount',
+        variant: 'storm',
+        completion: 'timed-score',
+        duration: 60,
+        ruleLabel: { zh: '60 秒限时', en: '60s timed' },
+        theme: {
+            zh: { title: '神经风暴', subtitle: '在移动干扰中保持精确计数。', goal: '完成高干扰神经元计数挑战。' },
+            en: { title: 'Neural Storm', subtitle: 'Keep counting precisely through moving distractions.', goal: 'Complete a high-distraction counting challenge.' }
+        }
+    }
+];
+
 const getDayKey = (date = new Date()) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+};
+
+const getDailyChallengeIndex = (day) => {
+    const weekday = new Date(`${day}T00:00:00`).getDay();
+    return (weekday + 6) % 7;
+};
+
+const getDailySpec = (day = getDayKey()) => {
+    const challengeIndex = getDailyChallengeIndex(day);
+    const challenge = DAILY_CHALLENGES[challengeIndex % DAILY_CHALLENGES.length];
+    return {
+        instanceId: `daily-${day}`,
+        day,
+        challengeIndex,
+        ...challenge,
+        level: 'daily'
+    };
 };
 
 const getVisitorId = () => {
@@ -244,6 +400,64 @@ const readRetentionData = () => {
 
 const writeRetentionData = (data) => {
     localStorage.setItem(RETENTION_STORAGE_KEY, JSON.stringify(data));
+};
+
+const readDailyProgress = () => {
+    const fallback = { days: {}, updatedAt: new Date().toISOString() };
+    try {
+        const stored = JSON.parse(localStorage.getItem(DAILY_STORAGE_KEY) || 'null');
+        if (!stored) return fallback;
+        return {
+            ...fallback,
+            ...stored,
+            days: stored.days || {}
+        };
+    } catch (error) {
+        return fallback;
+    }
+};
+
+const writeDailyProgress = (data) => {
+    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify(data));
+};
+
+const getDailyStreak = (days, today = getDayKey()) => {
+    const completedDays = new Set(
+        Object.entries(days || {})
+            .filter(([, value]) => value?.completed)
+            .map(([day]) => day)
+    );
+    let streak = 0;
+    const cursor = new Date(`${today}T00:00:00`);
+    while (completedDays.has(getDayKey(cursor))) {
+        streak += 1;
+        cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+};
+
+const getWeeklyDailyDays = (days, today = getDayKey()) => {
+    const completedDays = new Set(
+        Object.entries(days || {})
+            .filter(([, value]) => value?.completed)
+            .map(([day]) => day)
+    );
+    const todayDate = new Date(`${today}T00:00:00`);
+    const monday = new Date(todayDate);
+    const mondayOffset = (todayDate.getDay() + 6) % 7;
+    monday.setDate(todayDate.getDate() - mondayOffset);
+
+    return Array.from({ length: 7 }, (_, index) => {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + index);
+        const day = getDayKey(date);
+        return {
+            day,
+            weekday: index,
+            completed: completedDays.has(day),
+            isToday: day === today
+        };
+    });
 };
 
 const trackRetentionEvent = (eventName, payload = {}) => {
@@ -409,12 +623,26 @@ function App() {
     const [showInfo, setShowInfo] = useState(null);
     const [lang, setLang] = useState(() => localStorage.getItem('prefrontal_lab_lang') || 'zh');
     const [retentionData, setRetentionData] = useState(() => readRetentionData());
+    const [dailyProgress, setDailyProgress] = useState(() => readDailyProgress());
     const [cloudSummary, setCloudSummary] = useState(null);
     const [cloudStatus, setCloudStatus] = useState('idle');
     const [ownerToken, setOwnerToken] = useState(() => localStorage.getItem(OWNER_TOKEN_KEY) || '');
+    const [showSettings, setShowSettings] = useState(false);
     const ui = UI_TEXT[lang];
     const isEnglish = lang === 'en';
     const isGameView = !['home', 'result', 'analytics'].includes(view);
+    const isDailyMode = mode === 'daily';
+    const isInfiniteMode = mode === 'infinite';
+    const isChallengeDifficulty = mode === 'hard' || mode === 'comp' || isDailyMode;
+    const dailySpec = getDailySpec();
+    const dailyRecord = dailyProgress.days?.[dailySpec.day] || {};
+    const dailyStreak = getDailyStreak(dailyProgress.days, dailySpec.day);
+    const dailyWeekDays = getWeeklyDailyDays(dailyProgress.days, dailySpec.day);
+    const dailyCompletedCount = Object.values(dailyProgress.days || {}).filter(day => day?.completed).length;
+    const dailyTheme = dailySpec.theme?.[lang] || dailySpec.theme?.en;
+    const dailyRuleLabel = dailySpec.ruleLabel?.[lang] || (dailySpec.completion === 'finish-grid' ? ui.dailyGoalFinish : ui.dailyGoalTimed);
+    const dailyDurationLabel = `${dailySpec.duration || 60}s`;
+    const dailyWeekLabels = isEnglish ? ['M', 'T', 'W', 'T', 'F', 'S', 'S'] : ['一', '二', '三', '四', '五', '六', '日'];
     const localRetentionSummary = buildRetentionSummary(retentionData);
     const retentionSummary = cloudSummary || localRetentionSummary;
     const analyticsText = isEnglish
@@ -482,6 +710,7 @@ function App() {
     const setLanguage = (nextLang) => {
         localStorage.setItem('prefrontal_lab_lang', nextLang);
         setLang(nextLang);
+        setShowSettings(false);
     };
 
     const refreshRetention = () => setRetentionData(readRetentionData());
@@ -562,13 +791,13 @@ function App() {
     );
     const getTaskGuide = (type) => {
         if (!isEnglish) {
-            return (mode === 'hard' || mode === 'comp')
+            return isChallengeDifficulty
                 ? (TASK_DATA[type].guide.playHard || TASK_DATA[type].guide.play)
                 : TASK_DATA[type].guide.play;
         }
 
         const guide = TASK_TRANSLATIONS[type]?.guide;
-        return (mode === 'hard' || mode === 'comp') ? (guide?.playHard || guide?.play) : guide?.play;
+        return isChallengeDifficulty ? (guide?.playHard || guide?.play) : guide?.play;
     };
 
     // --- 数据迁移逻辑：确保 1.0 数据同步到 5.0 ---
@@ -603,18 +832,100 @@ function App() {
     const [showUpdateNote, setShowUpdateNote] = useState(() => {
         // 检查本地存储，如果这个版本的 Key 不存在，说明是第一次见，返回 true
         const shouldPreviewUpdate = new URLSearchParams(window.location.search).has('showUpdate');
-        return shouldPreviewUpdate || !localStorage.getItem('prefrontal_lab_v6.1.1_update');
+        return shouldPreviewUpdate || !localStorage.getItem('prefrontal_lab_v6.1.2_update');
     });
 
     const closeUpdateNote = () => {
         // 玩家点击按钮后，在本地存入 'true'，下次刷新就不会再弹了
-        localStorage.setItem('prefrontal_lab_v6.1.1_update', 'true');
+        localStorage.setItem('prefrontal_lab_v6.1.2_update', 'true');
         setShowUpdateNote(false);
     };
 
+    const goHomeMode = (nextMode) => {
+        if (nextMode === 'hard' && !history.isHardUnlocked) return;
+        setMode(nextMode);
+        setView('home');
+    };
+
+    const navItems = [
+        {
+            key: 'train',
+            label: ui.navTrain,
+            icon: 'dumbbell',
+            active: view === 'home' && mode !== 'comp' && mode !== 'daily',
+            onClick: () => goHomeMode((mode === 'comp' || mode === 'daily') ? 'normal' : mode)
+        },
+        {
+            key: 'daily',
+            label: ui.navDaily,
+            icon: 'calendar-check',
+            active: view === 'home' && mode === 'daily',
+            onClick: () => goHomeMode('daily')
+        },
+        {
+            key: 'arena',
+            label: ui.navArena,
+            icon: 'swords',
+            active: view === 'home' && mode === 'comp',
+            onClick: () => goHomeMode('comp')
+        },
+        ...(isOwner ? [{
+            key: 'analytics',
+            label: ui.navAnalytics,
+            icon: 'chart-no-axes-combined',
+            active: view === 'analytics',
+            onClick: () => { refreshRetention(); setView('analytics'); }
+        }] : [])
+    ];
+
+    const renderSettingsControl = (className = '') => (
+        <div className={`settings-control ${className}`}>
+            <button
+                type="button"
+                onClick={() => setShowSettings(prev => !prev)}
+                className="settings-toggle"
+                aria-label={ui.settings}
+                aria-expanded={showSettings}
+            >
+                <Icon name="settings" className="w-5 h-5" />
+            </button>
+            {showSettings && (
+                <div className="settings-menu">
+                    <div className="settings-menu-title">
+                        <Icon name="settings" className="w-4 h-4" />
+                        <span>{ui.settings}</span>
+                    </div>
+                    <div className="settings-menu-section">
+                        <div className="settings-row-label">{ui.settingsLanguage}</div>
+                        <div className="settings-language-group">
+                            {[
+                                { key: 'zh', label: '中文' },
+                                { key: 'en', label: 'EN' }
+                            ].map(option => (
+                                <button
+                                    key={option.key}
+                                    type="button"
+                                    onClick={() => setLanguage(option.key)}
+                                    className={`settings-language-option ${lang === option.key ? 'is-active' : ''}`}
+                                >
+                                    {option.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="settings-sync-row">
+                        <Icon name="cloud" className="w-4 h-4" />
+                        <span>{ui.settingsData}</span>
+                        <strong>{ui.settingsSoon}</strong>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
     useEffect(() => {
         document.documentElement.lang = isEnglish ? 'en' : 'zh-CN';
-        document.title = isEnglish ? 'Prefrontal Lab 6.1.1' : '前额叶实验室 6.1.1';
+        document.title = isEnglish ? 'Prefrontal Lab 6.1.2' : '前额叶实验室 6.1.2';
     }, [isEnglish]);
 
     useEffect(() => {
@@ -647,7 +958,7 @@ function App() {
         const handleTrackedClick = (event) => {
             const taskCard = event.target?.closest?.('.task-card[data-analytics-task]');
             if (!taskCard) return;
-            if (event.target?.closest?.('button, a, .info-button, .analytics-open, .language-toggle')) return;
+            if (event.target?.closest?.('button, a, .info-button, .analytics-open, .settings-control')) return;
 
             const task = taskCard.dataset.analyticsTask;
             const clickLabel = taskCard.dataset.analyticsLabel || GAME_CLICK_LABELS[task] || task || 'Unknown game';
@@ -855,15 +1166,24 @@ function App() {
     };
 
     const initGameCore = (type) => {
-        const isHard = mode === 'hard' || mode === 'comp';
+        const isHard = isChallengeDifficulty;
         if (type === 'schulte') {
             const nums = Array.from({ length: 25 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-            setSchulte({ grid: nums, next: 1 });
+            const sequence = currentRunRef.current?.dailyVariant === 'reverse'
+                ? Array.from({ length: 25 }, (_, i) => 25 - i)
+                : Array.from({ length: 25 }, (_, i) => i + 1);
+            setSchulte({ grid: nums, sequence, index: 0, next: sequence[0] });
         } else if (type === 'stroop') {
             const colors = COLOR_LABELS;
             const t = Math.floor(Math.random() * 4);
             let c; do { c = Math.floor(Math.random() * 4); } while (c === t);
-            setStroop({ textZh: colors[t].zh, textEn: colors[t].en, color: colors[c].val, opts: [...colors].sort(() => Math.random() - 0.5) });
+            setStroop({
+                roundId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                textZh: colors[t].zh,
+                textEn: colors[t].en,
+                color: colors[c].val,
+                opts: [...colors].sort(() => Math.random() - 0.5)
+            });
         } else if (type === 'nback') {
             const level = isHard ? 2 : 1;
             const round = createNbackRound(nbackSeq.current, level);
@@ -873,7 +1193,7 @@ function App() {
         } else if (type === 'setgame') {
             const shapes = ['circle', 'square', 'triangle'];
             const colors = ['#EF4444', '#3B82F6', '#10B981'];
-            const isHard = mode === 'hard' || mode === 'comp';
+            const isHard = isChallengeDifficulty;
 
             // 逻辑判定：0代表全同，1代表全异
             const logic = {
@@ -918,9 +1238,9 @@ function App() {
                 .sort(() => Math.random() - 0.5)
                 .map((card, i) => ({ ...card, id: i }));
 
-            setSetGame({ cards: finalCards, selected: [] });
+            setSetGame({ cards: finalCards, selected: [], successIds: [] });
         } else if (type === 'neuroncount') {
-            const isHard = mode === 'hard' || mode === 'comp';
+            const isHard = isChallengeDifficulty;
             const shapes = ['circle', 'square', 'triangle'];
             const colors = ['bg-amber-500', 'bg-blue-500', 'bg-rose-500', 'bg-green-500', 'bg-purple-500'];
 
@@ -992,24 +1312,48 @@ function App() {
         clearAnswerFeedback();
         setScore(0);
         nbackSeq.current = [];
-        const taskName = mode === 'comp' ? 'arena' : type;
+        const activeDailySpec = getDailySpec();
+        const taskType = mode === 'daily' ? activeDailySpec.task : type;
+        const taskName = mode === 'comp' ? 'arena' : mode === 'daily' ? 'daily' : taskType;
         currentRunRef.current = {
             task: taskName,
+            dailyChallengeId: mode === 'daily' ? activeDailySpec.id : null,
+            dailyInstanceId: mode === 'daily' ? activeDailySpec.instanceId : null,
+            dailyTask: mode === 'daily' ? taskType : null,
+            dailyDay: mode === 'daily' ? activeDailySpec.day : null,
+            dailyVariant: mode === 'daily' ? activeDailySpec.variant : null,
+            dailyCompletion: mode === 'daily' ? activeDailySpec.completion : null,
+            dailyDuration: mode === 'daily' ? activeDailySpec.duration : null,
             mode,
             startedAt: new Date().toISOString()
         };
         recordRetention('game_start', {
             sessionId: sessionIdRef.current,
             task: taskName,
-            mode
+            mode,
+            dailyChallengeId: mode === 'daily' ? activeDailySpec.id : null,
+            dailyInstanceId: mode === 'daily' ? activeDailySpec.instanceId : null,
+            dailyTask: mode === 'daily' ? taskType : null,
+            dailyDay: mode === 'daily' ? activeDailySpec.day : null,
+            dailyVariant: mode === 'daily' ? activeDailySpec.variant : null,
+            dailyCompletion: mode === 'daily' ? activeDailySpec.completion : null,
+            dailyDuration: mode === 'daily' ? activeDailySpec.duration : null
         });
         if (mode === 'comp') {
             setTimeLeft(90);
             switchArenaTask();
+        } else if (mode === 'daily') {
+            setTimeLeft(activeDailySpec.duration || TASK_DATA[taskType].time);
+            initGameCore(taskType);
+            setView(taskType);
+        } else if (mode === 'infinite') {
+            setTimeLeft(-1);
+            initGameCore(taskType);
+            setView(taskType);
         } else {
-            setTimeLeft(TASK_DATA[type].time);
-            initGameCore(type);
-            setView(type);
+            setTimeLeft(TASK_DATA[taskType].time);
+            initGameCore(taskType);
+            setView(taskType);
         }
     };
 
@@ -1061,7 +1405,7 @@ function App() {
         };
     };
 
-    const showAnswerFeedback = ({ correct, points = 0, penalty = 0, showPenalty = false, nextType, target, advance = true, event, position, flashError = true }) => {
+    const showAnswerFeedback = ({ correct, points = 0, penalty = 0, showPenalty = false, nextType, target, advance = true, event, position, flashError = true, duration }) => {
         if (answerLock.current) return;
         answerLock.current = true;
 
@@ -1074,7 +1418,7 @@ function App() {
 
         setAnswerFeedback({ status: correct ? 'correct' : 'wrong', points, penalty, showPenalty, target, ...(position || getAnswerFeedbackPosition(event)) });
         if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
-        feedbackTimer.current = setTimeout(() => finishAnswerFeedback(nextType, advance), correct ? 360 : 300);
+        feedbackTimer.current = setTimeout(() => finishAnswerFeedback(nextType, advance), duration || (correct ? 360 : 300));
     };
 
     const handleNbackAnswer = (answerIsMatch, event) => {
@@ -1140,24 +1484,63 @@ function App() {
         setLastScore(currentFinalScore);
 
         const isComp = mode === 'comp';
+        const isDaily = mode === 'daily';
+        const isInfinite = mode === 'infinite';
         const completedTask = currentRunRef.current?.task || (isComp ? 'arena' : view);
         recordRetention('game_complete', {
             sessionId: sessionIdRef.current,
             task: completedTask,
             mode,
             score: currentFinalScore,
+            dailyChallengeId: currentRunRef.current?.dailyChallengeId || null,
+            dailyInstanceId: currentRunRef.current?.dailyInstanceId || null,
+            dailyTask: currentRunRef.current?.dailyTask || null,
+            dailyDay: currentRunRef.current?.dailyDay || null,
+            dailyVariant: currentRunRef.current?.dailyVariant || null,
+            dailyCompletion: currentRunRef.current?.dailyCompletion || null,
+            dailyDuration: currentRunRef.current?.dailyDuration || null,
             durationSeconds: currentRunRef.current?.startedAt
                 ? Math.max(0, Math.round((Date.now() - new Date(currentRunRef.current.startedAt).getTime()) / 1000))
                 : null
         });
+
+        if (isDaily) {
+            const day = currentRunRef.current?.dailyDay || getDayKey();
+            const dailyTask = currentRunRef.current?.dailyTask || view;
+            setDailyProgress(prev => {
+                const dayRecord = prev.days?.[day] || {};
+                const nextData = {
+                    ...prev,
+                    updatedAt: new Date().toISOString(),
+                    days: {
+                        ...(prev.days || {}),
+                        [day]: {
+                            ...dayRecord,
+                            completed: true,
+                            challengeId: currentRunRef.current?.dailyChallengeId || null,
+                            instanceId: currentRunRef.current?.dailyInstanceId || null,
+                            variant: currentRunRef.current?.dailyVariant || null,
+                            completion: currentRunRef.current?.dailyCompletion || null,
+                            duration: currentRunRef.current?.dailyDuration || null,
+                            task: dailyTask,
+                            bestScore: Math.max(dayRecord.bestScore || 0, currentFinalScore),
+                            lastScore: currentFinalScore,
+                            completedAt: new Date().toISOString()
+                        }
+                    }
+                };
+                writeDailyProgress(nextData);
+                return nextData;
+            });
+        }
         currentRunRef.current = null;
 
         setHistory(prev => {
             // 计算新的最高分
-            const newBestScore = isComp ? prev.bestScore : Math.max(prev.bestScore, currentFinalScore);
+            const newBestScore = (isComp || isDaily || isInfinite) ? prev.bestScore : Math.max(prev.bestScore, currentFinalScore);
             const newBestCompScore = isComp ? Math.max(prev.bestCompScore || 0, currentFinalScore) : (prev.bestCompScore || 0);
             const taskBestScores = { ...DEFAULT_TASK_BESTS, ...(prev.taskBestScores || {}) };
-            if (!isComp && Object.prototype.hasOwnProperty.call(DEFAULT_TASK_BESTS, view)) {
+            if (!isComp && !isDaily && !isInfinite && Object.prototype.hasOwnProperty.call(DEFAULT_TASK_BESTS, view)) {
                 taskBestScores[view] = Math.max(taskBestScores[view] || 0, currentFinalScore);
             }
 
@@ -1212,13 +1595,13 @@ function App() {
 
     useEffect(() => {
         let timer;
-        if (isGameView && timeLeft > 0) {
+        if (isGameView && !isInfiniteMode && timeLeft > 0) {
             timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
-        } else if (timeLeft === 0 && isGameView) {
+        } else if (timeLeft === 0 && isGameView && !isInfiniteMode) {
             endGame();
         }
         return () => clearInterval(timer);
-    }, [timeLeft, view]);
+    }, [timeLeft, view, isInfiniteMode]);
 
     return (
         <div className={`app-shell h-full flex flex-col relative overflow-hidden transition-colors duration-200 ${isError ? 'arena-flash' : 'bg-slate-50'} text-slate-900 select-none`}>
@@ -1235,23 +1618,46 @@ function App() {
                 </div>
             )}
 
+            {showSettings && (
+                <button
+                    type="button"
+                    className="settings-scrim"
+                    aria-label="Close settings"
+                    onClick={() => setShowSettings(false)}
+                />
+            )}
+
+            {(view === 'home' || view === 'analytics') && (
+                <nav className="app-nav" aria-label="Primary navigation">
+                    <div className="app-nav-brand">
+                        <div className="app-nav-logo">
+                            <Icon name="brain-circuit" className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                            <div className="app-nav-title">{ui.appTitle}</div>
+                            <div className="app-nav-subtitle">Prefrontal Lab</div>
+                        </div>
+                    </div>
+                    <div className="app-nav-items">
+                        {navItems.map(item => (
+                            <button
+                                key={item.key}
+                                onClick={item.onClick}
+                                disabled={item.disabled}
+                                className={`app-nav-button is-${item.key} ${item.active ? 'is-active' : ''} ${item.disabled ? 'is-disabled' : ''}`}
+                            >
+                                <Icon name={item.icon} className="w-5 h-5" />
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                    {renderSettingsControl('app-nav-settings')}
+                </nav>
+            )}
+
             {view === 'home' && (
-                <div className="home-screen p-6 pt-10 flex flex-col items-center h-full overflow-y-auto no-scrollbar relative">
-                    {isOwner && (
-                        <button
-                            onClick={() => { refreshRetention(); setView('analytics'); }}
-                            className="analytics-open absolute top-4 left-4 z-20 w-9 h-9 rounded-full bg-white/80 border border-slate-200 text-indigo-600 shadow-sm backdrop-blur flex items-center justify-center"
-                            aria-label={analyticsText.title}
-                        >
-                            <Icon name="chart-no-axes-combined" className="w-4 h-4" />
-                        </button>
-                    )}
-                    <button
-                        onClick={() => setLanguage(isEnglish ? 'zh' : 'en')}
-                        className="language-toggle absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full bg-white/80 border border-slate-200 text-[10px] font-black text-indigo-600 shadow-sm backdrop-blur"
-                    >
-                        {isEnglish ? '中文' : 'EN'}
-                    </button>
+                <div className="home-screen app-content-screen p-6 pt-10 flex flex-col items-center h-full overflow-y-auto no-scrollbar relative">
+                    {renderSettingsControl('home-settings-control')}
                     <div className="home-mini-brand hidden w-full max-w-sm items-center gap-2 shrink-0">
                         <div className="w-9 h-9 bg-indigo-600 text-white rounded-xl shadow-md flex items-center justify-center shrink-0">
                             <Icon name="brain-circuit" className="w-5 h-5" />
@@ -1267,55 +1673,157 @@ function App() {
                         <div className="text-[10px] font-bold text-slate-400 brand-text">Prefrontal Lab</div>
                     </div>
 
-                    <div className={`score-card w-full max-w-sm p-6 rounded-[2.2rem] text-white mb-6 shadow-lg flex justify-between items-end relative overflow-hidden shrink-0 ${mode === 'comp' ? 'bg-amber-500' : 'bg-indigo-600'}`}>
-                        <div className="z-10">
-                            <div className="text-[10px] opacity-60 font-bold uppercase tracking-widest">{ui.bestSynced}</div>
-                            <div className="score-value text-4xl font-black">{mode === 'comp' ? (history.bestCompScore || 0) : (history.bestScore || 0)}</div>
-                        </div>
-                        <div className="unlock-pill z-10 text-[10px] font-bold bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md">
-                            {history.isHardUnlocked ? "🔓 Advanced On" : "🔒 500 Unlock"}
-                        </div>
+                    <div className={`score-card mode-score-card w-full max-w-sm p-6 rounded-[2.2rem] mb-6 flex justify-between items-end relative overflow-hidden shrink-0 ${mode === 'daily' ? 'daily-score-card' : `text-white ${mode === 'comp' ? 'is-arena bg-amber-500' : mode === 'infinite' ? 'is-infinite bg-sky-500' : 'is-train bg-indigo-600'}`}`}>
+                        {mode === 'daily' ? (
+                            <div className="daily-score-summary z-10 w-full">
+                                <div className="daily-best-block">
+                                    <div className="text-[10px] opacity-70 font-bold uppercase tracking-widest">{ui.dailyBest}</div>
+                                    <div className="score-value text-4xl font-black">{dailyRecord.bestScore || 0}</div>
+                                </div>
+                                <div className={`daily-score-streak ${dailyStreak > 0 ? 'is-lit' : ''}`}>
+                                    <div className="daily-score-flame">
+                                        <Icon name="flame" className={`w-5 h-5 ${dailyStreak > 0 ? 'is-solid-flame' : ''}`} />
+                                    </div>
+                                    <div>
+                                        <div className="daily-score-streak-label">{ui.dailyStreak}</div>
+                                        <div className="daily-score-streak-value">{dailyStreak}<span>{ui.dailyDays}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="z-10">
+                                    <div className="text-[10px] opacity-60 font-bold uppercase tracking-widest">{mode === 'infinite' ? ui.infiniteScore : ui.bestSynced}</div>
+                                    <div className="score-value text-4xl font-black">{mode === 'comp' ? (history.bestCompScore || 0) : mode === 'infinite' ? '∞' : (history.bestScore || 0)}</div>
+                                </div>
+                                <div className="unlock-pill z-10 text-[10px] font-bold bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md">
+                                    {mode === 'infinite' ? ui.infinitePill : history.isHardUnlocked ? "🔓 Advanced On" : "🔒 500 Unlock"}
+                                </div>
+                            </>
+                        )}
                         <div className="score-watermark absolute top-[-20px] right-[-20px] opacity-10 rotate-12"><Icon name="brain" className="w-32 h-32" /></div>
                     </div>
 
-                    <div className="mode-tabs flex w-full max-w-sm bg-slate-200 p-1 rounded-2xl mb-8 shrink-0">
-                        {['normal', 'hard', 'comp'].map(m => {
-                            // 增加一个判定：如果是 hard 模式且没解锁，该按钮不可点（或者点不动）
-                            const isLocked = m === 'hard' && !history.isHardUnlocked;
+                    {mode !== 'daily' && mode !== 'comp' && (
+                        <div className="mode-tabs flex w-full max-w-sm bg-slate-200 p-1 rounded-2xl mb-8 shrink-0">
+                            {['normal', 'hard', 'infinite'].map(m => {
+                                // 增加一个判定：如果是 hard 模式且没解锁，该按钮不可点（或者点不动）
+                                const isLocked = m === 'hard' && !history.isHardUnlocked;
 
-                            return (
-                                <button
-                                    key={m}
-                                    onClick={() => {
-                                        if (isLocked) return; // 拦截点击
-                                        setMode(m);
-                                    }}
-                                    className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all 
-                                ${isLocked ? 'opacity-30 cursor-not-allowed' : ''} 
-                                ${mode === m ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
-                                >
-                                    {m === 'normal' ? ui.normal : m === 'hard' ? (isLocked ? ui.hardLocked : ui.hard) : ui.comp}
-                                </button>
-                            );
-                        })}
-                    </div>
+                                return (
+                                    <button
+                                        key={m}
+                                        onClick={() => {
+                                            if (isLocked) return; // 拦截点击
+                                            setMode(m);
+                                        }}
+                                        className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all 
+                                    ${isLocked ? 'opacity-30 cursor-not-allowed' : ''} 
+                                    ${mode === m ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+                                    >
+                                        {m === 'normal' ? ui.normal : m === 'infinite' ? ui.infinite : (isLocked ? ui.hardLocked : ui.hard)}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     <div className="task-section w-full max-w-sm mb-12 shrink-0">
-                        {mode === 'comp' ? (
+                        {mode === 'daily' ? (
+                            <div
+                                data-analytics-task="daily"
+                                data-analytics-label={GAME_CLICK_LABELS.daily}
+                                className="daily-challenge-card bg-white rounded-[1.8rem] border-2 border-emerald-100 shadow-md overflow-hidden"
+                            >
+                                <div className="daily-card-hero p-5 text-white relative overflow-hidden">
+                                    <div className="relative z-10 flex items-start justify-between gap-4">
+                                        <div className="min-w-0">
+                                            <div className="text-[10px] font-black brand-text opacity-75">{ui.dailyTitle}</div>
+                                            <div className="mt-1 text-2xl font-black leading-tight">{dailyTheme.title}</div>
+                                            <div className="mt-1 text-xs font-extrabold opacity-95 leading-relaxed">{dailyTheme.subtitle}</div>
+                                        </div>
+                                        <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur">
+                                            <Icon name={TASK_DATA[dailySpec.task].icon} className="w-6 h-6" />
+                                        </div>
+                                    </div>
+                                    <div className="absolute -right-8 -bottom-10 opacity-15">
+                                        <Icon name="calendar-check" className="w-32 h-32" />
+                                    </div>
+                                </div>
+                                <div className="p-5">
+                                    <div className="daily-total-row">
+                                        <div className="daily-total-icon">
+                                            <Icon name="badge-check" className="w-4 h-4" />
+                                        </div>
+                                        <span>{ui.dailyCompleted}</span>
+                                        <strong>{dailyCompletedCount}</strong>
+                                    </div>
+
+                                    <div className="daily-goal-box">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                                                <Icon name="target" className="w-5 h-5" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="text-[10px] font-black text-emerald-600 brand-text">{ui.dailyToday}</div>
+                                                <div className="text-sm font-black text-slate-800 leading-tight">{getTaskTitle(dailySpec.task)}</div>
+                                                <div className="text-[11px] font-extrabold text-slate-600 mt-1">{dailyTheme.goal || ui.dailyGoal}</div>
+                                                <div className="daily-rule-row">
+                                                    <span><Icon name={dailySpec.completion === 'finish-grid' ? 'target' : 'timer'} className="w-3.5 h-3.5" />{dailyRuleLabel}</span>
+                                                    <span><Icon name="clock-3" className="w-3.5 h-3.5" />{dailyDurationLabel}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className={`daily-status-pill ${dailyRecord.completed ? 'is-complete' : ''}`}>
+                                            {dailyRecord.completed ? ui.dailyDone : ui.dailyCheckIn}
+                                        </div>
+                                    </div>
+
+                                    <div className="daily-week-panel">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="text-[10px] font-black text-slate-400 brand-text">{ui.dailyWeek}</div>
+                                            <div className="text-[10px] font-bold text-slate-400">{ui.dailyReward}</div>
+                                        </div>
+                                        <div className="daily-week-row">
+                                            {dailyWeekDays.map(day => (
+                                                <div key={day.day} className="daily-week-item">
+                                                    <div className={`daily-week-dot ${day.completed ? 'is-complete' : ''} ${day.isToday ? 'is-today' : ''}`}>
+                                                        {day.completed ? <Icon name="check" className="w-3.5 h-3.5" /> : ''}
+                                                    </div>
+                                                    <div className="daily-week-label">{dailyWeekLabels[day.weekday]}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        className={`daily-start-button ${dailyRecord.completed ? 'is-secondary' : ''}`}
+                                        type="button"
+                                        onClick={() => startChallenge(dailySpec.task)}
+                                    >
+                                        <Icon name={dailyRecord.completed ? 'rotate-cw' : 'play'} className="w-4 h-4" />
+                                        {dailyRecord.completed ? ui.dailyReplay : ui.dailyStart}
+                                    </button>
+                                </div>
+                            </div>
+                        ) : mode === 'comp' ? (
                             <div
                                 onClick={() => startChallenge()}
                                 data-analytics-task="arena"
                                 data-analytics-label={GAME_CLICK_LABELS.arena}
-                                className="task-card flex items-center p-5 bg-white rounded-[1.8rem] border-2 border-amber-100 shadow-md active:scale-[0.98] transition-transform cursor-pointer"
+                                style={{ boxShadow: '0 16px 36px rgba(245, 158, 11, 0.06)' }}
+                                className="task-card arena-task-card flex items-center p-5 bg-white rounded-[1.8rem] shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
                             >
-                                <div className="task-icon w-12 h-12 rounded-xl flex items-center justify-center mr-4 bg-amber-50 text-amber-500">
+                                <div className="task-icon arena-task-icon w-12 h-12 rounded-xl flex items-center justify-center mr-4 bg-amber-50 text-amber-500">
                                     <Icon name="zap" className="w-7 h-7" />
                                 </div>
                                 <div className="task-copy flex-1">
                                     <div className="task-title font-bold text-lg text-slate-800">{ui.arenaTitle}</div>
                                     <div className="task-subtitle text-[11px] text-slate-500 font-medium">{ui.arenaSubtitle}</div>
                                 </div>
-                                <Icon name="swords" className="w-5 h-5 text-amber-300" />
+                                <div className="arena-side-icon">
+                                    <Icon name="swords" className="w-5 h-5" />
+                                </div>
                             </div>
                         ) : (
                             <div className="task-list grid gap-3">
@@ -1333,7 +1841,7 @@ function App() {
                                             </div>
                                             <div className="task-copy">
                                                 <div className="task-title font-bold text-base text-slate-800">{getTaskTitle(type)}</div>
-                                                <div className="task-subtitle text-[11px] text-slate-500 font-medium">{getTaskHome(type, mode !== 'normal')}</div>
+                                                <div className="task-subtitle text-[11px] text-slate-500 font-medium">{getTaskHome(type, mode === 'hard')}</div>
                                             </div>
                                         </div>
                                         <button onClick={(event) => { event.stopPropagation(); setShowInfo(type); }} className="info-button p-2 ml-1 text-slate-300"><Icon name="info" className="w-5 h-5" /></button>
@@ -1346,7 +1854,7 @@ function App() {
             )}
 
             {view === 'analytics' && isOwner && (
-                <div className="analytics-screen h-full overflow-y-auto no-scrollbar bg-slate-50 px-5 py-5">
+                <div className="analytics-screen app-content-screen h-full overflow-y-auto no-scrollbar bg-slate-50 px-5 py-5">
                     <div className="w-full max-w-md mx-auto">
                         <div className="flex items-center justify-between mb-5">
                             <button
@@ -1568,11 +2076,22 @@ function App() {
                         <div className="flex justify-start">
                             <button onClick={() => {
                                 clearAnswerFeedback();
+                                if (mode === 'infinite') {
+                                    endGame(score);
+                                    return;
+                                }
                                 if (currentRunRef.current) {
                                     recordRetention('game_abandon', {
                                         sessionId: sessionIdRef.current,
                                         task: currentRunRef.current.task,
-                                        mode
+                                        mode,
+                                        dailyChallengeId: currentRunRef.current.dailyChallengeId || null,
+                                        dailyInstanceId: currentRunRef.current.dailyInstanceId || null,
+                                        dailyTask: currentRunRef.current.dailyTask || null,
+                                        dailyDay: currentRunRef.current.dailyDay || null,
+                                        dailyVariant: currentRunRef.current.dailyVariant || null,
+                                        dailyCompletion: currentRunRef.current.dailyCompletion || null,
+                                        dailyDuration: currentRunRef.current.dailyDuration || null
                                     });
                                     currentRunRef.current = null;
                                 }
@@ -1580,14 +2099,14 @@ function App() {
                             }} className="p-2 text-slate-400"><Icon name="chevron-left" /></button>
                         </div>
                         <div className="text-center">
-                            <div className="text-[9px] font-black text-indigo-500 brand-text">{mode === 'comp' ? ui.arenaMode : ui.training}</div>
+                            <div className={`text-[9px] font-black brand-text ${mode === 'daily' ? 'text-emerald-500' : mode === 'infinite' ? 'text-sky-500' : 'text-indigo-500'}`}>{mode === 'comp' ? ui.arenaMode : mode === 'daily' ? ui.dailyTitle : mode === 'infinite' ? ui.infiniteMode : ui.training}</div>
                             <div className="text-sm font-bold">{mode === 'comp' ? ui.arenaShortTitle : getTaskTitle(view)}</div>
-                            {mode !== 'comp' && TASK_DATA[view] && (
+                            {mode !== 'comp' && mode !== 'daily' && mode !== 'infinite' && TASK_DATA[view] && (
                                 <div className="text-[9px] font-black text-slate-400 font-mono">{ui.taskBest} {history.taskBestScores?.[view] || 0}</div>
                             )}
                         </div>
                         <div className="flex items-center justify-end gap-3">
-                            <div className={`text-xs font-mono font-bold px-2 py-1 rounded ${isError ? 'bg-red-500 text-white' : 'bg-slate-100'}`}>{timeLeft}s</div>
+                            <div className={`text-xs font-mono font-bold px-2 py-1 rounded ${isError ? 'bg-red-500 text-white' : 'bg-slate-100'}`}>{mode === 'infinite' ? '∞' : `${timeLeft}s`}</div>
                             <div className="font-mono text-xl font-black text-indigo-600">{score}</div>
                         </div>
                     </div>
@@ -1596,8 +2115,11 @@ function App() {
                             <div className="grid grid-cols-5 gap-1.5 w-full max-w-sm aspect-square">
                                 {schulte.grid.map(n => {
                                     // 核心逻辑：判断当前格子的状态
-                                    const isClicked = n < schulte.next; // 是否已经点过了
-                                    const isHardMode = mode === 'hard' || mode === 'comp'; // 是否是进阶或竞技模式
+                                    const schulteSequence = schulte.sequence || Array.from({ length: 25 }, (_, i) => i + 1);
+                                    const currentIndex = schulte.index || 0;
+                                    const clickedNumbers = new Set(schulteSequence.slice(0, currentIndex));
+                                    const isClicked = clickedNumbers.has(n); // 是否已经点过了
+                                    const isHardMode = isChallengeDifficulty; // 是否是进阶或挑战模式
 
                                     return (
                                         <button
@@ -1605,12 +2127,16 @@ function App() {
                                             onClick={() => {
                                                 // 只有点击“下一个正确数字”时才触发逻辑
                                                 if (n === schulte.next) {
-                                                    if (n === 25) {
-                                                        const finalScore = score + 10 + (timeLeft * 10);
+                                                    if (currentIndex >= schulteSequence.length - 1) {
+                                                        const finalScore = mode === 'infinite' ? score + 10 : score + 10 + (timeLeft * 10);
                                                         setScore(finalScore);
-                                                        mode === 'comp' ? switchArenaTask() : endGame(finalScore);
+                                                        mode === 'comp' ? switchArenaTask() : mode === 'infinite' ? initGameCore('schulte') : endGame(finalScore);
                                                     } else {
-                                                        setSchulte(p => ({ ...p, next: p.next + 1 }));
+                                                        setSchulte(p => {
+                                                            const sequence = p.sequence || Array.from({ length: 25 }, (_, i) => i + 1);
+                                                            const nextIndex = (p.index || 0) + 1;
+                                                            return { ...p, index: nextIndex, next: sequence[nextIndex] };
+                                                        });
                                                         setScore(s => s + 10);
                                                     }
                                                 } else {
@@ -1618,9 +2144,9 @@ function App() {
                                                 }
                                             }}
                                             className={`flex items-center justify-center font-bold text-lg rounded-lg border transition-all 
-    ${(n < schulte.next && mode === 'hard') // ← 这里去掉了 mode === 'comp'
+    ${(isClicked && (mode === 'hard' || mode === 'daily')) // 竞技不使用盲点，Daily 使用进阶变体
                                                     ? 'bg-white text-slate-900 border-slate-100 shadow-sm' // 只有进阶模式是“盲点”
-                                                    : (n < schulte.next
+                                                    : (isClicked
                                                         ? 'bg-indigo-600 text-white opacity-20 border-transparent' // 竞技和基础模式：点过变蓝透明
                                                         : 'bg-white text-slate-900 border-slate-100 shadow-sm'
                                                     )
@@ -1637,7 +2163,7 @@ function App() {
                                 <div className="text-7xl font-black" style={{ color: stroop.color }}>{isEnglish ? stroop.textEn : stroop.textZh}</div>
                                 <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
                                     {stroop.opts.map(o => (
-                                        <button key={o.val} disabled={!!answerFeedback} onClick={(event) => {
+                                        <button key={`${stroop.roundId || 'stroop'}-${o.val}`} disabled={!!answerFeedback} onClick={(event) => {
                                             const isCorrect = o.val === stroop.color;
                                             showAnswerFeedback({
                                                 correct: isCorrect,
@@ -1648,7 +2174,7 @@ function App() {
                                                 event,
                                                 flashError: false
                                             });
-                                        }} className={`py-6 rounded-2xl border font-bold shadow-sm transition-all duration-200 disabled:pointer-events-none ${answerFeedback?.target === o.val ? (answerFeedback.status === 'correct' ? 'bg-emerald-500 text-white border-emerald-400 scale-105 ring-4 ring-emerald-100' : 'bg-red-50 text-red-600 border-red-200 ring-4 ring-red-100') : 'bg-white border-slate-100'}`}>{mode === 'normal' ? <div className="w-8 h-8 rounded-full mx-auto" style={{ backgroundColor: o.val }}></div> : (isEnglish ? o.en : o.zh)}</button>
+                                        }} className={`stroop-choice-button ${answerFeedback?.target === o.val ? (answerFeedback.status === 'correct' ? 'is-correct' : 'is-wrong') : ''}`}>{answerFeedback?.target === o.val && answerFeedback.status === 'correct' && <span className="stroop-correct-badge"><Icon name="check" className="w-3.5 h-3.5" /></span>}{(mode === 'normal' || mode === 'infinite') ? <div className="stroop-color-dot" style={{ backgroundColor: o.val }}></div> : (isEnglish ? o.en : o.zh)}</button>
                                     ))}
                                 </div>
                             </div>
@@ -1694,13 +2220,15 @@ function App() {
                                                     const isFillMatch = checkProp(selectedCards[0].fill, selectedCards[1].fill, selectedCards[2].fill);
 
                                                     if (isColorMatch && isShapeMatch && isFillMatch) {
+                                                        setSetGame(p => ({ ...p, selected: newSel, successIds: newSel }));
                                                         showAnswerFeedback({
                                                             correct: true,
                                                             points: 100,
                                                             nextType: 'setgame',
                                                             target: `set-${card.id}`,
                                                             position: getCenteredFeedbackPosition(event.currentTarget.closest('.setgame-grid')),
-                                                            flashError: false
+                                                            flashError: false,
+                                                            duration: 520
                                                         });
                                                     } else {
                                                         showAnswerFeedback({
@@ -1716,15 +2244,26 @@ function App() {
                                                         setSetGame(p => ({ ...p, selected: [] }));
                                                     }
                                                 } else {
-                                                    setSetGame(p => ({ ...p, selected: newSel }));
+                                                    setSetGame(p => ({ ...p, selected: newSel, successIds: [] }));
                                                 }
                                             }}
-                                            className={`aspect-square rounded-3xl border-2 flex items-center justify-center transition-all duration-200 disabled:pointer-events-none ${setGame.selected.includes(card.id)
-                                                ? 'border-indigo-500 bg-indigo-50 shadow-md scale-95'
-                                                : 'border-slate-100 bg-white shadow-sm'
+                                            className={`set-card-button relative overflow-hidden aspect-square rounded-3xl border-2 flex items-center justify-center transition-all duration-200 disabled:pointer-events-none ${setGame.successIds?.includes(card.id)
+                                                ? 'is-set-success'
+                                                : setGame.selected.includes(card.id)
+                                                    ? 'border-indigo-500 bg-indigo-50 shadow-md scale-95'
+                                                    : 'border-slate-100 bg-white shadow-sm'
                                                 }`}
                                         >
-                                            <div style={{ color: card.color }} className={card.fill ? 'opacity-100' : 'opacity-30'}>
+                                            {setGame.successIds?.includes(card.id) && (
+                                                <span
+                                                    className="pointer-events-none absolute inset-0 rounded-3xl"
+                                                    style={{
+                                                        background: 'rgba(209, 250, 229, 0.72)',
+                                                        boxShadow: 'inset 0 0 0 3px rgba(16, 185, 129, 0.42), 0 0 0 4px rgba(16, 185, 129, 0.12)'
+                                                    }}
+                                                />
+                                            )}
+                                            <div style={{ color: card.color, ...(setGame.successIds?.includes(card.id) ? { transform: 'scale(1.08)', position: 'relative', zIndex: 1 } : {}) }} className={card.fill ? 'opacity-100' : 'opacity-30'}>
                                                 <Icon name={card.shape} className="w-10 h-10" />
                                             </div>
                                         </button>
@@ -1843,13 +2382,22 @@ function App() {
 
             {view === 'result' && (() => {
                 const feedback = getFeedback(lastScore);
+                const isDailyResult = mode === 'daily';
                 return (
                     <div className="flex-1 flex flex-col items-center justify-center px-8 text-center animate-pop-center">
-                        <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-6 text-indigo-500 shadow-sm"><Icon name="sparkles" className="w-10 h-10" /></div>
-                        <div className="text-[10px] font-black brand-text text-slate-400 mb-1">{ui.resultTitle}</div>
-                        <div className="text-6xl font-black text-indigo-600 mb-6 font-mono">{lastScore}</div>
-                        <div className={`text-xl font-black mb-1 ${feedback.color}`}>{feedback.label}</div>
-                        <div className="text-xs text-slate-500 mb-12 font-medium leading-relaxed max-w-[200px]">{feedback.sub}</div>
+                        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-sm ${isDailyResult ? 'bg-emerald-50 text-emerald-500' : 'bg-indigo-50 text-indigo-500'}`}>
+                            <Icon name={isDailyResult ? 'badge-check' : 'sparkles'} className="w-10 h-10" />
+                        </div>
+                        <div className="text-[10px] font-black brand-text text-slate-400 mb-1">{isDailyResult ? ui.dailyFinishedTitle : ui.resultTitle}</div>
+                        <div className={`text-6xl font-black mb-6 font-mono ${isDailyResult ? 'text-emerald-500' : 'text-indigo-600'}`}>{lastScore}</div>
+                        <div className={`text-xl font-black mb-1 ${isDailyResult ? 'text-emerald-600' : feedback.color}`}>{isDailyResult ? `${ui.dailyStreak} ${dailyStreak} ${ui.dailyDays}` : feedback.label}</div>
+                        <div className="text-xs text-slate-500 mb-4 font-medium leading-relaxed max-w-[240px]">{isDailyResult ? ui.dailyFinishedSub : feedback.sub}</div>
+                        {isDailyResult && (
+                            <div className="mb-10 px-4 py-2 rounded-full bg-emerald-50 text-emerald-600 text-[11px] font-black">
+                                {ui.dailyTomorrow}
+                            </div>
+                        )}
+                        {!isDailyResult && <div className="mb-8" />}
                         <button onClick={() => setView('home')} className="w-full max-w-sm py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg">{ui.backHome}</button>
                     </div>
                 );
