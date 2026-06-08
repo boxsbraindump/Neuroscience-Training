@@ -258,6 +258,20 @@ const GAME_CLICK_LABELS = {
     neuroncount: 'Neuron Counting'
 };
 
+const SEO_TITLE = {
+    zh: '前额叶实验室 | 认知训练小游戏',
+    en: 'Prefrontal Lab | Cognitive Training Games'
+};
+
+const getInitialLanguage = () => {
+    const stored = localStorage.getItem('prefrontal_lab_lang');
+    if (stored === 'zh' || stored === 'en') return stored;
+
+    const browserLanguages = navigator.languages?.length ? navigator.languages : [navigator.language || ''];
+    const prefersChinese = browserLanguages.some(language => language.toLowerCase().startsWith('zh'));
+    return prefersChinese ? 'zh' : 'en';
+};
+
 const DAILY_CHALLENGES = [
     {
         id: 'schulte-forward',
@@ -610,7 +624,7 @@ function App() {
     const [isError, setIsError] = useState(false);
     const [answerFeedback, setAnswerFeedback] = useState(null);
     const [showInfo, setShowInfo] = useState(null);
-    const [lang, setLang] = useState(() => localStorage.getItem('prefrontal_lab_lang') || 'zh');
+    const [lang, setLang] = useState(() => getInitialLanguage());
     const [retentionData, setRetentionData] = useState(() => readRetentionData());
     const [dailyProgress, setDailyProgress] = useState(() => readDailyProgress());
     const [cloudSummary, setCloudSummary] = useState(null);
@@ -912,7 +926,7 @@ function App() {
 
     useEffect(() => {
         document.documentElement.lang = isEnglish ? 'en' : 'zh-CN';
-        document.title = isEnglish ? 'Prefrontal Lab 6.1.2' : '前额叶实验室 6.1.2';
+        document.title = isEnglish ? SEO_TITLE.en : SEO_TITLE.zh;
     }, [isEnglish]);
 
     useEffect(() => {
