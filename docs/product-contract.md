@@ -65,7 +65,7 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 | `brain_train_pro_v5.isHardUnlocked` | boolean | yes | Mode tabs / unlock pill | Browser `localStorage` | Hard mode unlocks when solo best score reaches 500. |
 | `brain_train_pro_v5.taskBestScores` | object | yes | Game top bar | Browser `localStorage` | Per-task bests for `schulte`, `stroop`, `nback`, `setgame`, `neuroncount`. |
 | `brain_train_pro_data` | object | no | Not directly | Legacy `localStorage` | Migrated into `brain_train_pro_v5` when v5 data does not exist. |
-| `prefrontal_lab_lang` | string | no | Whole app | Browser `localStorage` | `zh` or `en`; new visitors default to Chinese only when the browser language starts with `zh`, otherwise English. |
+| `prefrontal_lab_lang` | string | no | Whole app | Browser `localStorage` | `zh` or `en`; new visitors default to English, while returning visitors keep their saved language. |
 | `prefrontal_lab_v6.1.2_update` | string flag | no | Update note visibility | Browser `localStorage` | Stored after user closes update note. |
 | `prefrontal_lab_owner_token` | string | no | Analytics password input memory | Browser `localStorage` | Stores owner analytics token locally after successful cloud load. Owner page itself is only reachable with the hidden `?owner=1&analytics` URL. |
 | `prefrontal_lab_daily_v4` | object | yes for Daily Challenge | Daily card and score card | Browser `localStorage` | Stores per-day completion, challenge id, daily instance id, task key, variant, completion rule, duration, best score, last score, and completion timestamp. Streak is recalculated from completed days. |

@@ -266,10 +266,7 @@ const SEO_TITLE = {
 const getInitialLanguage = () => {
     const stored = localStorage.getItem('prefrontal_lab_lang');
     if (stored === 'zh' || stored === 'en') return stored;
-
-    const browserLanguages = navigator.languages?.length ? navigator.languages : [navigator.language || ''];
-    const prefersChinese = browserLanguages.some(language => language.toLowerCase().startsWith('zh'));
-    return prefersChinese ? 'zh' : 'en';
+    return 'en';
 };
 
 const DAILY_CHALLENGES = [
