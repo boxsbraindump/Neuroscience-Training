@@ -18,6 +18,11 @@ This file is a recovery map for the Prefrontal Lab website, retention analyzer, 
 - Main local Git working copy: `C:\Codex related\Neuroscience-Training-publish`
 - Current design/dev working folder: `C:\Codex related\前额叶`
 
+## Collaboration Rule
+
+- Do not push to GitHub or deploy to Cloudflare unless the user explicitly asks for a push/deploy in the current conversation.
+- Local edits, local commits, and previews are allowed only when they help the requested work; publishing requires explicit approval.
+
 ## Core Website Files
 
 - `index.html`
