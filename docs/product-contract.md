@@ -154,7 +154,7 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 - Public site listed in project map: `https://prefrontal-lab.com`.
 - Owner analyzer URL: `https://prefrontal-lab.com/?owner=1&analytics`.
 - Frontend is a static React app loaded by `index.html` with React, ReactDOM, Babel, Tailwind, lucide, and KaTeX from CDNs.
-- `index.html` currently cache-busts `styles.css`, `gameLogic.js`, and `App.jsx` with `v=seo-en-default-20260608`.
+- `index.html` currently cache-busts `styles.css`, `gameLogic.js`, and `App.jsx` with `v=daily-scroll-20260609`.
 - Default analytics endpoint is `/api/retention`, overrideable by `window.PFL_ANALYTICS_ENDPOINT`.
 - Cloudflare Worker name used by Git builds: `prefrontal`.
 - Cloudflare Worker routes listed in the project map are `prefrontal-lab.com/api/retention*` and `www.prefrontal-lab.com/api/retention*`.
