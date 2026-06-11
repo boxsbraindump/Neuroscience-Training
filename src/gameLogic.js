@@ -6,7 +6,11 @@
     function createNbackRound(sequence, level) {
         const canMatch = sequence.length >= level;
         const target = canMatch ? sequence[sequence.length - level] : null;
-        const shouldMatch = canMatch && Math.random() < 0.5;
+        const basicHasDoubleRepeat = level === 1
+            && sequence.length >= 2
+            && sequence[sequence.length - 1] === sequence[sequence.length - 2];
+        const matchChance = 0.5;
+        const shouldMatch = canMatch && !basicHasDoubleRepeat && Math.random() < matchChance;
         let current = randomDigit();
 
         if (shouldMatch) {
