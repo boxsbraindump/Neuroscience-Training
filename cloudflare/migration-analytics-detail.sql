@@ -1,0 +1,12 @@
+ALTER TABLE analytics_events ADD COLUMN attempts INTEGER;
+ALTER TABLE analytics_events ADD COLUMN correct_count INTEGER;
+ALTER TABLE analytics_events ADD COLUMN incorrect_count INTEGER;
+ALTER TABLE analytics_events ADD COLUMN accuracy INTEGER;
+ALTER TABLE analytics_events ADD COLUMN daily_challenge_id TEXT;
+ALTER TABLE analytics_events ADD COLUMN daily_instance_id TEXT;
+ALTER TABLE analytics_events ADD COLUMN daily_task TEXT;
+ALTER TABLE analytics_events ADD COLUMN daily_day TEXT;
+ALTER TABLE analytics_events ADD COLUMN daily_variant TEXT;
+ALTER TABLE analytics_events ADD COLUMN daily_completion TEXT;
+ALTER TABLE analytics_events ADD COLUMN daily_duration INTEGER;
+ALTER TABLE analytics_events ADD COLUMN app_language TEXT;

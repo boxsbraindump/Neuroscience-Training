@@ -509,6 +509,12 @@ const trackRetentionEvent = (eventName, payload = {}) => {
             at: now.toISOString(),
             day,
             path: window.location.pathname,
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            screen: {
+                width: window.screen?.width,
+                height: window.screen?.height
+            },
             ...payload
         }
     ].slice(-500);
@@ -585,6 +591,43 @@ const getStreak = (activeDays, today = getDayKey()) => {
     return streak;
 };
 
+const getEventTaskKey = (event) => (
+    (event.mode === 'daily' ? event.dailyTask : event.task) || event.task || 'unknown'
+);
+
+const getMetricAverage = (events, field) => {
+    const values = events
+        .map(event => Number(event[field]))
+        .filter(value => Number.isFinite(value));
+    return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0;
+};
+
+const buildStartCompleteBreakdown = (starts, completions, keyGetter, limit) => {
+    const keys = new Set([
+        ...starts.map(keyGetter),
+        ...completions.map(keyGetter)
+    ]);
+
+    return Array.from(keys).map(key => {
+        const keyStarts = starts.filter(event => keyGetter(event) === key);
+        const keyCompletions = completions.filter(event => keyGetter(event) === key);
+        return {
+            key,
+            task: key,
+            mode: key,
+            challenge: key,
+            starts: keyStarts.length,
+            completes: keyCompletions.length,
+            completionRate: keyStarts.length ? Math.round((keyCompletions.length / keyStarts.length) * 100) : 0,
+            avgScore: getMetricAverage(keyCompletions, 'score'),
+            avgDuration: getMetricAverage(keyCompletions, 'durationSeconds'),
+            avgAccuracy: getMetricAverage(keyCompletions, 'accuracy')
+        };
+    })
+        .sort((a, b) => b.starts - a.starts)
+        .slice(0, limit);
+};
+
 const buildRetentionSummary = (data) => {
     const activeDays = [...new Set(data.activeDays || [])].sort();
     const firstDay = activeDays[0] || getDayKey();
@@ -614,6 +657,27 @@ const buildRetentionSummary = (data) => {
         const day = getDayKey(date);
         return { day, visits: data.visitsByDay?.[day] || 0, active: activeDays.includes(day) };
     });
+    const modeBreakdown = buildStartCompleteBreakdown(starts, completions, event => event.mode || 'unknown');
+    const taskBreakdown = buildStartCompleteBreakdown(starts, completions, getEventTaskKey, 8);
+    const dailyStarts = starts.filter(event => event.mode === 'daily');
+    const dailyCompletions = completions.filter(event => event.mode === 'daily');
+    const dailyBreakdown = buildStartCompleteBreakdown(
+        dailyStarts,
+        dailyCompletions,
+        event => event.dailyChallengeId || event.dailyVariant || event.dailyTask || 'daily',
+        7
+    );
+    const deviceCounts = (data.events || []).reduce((acc, event) => {
+        const width = Number(event.screen?.width);
+        const device = Number.isFinite(width) ? (width <= 700 ? 'mobile' : 'desktop') : 'unknown';
+        acc[device] = (acc[device] || 0) + 1;
+        return acc;
+    }, {});
+    const languageCounts = (data.events || []).reduce((acc, event) => {
+        const language = event.appLanguage || event.language || 'unknown';
+        acc[language] = (acc[language] || 0) + 1;
+        return acc;
+    }, {});
 
     return {
         firstDay,
@@ -632,7 +696,16 @@ const buildRetentionSummary = (data) => {
         topTaskCount: topTask ? topTask[1] : 0,
         totalClicks: clicks.length,
         topClicks,
-        last7Days
+        last7Days,
+        modeBreakdown,
+        taskBreakdown,
+        dailyBreakdown,
+        deviceBreakdown: Object.entries(deviceCounts).map(([device, events]) => ({ device, events, users: device === 'unknown' ? 0 : 1 })),
+        languageBreakdown: Object.entries(languageCounts).map(([language, users]) => ({ language, users })).slice(0, 6),
+        dailyStarts: dailyStarts.length,
+        dailyCompletions: dailyCompletions.length,
+        infiniteStarts: starts.filter(event => event.mode === 'infinite').length,
+        arenaStarts: starts.filter(event => event.mode === 'comp').length
     };
 };
 
@@ -701,7 +774,21 @@ function App() {
             last7: 'Last 7 days',
             starts: 'Starts',
             completes: 'Completes',
-            days: 'days'
+            days: 'days',
+            dailySignal: 'Daily signal',
+            modeMix: 'Mode mix',
+            taskHealth: 'Task health',
+            audience: 'Audience',
+            dailyStarts: 'Daily starts',
+            dailyCompletes: 'Daily completes',
+            endlessStarts: 'Endless starts',
+            arenaStarts: 'Arena starts',
+            rate: 'Rate',
+            avgScore: 'Avg score',
+            avgAccuracy: 'Avg accuracy',
+            mobile: 'Mobile',
+            desktop: 'Desktop',
+            unknown: 'Unknown'
         }
         : {
             title: '留存分析',
@@ -731,7 +818,21 @@ function App() {
             last7: '近7天',
             starts: '开始',
             completes: '完成',
-            days: '天'
+            days: '天',
+            dailySignal: 'Daily 信号',
+            modeMix: '模式分布',
+            taskHealth: '玩法健康度',
+            audience: '用户环境',
+            dailyStarts: 'Daily 开始',
+            dailyCompletes: 'Daily 完成',
+            endlessStarts: '无限开始',
+            arenaStarts: '竞技开始',
+            rate: '转化',
+            avgScore: '均分',
+            avgAccuracy: '平均正确率',
+            mobile: '手机',
+            desktop: '电脑',
+            unknown: '未知'
         };
 
     const setLanguage = (nextLang) => {
@@ -748,7 +849,7 @@ function App() {
     const refreshRetention = () => setRetentionData(readRetentionData());
 
     const recordRetention = (eventName, payload = {}) => {
-        const nextData = trackRetentionEvent(eventName, payload);
+        const nextData = trackRetentionEvent(eventName, { appLanguage: lang, ...payload });
         setRetentionData(nextData);
         return nextData;
     };
@@ -820,6 +921,25 @@ function App() {
             ? TASK_TRANSLATIONS[type]?.[hardMode ? 'homeHard' : 'homeBasic']
             : TASK_DATA[type][hardMode ? 'homeHard' : 'homeBasic']
     );
+    const getAnalyticsModeLabel = (modeKey) => ({
+        normal: isEnglish ? 'Basic' : '基础',
+        hard: isEnglish ? 'Advanced' : '进阶',
+        infinite: isEnglish ? 'Endless' : '无限',
+        daily: isEnglish ? 'Daily' : '每日挑战',
+        comp: isEnglish ? 'Arena' : '竞技',
+        unknown: analyticsText.unknown
+    }[modeKey] || modeKey || analyticsText.unknown);
+    const getAnalyticsTaskLabel = (taskKey) => {
+        if (TASK_DATA[taskKey]) return getTaskTitle(taskKey);
+        if (taskKey === 'arena') return ui.compete;
+        if (taskKey === 'daily') return ui.dailyTitle;
+        return taskKey || analyticsText.unknown;
+    };
+    const getAnalyticsDeviceLabel = (deviceKey) => ({
+        mobile: analyticsText.mobile,
+        desktop: analyticsText.desktop,
+        unknown: analyticsText.unknown
+    }[deviceKey] || deviceKey || analyticsText.unknown);
     const getTaskGuide = (type) => {
         if (!isEnglish) {
             return isChallengeDifficulty
@@ -2112,6 +2232,101 @@ function App() {
                                 <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.topTask}</div>
                                 <div className="text-lg font-black text-slate-900 mt-2 truncate">{retentionSummary.topTask}</div>
                                 <div className="text-[10px] font-bold text-slate-400 mt-2">{retentionSummary.topTaskCount} {analyticsText.completes}</div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="bg-white rounded-2xl border border-emerald-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-emerald-500 brand-text">{analyticsText.dailySignal}</div>
+                                <div className="mt-3 grid grid-cols-2 gap-2">
+                                    <div className="rounded-xl bg-emerald-50 px-3 py-3">
+                                        <div className="text-[9px] font-black text-emerald-500 brand-text">{analyticsText.dailyStarts}</div>
+                                        <div className="text-2xl font-black text-emerald-700">{retentionSummary.dailyStarts || 0}</div>
+                                    </div>
+                                    <div className="rounded-xl bg-slate-50 px-3 py-3">
+                                        <div className="text-[9px] font-black text-slate-400 brand-text">{analyticsText.dailyCompletes}</div>
+                                        <div className="text-2xl font-black text-slate-800">{retentionSummary.dailyCompletions || 0}</div>
+                                    </div>
+                                </div>
+                                {!!(retentionSummary.dailyBreakdown || []).length && (
+                                    <div className="mt-3 space-y-1.5">
+                                        {(retentionSummary.dailyBreakdown || []).slice(0, 3).map((item, index) => (
+                                            <div key={`${item.challenge || item.key}-${index}`} className="flex items-center justify-between rounded-xl bg-white/70 px-3 py-2 border border-emerald-100">
+                                                <div className="truncate text-[10px] font-black text-slate-600">{getAnalyticsTaskLabel(item.challenge || item.key)}</div>
+                                                <div className="text-[10px] font-black text-emerald-600">{item.completionRate || 0}%</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="bg-white rounded-2xl border border-sky-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-sky-500 brand-text">{analyticsText.modeMix}</div>
+                                <div className="mt-3 grid grid-cols-2 gap-2">
+                                    <div className="rounded-xl bg-sky-50 px-3 py-3">
+                                        <div className="text-[9px] font-black text-sky-500 brand-text">{analyticsText.endlessStarts}</div>
+                                        <div className="text-2xl font-black text-sky-700">{retentionSummary.infiniteStarts || 0}</div>
+                                    </div>
+                                    <div className="rounded-xl bg-amber-50 px-3 py-3">
+                                        <div className="text-[9px] font-black text-amber-500 brand-text">{analyticsText.arenaStarts}</div>
+                                        <div className="text-2xl font-black text-amber-600">{retentionSummary.arenaStarts || 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm mb-3">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="text-[10px] font-black text-slate-400 brand-text">{analyticsText.taskHealth}</div>
+                                <div className="text-[10px] font-black text-indigo-400">{analyticsText.rate}</div>
+                            </div>
+                            <div className="space-y-2">
+                                {(retentionSummary.taskBreakdown || []).length ? retentionSummary.taskBreakdown.map((item, index) => (
+                                    <div key={`${item.task || item.key}-${index}`} className="rounded-xl bg-slate-50 px-3 py-2">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className="truncate text-xs font-black text-slate-700">{getAnalyticsTaskLabel(item.task || item.key)}</div>
+                                            <div className="text-xs font-black text-indigo-600">{item.completionRate || 0}%</div>
+                                        </div>
+                                        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-bold text-slate-400">
+                                            <span>{analyticsText.starts} {item.starts || 0}</span>
+                                            <span>{analyticsText.completes} {item.completes || 0}</span>
+                                            <span>{analyticsText.avgScore} {item.avgScore || 0}</span>
+                                            <span>{analyticsText.avgAccuracy} {item.avgAccuracy || 0}%</span>
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <div className="rounded-xl bg-slate-50 px-3 py-3 text-xs font-bold text-slate-400">{analyticsText.noClicks}</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                            <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 brand-text mb-3">{analyticsText.modeMix}</div>
+                                <div className="space-y-2">
+                                    {(retentionSummary.modeBreakdown || []).map((item, index) => (
+                                        <div key={`${item.mode || item.key}-${index}`} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                                            <div className="text-xs font-black text-slate-700">{getAnalyticsModeLabel(item.mode || item.key)}</div>
+                                            <div className="text-[10px] font-black text-slate-400">{item.starts || 0} / {item.completionRate || 0}%</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 brand-text mb-3">{analyticsText.audience}</div>
+                                <div className="space-y-2">
+                                    {(retentionSummary.deviceBreakdown || []).map((item, index) => (
+                                        <div key={`${item.device}-${index}`} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                                            <div className="text-xs font-black text-slate-700">{getAnalyticsDeviceLabel(item.device)}</div>
+                                            <div className="text-[10px] font-black text-slate-400">{item.users || item.events || 0}</div>
+                                        </div>
+                                    ))}
+                                    {(retentionSummary.languageBreakdown || []).slice(0, 3).map((item, index) => (
+                                        <div key={`${item.language}-${index}`} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                                            <div className="text-xs font-black text-slate-700">{item.language || analyticsText.unknown}</div>
+                                            <div className="text-[10px] font-black text-slate-400">{item.users || 0}</div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 

@@ -9,6 +9,7 @@ This folder contains the cloud version of the retention analyzer.
 - Your analyzer page reads the aggregate report from `/api/retention/summary`.
 - The summary endpoint requires `ANALYTICS_READ_TOKEN`.
 - It tracks retention plus top clicked game entry cards.
+- It also tracks product-detail metrics: mode mix, Daily starts/completions, task completion health, scores, accuracy, device size, and selected app language.
 
 ## Deploy Steps
 
@@ -26,5 +27,7 @@ This folder contains the cloud version of the retention analyzer.
 8. Enter your owner password once. The browser will remember it locally.
 
 If you already created the D1 table before click tracking was added, run `migration-clicks.sql` once against the same D1 database.
+
+If you already deployed analytics before product-detail metrics were added, run `migration-analytics-detail.sql` once against the same D1 database before deploying the updated Worker.
 
 Keep `ANALYTICS_READ_TOKEN` private. Do not commit it to GitHub.

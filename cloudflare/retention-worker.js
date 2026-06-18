@@ -42,6 +42,8 @@ const cleanText = (value, max = 200) => {
     return value.slice(0, max);
 };
 
+const cleanNumber = (value) => Number.isFinite(value) ? value : null;
+
 const handleEvent = async (request, env) => {
     const event = await request.json();
     if (!event?.visitorId || !event?.name) {
@@ -55,10 +57,12 @@ const handleEvent = async (request, env) => {
     await env.ANALYTICS_DB.prepare(`
         INSERT INTO analytics_events (
             visitor_id, event_name, event_day, event_at, path, session_id,
-            task, mode, score, duration_seconds, source, click_label, click_role,
-            click_x, click_y, click_x_percent, click_y_percent, user_agent, language,
-            screen_width, screen_height
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            task, mode, score, duration_seconds, attempts, correct_count,
+            incorrect_count, accuracy, daily_challenge_id, daily_instance_id,
+            daily_task, daily_day, daily_variant, daily_completion, daily_duration,
+            source, click_label, click_role, click_x, click_y, click_x_percent,
+            click_y_percent, user_agent, language, app_language, screen_width, screen_height
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
         visitorId,
         cleanText(event.name, 80),
@@ -68,19 +72,31 @@ const handleEvent = async (request, env) => {
         cleanText(event.sessionId, 120),
         cleanText(event.task, 80),
         cleanText(event.mode, 40),
-        Number.isFinite(event.score) ? event.score : null,
-        Number.isFinite(event.durationSeconds) ? event.durationSeconds : null,
+        cleanNumber(event.score),
+        cleanNumber(event.durationSeconds),
+        cleanNumber(event.attempts),
+        cleanNumber(event.correct),
+        cleanNumber(event.incorrect),
+        cleanNumber(event.accuracy),
+        cleanText(event.dailyChallengeId, 120),
+        cleanText(event.dailyInstanceId, 120),
+        cleanText(event.dailyTask, 80),
+        cleanText(event.dailyDay, 10),
+        cleanText(event.dailyVariant, 80),
+        cleanText(event.dailyCompletion, 80),
+        cleanNumber(event.dailyDuration),
         cleanText(event.source, 80),
         cleanText(event.clickLabel, 200),
         cleanText(event.clickRole, 80),
-        Number.isFinite(event.clickX) ? event.clickX : null,
-        Number.isFinite(event.clickY) ? event.clickY : null,
-        Number.isFinite(event.clickXPercent) ? event.clickXPercent : null,
-        Number.isFinite(event.clickYPercent) ? event.clickYPercent : null,
+        cleanNumber(event.clickX),
+        cleanNumber(event.clickY),
+        cleanNumber(event.clickXPercent),
+        cleanNumber(event.clickYPercent),
         cleanText(event.userAgent, 500),
         cleanText(event.language, 40),
-        Number.isFinite(event.screen?.width) ? event.screen.width : null,
-        Number.isFinite(event.screen?.height) ? event.screen.height : null
+        cleanText(event.appLanguage, 20),
+        cleanNumber(event.screen?.width),
+        cleanNumber(event.screen?.height)
     ).run();
 
     return json({ ok: true });
@@ -139,6 +155,75 @@ const handleSummary = async (request, env) => {
         LIMIT 6
     `).all();
 
+    const modeRows = await env.ANALYTICS_DB.prepare(`
+        SELECT
+            COALESCE(mode, 'unknown') AS mode,
+            SUM(CASE WHEN event_name = 'game_start' THEN 1 ELSE 0 END) AS starts,
+            SUM(CASE WHEN event_name = 'game_complete' THEN 1 ELSE 0 END) AS completes,
+            ROUND(AVG(CASE WHEN event_name = 'game_complete' THEN score ELSE NULL END)) AS avgScore,
+            ROUND(AVG(CASE WHEN event_name = 'game_complete' THEN accuracy ELSE NULL END)) AS avgAccuracy
+        FROM analytics_events
+        WHERE event_name IN ('game_start', 'game_complete')
+        GROUP BY COALESCE(mode, 'unknown')
+        ORDER BY starts DESC
+    `).all();
+
+    const taskRows = await env.ANALYTICS_DB.prepare(`
+        SELECT
+            COALESCE(CASE WHEN mode = 'daily' THEN daily_task ELSE task END, task, 'unknown') AS task,
+            SUM(CASE WHEN event_name = 'game_start' THEN 1 ELSE 0 END) AS starts,
+            SUM(CASE WHEN event_name = 'game_complete' THEN 1 ELSE 0 END) AS completes,
+            ROUND(AVG(CASE WHEN event_name = 'game_complete' THEN score ELSE NULL END)) AS avgScore,
+            ROUND(AVG(CASE WHEN event_name = 'game_complete' THEN duration_seconds ELSE NULL END)) AS avgDuration,
+            ROUND(AVG(CASE WHEN event_name = 'game_complete' THEN accuracy ELSE NULL END)) AS avgAccuracy
+        FROM analytics_events
+        WHERE event_name IN ('game_start', 'game_complete')
+        GROUP BY COALESCE(CASE WHEN mode = 'daily' THEN daily_task ELSE task END, task, 'unknown')
+        ORDER BY starts DESC
+        LIMIT 8
+    `).all();
+
+    const dailyChallengeRows = await env.ANALYTICS_DB.prepare(`
+        SELECT
+            COALESCE(daily_challenge_id, daily_variant, daily_task, 'daily') AS challenge,
+            SUM(CASE WHEN event_name = 'game_start' THEN 1 ELSE 0 END) AS starts,
+            SUM(CASE WHEN event_name = 'game_complete' THEN 1 ELSE 0 END) AS completes,
+            ROUND(AVG(CASE WHEN event_name = 'game_complete' THEN score ELSE NULL END)) AS avgScore,
+            ROUND(AVG(CASE WHEN event_name = 'game_complete' THEN accuracy ELSE NULL END)) AS avgAccuracy
+        FROM analytics_events
+        WHERE mode = 'daily' AND event_name IN ('game_start', 'game_complete')
+        GROUP BY COALESCE(daily_challenge_id, daily_variant, daily_task, 'daily')
+        ORDER BY starts DESC
+        LIMIT 7
+    `).all();
+
+    const deviceRows = await env.ANALYTICS_DB.prepare(`
+        SELECT
+            CASE
+                WHEN screen_width IS NULL THEN 'unknown'
+                WHEN screen_width <= 700 THEN 'mobile'
+                ELSE 'desktop'
+            END AS device,
+            COUNT(DISTINCT visitor_id) AS users,
+            COUNT(*) AS events
+        FROM analytics_events
+        GROUP BY
+            CASE
+                WHEN screen_width IS NULL THEN 'unknown'
+                WHEN screen_width <= 700 THEN 'mobile'
+                ELSE 'desktop'
+            END
+        ORDER BY users DESC
+    `).all();
+
+    const languageRows = await env.ANALYTICS_DB.prepare(`
+        SELECT COALESCE(app_language, language, 'unknown') AS language, COUNT(DISTINCT visitor_id) AS users
+        FROM analytics_events
+        GROUP BY COALESCE(app_language, language, 'unknown')
+        ORDER BY users DESC
+        LIMIT 6
+    `).all();
+
     const activeByVisitor = new Map();
     for (const row of activeRows.results || []) {
         if (!activeByVisitor.has(row.visitor_id)) activeByVisitor.set(row.visitor_id, []);
@@ -177,6 +262,15 @@ const handleSummary = async (request, env) => {
 
     const totalStarts = counts?.totalStarts || 0;
     const totalCompletions = counts?.totalCompletions || 0;
+    const withRates = (rows = []) => rows.map(row => ({
+        ...row,
+        starts: row.starts || 0,
+        completes: row.completes || 0,
+        completionRate: row.starts ? Math.round((row.completes / row.starts) * 100) : 0,
+        avgScore: row.avgScore || 0,
+        avgDuration: row.avgDuration || 0,
+        avgAccuracy: row.avgAccuracy || 0
+    }));
 
     return json({
         ok: true,
@@ -202,7 +296,16 @@ const handleSummary = async (request, env) => {
             topTaskCount: topTask?.count || 0,
             totalClicks: counts?.totalClicks || 0,
             topClicks: topClicks.results || [],
-            last7Days
+            last7Days,
+            modeBreakdown: withRates(modeRows.results || []),
+            taskBreakdown: withRates(taskRows.results || []),
+            dailyBreakdown: withRates(dailyChallengeRows.results || []),
+            deviceBreakdown: deviceRows.results || [],
+            languageBreakdown: languageRows.results || [],
+            dailyStarts: (modeRows.results || []).find(row => row.mode === 'daily')?.starts || 0,
+            dailyCompletions: (modeRows.results || []).find(row => row.mode === 'daily')?.completes || 0,
+            infiniteStarts: (modeRows.results || []).find(row => row.mode === 'infinite')?.starts || 0,
+            arenaStarts: (modeRows.results || []).find(row => row.mode === 'comp')?.starts || 0
         }
     });
 };

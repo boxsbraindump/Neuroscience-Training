@@ -93,7 +93,10 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 | `analytics_events.click_x_percent`, `click_y_percent` | integer | no | Not directly | Frontend click tracking | Position inside clicked task card. |
 | `analytics_events.user_agent` | text | no | Not directly | Browser | Stored for events. |
 | `analytics_events.language` | text | no | Not directly | Browser | Browser language, not the app language toggle. |
+| `analytics_events.app_language` | text | no | Audience analytics | App state | User-selected app language (`zh` or `en`), used to judge Chinese/English market split. |
 | `analytics_events.screen_width`, `screen_height` | integer | no | Not directly | Browser screen | Used only as stored event context right now. |
+| `analytics_events.attempts`, `correct_count`, `incorrect_count`, `accuracy` | integer | no | Owner analytics | Frontend result payload | Used for task-health analysis after game completion. |
+| `analytics_events.daily_challenge_id`, `daily_instance_id`, `daily_task`, `daily_day`, `daily_variant`, `daily_completion`, `daily_duration` | mixed | no | Owner analytics | Frontend Daily payload | Used to evaluate Daily Challenge starts, completions, variants, and completion rules. |
 
 ## API Contract
 
@@ -123,6 +126,12 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 | `totalClicks` | number | Count of game-card clicks. |
 | `topClicks` | array | Top 6 clicked game card labels with counts. |
 | `last7Days` | array | Seven day records: `day`, `visits`, `users`, `active`. |
+| `modeBreakdown` | array | Starts, completions, conversion rate, average score, and average accuracy by mode. |
+| `taskBreakdown` | array | Starts, completions, conversion rate, average score, average duration, and average accuracy by task. |
+| `dailyBreakdown` | array | Daily Challenge starts, completions, conversion rate, average score, and average accuracy by challenge id/variant. |
+| `deviceBreakdown` | array | Approximate mobile/desktop split from screen width. |
+| `languageBreakdown` | array | Selected app-language split when available, falling back to browser language. |
+| `dailyStarts`, `dailyCompletions`, `infiniteStarts`, `arenaStarts` | number | Fast product signals for Daily, Endless, and Arena adoption. |
 
 ## UI States
 
