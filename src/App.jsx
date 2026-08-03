@@ -1558,7 +1558,16 @@ function App() {
         }
     };
 
-    const getTaskTitle = (type) => isEnglish ? TASK_TRANSLATIONS[type]?.title || TASK_DATA[type].en : TASK_DATA[type].title;
+    const getTaskTitle = (type) => {
+        const fallback = type === 'arena'
+            ? ui.arenaShortTitle
+            : type === 'daily'
+                ? ui.dailyTitle
+                : (isEnglish ? 'Training' : '训练');
+        return isEnglish
+            ? TASK_TRANSLATIONS[type]?.title || TASK_DATA[type]?.en || fallback
+            : TASK_DATA[type]?.title || TASK_TRANSLATIONS[type]?.title || fallback;
+    };
     const getTaskHome = (type, hardMode) => (
         isEnglish
             ? TASK_TRANSLATIONS[type]?.[hardMode ? 'homeHard' : 'homeBasic']
