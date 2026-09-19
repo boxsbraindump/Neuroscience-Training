@@ -114,6 +114,22 @@ const UI_TEXT = {
         recorded: "已记录",
         reset: "清零",
         submit: "确认提交",
+        codeFind: "找出隐藏密码",
+        codeSubtitle3: "四条线索只会对应一个三位密码，首位不会是 0",
+        codeSubtitle4: "四条线索只会对应一个四位密码，首位不会是 0",
+        codeElapsed: "已用",
+        codeDelete: "删除",
+        codeSubmit: "提交",
+        codeIncomplete3: "请输入完整的三位密码",
+        codeIncomplete4: "请输入完整的四位密码",
+        codeWrong: "还不对，请再试一次（本题 -10 分）",
+        codeComplete: "题目完成",
+        codePuzzle: "第 {n} 题",
+        codePuzzleDone: "第 {n} 题完成",
+        codeResultLine: "四条线索，锁定唯一密码。",
+        codeResultCompleted: "完成题目",
+        codeResultTime: "解题用时",
+        codeResultIncorrect: "错误提交",
         resultTitle: "测试结束 - 最终得分",
         resultAccuracy: "正确率",
         resultTime: "用时",
@@ -204,6 +220,22 @@ const UI_TEXT = {
         recorded: "COUNT",
         reset: "Reset",
         submit: "Submit",
+        codeFind: "Find the hidden code",
+        codeSubtitle3: "Four clues resolve to one unique 3-digit code; the first digit is never 0",
+        codeSubtitle4: "Four clues resolve to one unique 4-digit code; the first digit is never 0",
+        codeElapsed: "Elapsed",
+        codeDelete: "Delete",
+        codeSubmit: "Submit",
+        codeIncomplete3: "Enter all 3 digits",
+        codeIncomplete4: "Enter all 4 digits",
+        codeWrong: "Not yet — try again (-10 points)",
+        codeComplete: "Puzzle complete",
+        codePuzzle: "Puzzle {n}",
+        codePuzzleDone: "Puzzle {n} complete",
+        codeResultLine: "Four clues, one unique code.",
+        codeResultCompleted: "Completed",
+        codeResultTime: "Solve time",
+        codeResultIncorrect: "Incorrect",
         resultTitle: "Training Complete - Final Score",
         resultAccuracy: "Accuracy",
         resultTime: "Time",
@@ -295,6 +327,15 @@ const TASK_TRANSLATIONS = {
             play: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Count targets: <span class="text-amber-600 font-bold">same shape and color</span>.</p><div class="bg-slate-50 p-4 rounded-3xl flex flex-col items-center border"><div class="flex gap-2 mb-3"><div class="w-6 h-6 rounded-full bg-amber-500"></div><div class="w-6 h-6 bg-slate-300"></div><div class="w-6 h-6 rounded-full bg-amber-500"></div></div><p class="text-[10px] text-slate-400">Count to 2, then tap the button twice</p></div></div>`,
             playHard: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Advanced adds more similar distractors and moving items.</p><p class="text-slate-600 font-medium text-sm">Count targets: <span class="text-amber-600 font-bold">same shape and color</span>.</p></div>`
         }
+    },
+    passwordlogic: {
+        title: "Code Logic",
+        homeBasic: "Three-digit deduction",
+        homeHard: "Four-digit deduction",
+        guide: {
+            play: `<div class="space-y-3"><p class="text-slate-600 font-medium text-sm">Using <span class="font-mono font-black text-indigo-600">5 3 1</span> as the example code, here is how to read each clue:</p><div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-2"><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-indigo-600 text-white">5</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">8</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">9</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">1 digit is correct and in the correct position</span></div><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">8</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-rose-500 text-white">5</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">9</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">1 digit is correct, but in the wrong position</span></div><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">7</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">6</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">4</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">No digits are correct</span></div></div><p class="text-[10px] text-slate-400 leading-relaxed">Colors are only used in this example; read the clue text during play.</p><p class="text-[11px] text-slate-500 font-medium leading-relaxed">Read all four clues together. Each puzzle has one answer. Digits do not repeat, and the first digit is never 0.</p><p class="text-[11px] text-slate-500 font-medium leading-relaxed">Each incorrect submission costs 10 points; edit and submit again.</p></div>`,
+            playHard: `<div class="space-y-3"><p class="text-slate-600 font-medium text-sm">Using <span class="font-mono font-black text-indigo-600">5 3 1 7</span> as the example code, here is how to read each clue:</p><div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-2"><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-indigo-600 text-white">5</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">8</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">9</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">0</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">1 digit is correct and in the correct position</span></div><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">8</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-rose-500 text-white">5</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">9</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">0</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">1 digit is correct, but in the wrong position</span></div><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">6</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">4</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">2</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">0</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">No digits are correct</span></div></div><p class="text-[10px] text-slate-400 leading-relaxed">Colors are only used in this example; read the clue text during play.</p><p class="text-[11px] text-slate-500 font-medium leading-relaxed">Read all four clues together. Each puzzle has one answer. Digits do not repeat, and the first digit is never 0.</p><p class="text-[11px] text-slate-500 font-medium leading-relaxed">Each incorrect submission costs 10 points; edit and submit again.</p></div>`
+        }
     }
 };
 
@@ -321,7 +362,8 @@ const GAME_CLICK_LABELS = {
     stroop: 'Stroop Test',
     setgame: 'SET Logic',
     nback: 'N-Back Memory',
-    neuroncount: 'Neuron Counting'
+    neuroncount: 'Neuron Counting',
+    passwordlogic: 'Code Logic'
 };
 
 const SEO_TITLE = {
@@ -1291,7 +1333,7 @@ const buildWeeklyBrainReport = ({ retentionData, dailyProgress, today, taskTitle
 };
 
 function App() {
-    const DEFAULT_TASK_BESTS = { schulte: 0, stroop: 0, nback: 0, setgame: 0, neuroncount: 0 };
+    const DEFAULT_TASK_BESTS = { schulte: 0, stroop: 0, nback: 0, setgame: 0, neuroncount: 0, passwordlogic: 0 };
     const urlParams = new URLSearchParams(window.location.search);
     const isTestRepo = window.location.hostname === 'boxsbraindump.github.io' && window.location.pathname.startsWith('/prefrontal-test');
     // Test now behaves like a real local-data build by default. Add ?demoData=1 only when a scripted demo is needed.
@@ -2046,6 +2088,17 @@ function App() {
                 playHard: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">更多相似干扰项，且部分目标会移动。</p><p class="text-slate-600 font-medium text-sm">数出屏幕中 <span class="text-amber-600 font-bold">形状和颜色都与目标相同</span> 的图形。</p></div>`
             }
         },
+        // 密码推理是原生 App 先做的游戏，网页没有原版，所以这里以 iOS 为准：
+        // 题库、难度带和线索措辞都来自 CodeLogicPuzzleEngine.swift。
+        passwordlogic: {
+            title: "密码推理", en: "Code Logic", icon: "lock-keyhole", color: "text-indigo-600", time: 0,
+            homeBasic: "三位数字逻辑", homeHard: "四位数字逻辑",
+            guide: {
+                goal: "从线索中推理出唯一密码",
+                play: `<div class="space-y-3"><p class="text-slate-600 font-medium text-sm">以密码 <span class="font-mono font-black text-indigo-600">5 3 1</span> 为例，看懂线索的三种说法：</p><div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-2"><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-indigo-600 text-white">5</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">8</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">9</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">1 个数字正确且位置正确</span></div><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">8</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-rose-500 text-white">5</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">9</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">1 个数字正确，但位置错误</span></div><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">7</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">6</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">4</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">没有数字正确</span></div></div><p class="text-[10px] text-slate-400 leading-relaxed">颜色仅用于示例；正式题请以线索文字为准。</p><p class="text-[11px] text-slate-500 font-medium leading-relaxed">四条线索要一起看；每题只有一个答案。数字不会重复，首位不会是 0。</p><p class="text-[11px] text-slate-500 font-medium leading-relaxed">每次错误提交扣 10 分；可修改后再次提交。</p></div>`,
+                playHard: `<div class="space-y-3"><p class="text-slate-600 font-medium text-sm">以密码 <span class="font-mono font-black text-indigo-600">5 3 1 7</span> 为例，看懂线索的三种说法：</p><div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-2"><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-indigo-600 text-white">5</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">8</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">9</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">0</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">1 个数字正确且位置正确</span></div><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">8</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-rose-500 text-white">5</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">9</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">0</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">1 个数字正确，但位置错误</span></div><div class="flex items-center gap-2.5"><div class="flex gap-1"><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">6</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">4</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">2</span><span class="w-7 h-8 flex items-center justify-center rounded-lg font-mono font-black text-[13px] bg-white border border-slate-200 text-slate-700">0</span></div><div class="w-px h-6 bg-slate-200"></div><span class="text-[11px] font-bold text-slate-500 text-left leading-snug">没有数字正确</span></div></div><p class="text-[10px] text-slate-400 leading-relaxed">颜色仅用于示例；正式题请以线索文字为准。</p><p class="text-[11px] text-slate-500 font-medium leading-relaxed">四条线索要一起看；每题只有一个答案。数字不会重复，首位不会是 0。</p><p class="text-[11px] text-slate-500 font-medium leading-relaxed">每次错误提交扣 10 分；可修改后再次提交。</p></div>`
+            }
+        },
 
     };
 
@@ -2395,6 +2448,11 @@ function App() {
     const [nback, setNback] = useState({ current: null, previous: null, isMatch: false, isReady: false, roundId: null, roundNumber: 0 });
     const [setGame, setSetGame] = useState({ cards: [], selected: [] });
     const [neuronCount, setNeuronCount] = useState({ items: [], target: {}, targetCount: 0, currentCount: 0 });
+    // 密码推理：puzzle 由 gameLogic.js 的引擎生成，entry 是当前输入的每一位。
+    // roundIncorrect 只记本题的错误次数（决定这题得分），incorrect 记整局的。
+    const [codeLogic, setCodeLogic] = useState({
+        puzzle: null, entry: [], selected: 0, feedback: null, solved: 0, incorrect: 0, roundIncorrect: 0, elapsed: 0
+    });
     const [controlPulse, setControlPulse] = useState(null);
     const nbackSeq = useRef([]);
     const nbackWarmupRef = useRef(false);
@@ -2402,6 +2460,7 @@ function App() {
     const feedbackTimer = useRef(null);
     const controlPulseTimer = useRef(null);
     const neuronMoveTimer = useRef(null);
+    const codeFeedbackTimer = useRef(null);
     const resultScoreFrame = useRef(null);
     const resultScoreTickRef = useRef({ lastAt: 0, lastStep: 0 });
     const answerLock = useRef(false);
@@ -2465,6 +2524,15 @@ function App() {
 
         if (lastRunStats?.isImproved) {
             return { icon: 'trophy', className: 'is-record' };
+        }
+
+        // 密码推理一局最多 100 分，够不到下面这些按几百分标定的阈值，
+        // 而它的「正确率」是提交次数之比，也不说明什么。
+        // 对它有意义的只有一件事：有没有一次就做对。
+        if (lastRunStats?.task === 'passwordlogic') {
+            return lastRunStats.incorrect === 0
+                ? { icon: 'sparkles', className: 'is-excellent' }
+                : { icon: 'badge-check', className: 'is-steady' };
         }
 
         if (resultAccuracy >= 92 && lastScore >= 500) {
@@ -2647,7 +2715,104 @@ function App() {
             }));
 
             setNeuronCount({ items, target: { shape: targetShape, color: targetColor }, targetCount, currentCount: 0 });
+        } else if (type === 'passwordlogic') {
+            // 基础三位、进阶四位，无限沿用基础的三位——和 iOS 的分档一致。
+            const codeLength = isChallengeDifficulty ? 4 : 3;
+            const puzzle = window.PFLGameLogic.codeLogic.generate(codeLength);
+            if (codeFeedbackTimer.current) clearTimeout(codeFeedbackTimer.current);
+            setCodeLogic({
+                puzzle,
+                entry: new Array(codeLength).fill(null),
+                selected: 0,
+                feedback: null,
+                solved: 0,
+                incorrect: 0,
+                roundIncorrect: 0,
+                elapsed: 0
+            });
         }
+    };
+
+    const showCodeLogicFeedback = (kind) => {
+        if (codeFeedbackTimer.current) clearTimeout(codeFeedbackTimer.current);
+        setCodeLogic(p => ({ ...p, feedback: kind }));
+        codeFeedbackTimer.current = setTimeout(() => {
+            setCodeLogic(p => (p.feedback === kind ? { ...p, feedback: null } : p));
+        }, kind === 'incomplete' ? 850 : 720);
+    };
+
+    const enterCodeDigit = (digit) => {
+        setCodeLogic(p => {
+            if (!p.puzzle || p.feedback === 'correct') return p;
+            const entry = p.entry.slice();
+            entry[p.selected] = digit;
+            // 填完一位后跳到下一个空位；没有空位就停在原地，方便继续改这一位。
+            let selected = p.selected;
+            for (let step = 1; step <= entry.length; step++) {
+                const index = (p.selected + step) % entry.length;
+                if (entry[index] === null) { selected = index; break; }
+            }
+            return { ...p, entry, selected };
+        });
+    };
+
+    const deleteCodeDigit = () => {
+        setCodeLogic(p => {
+            if (!p.puzzle || p.feedback === 'correct') return p;
+            const entry = p.entry.slice();
+            if (entry[p.selected] !== null) {
+                entry[p.selected] = null;
+                return { ...p, entry };
+            }
+            const previous = Math.max(0, p.selected - 1);
+            entry[previous] = null;
+            return { ...p, entry, selected: previous };
+        });
+    };
+
+    const nextCodeLogicPuzzle = () => {
+        const codeLength = codeLogic.puzzle ? codeLogic.puzzle.codeLength : 3;
+        const exclude = codeLogic.puzzle ? codeLogic.puzzle.secret.join('') : null;
+        const puzzle = window.PFLGameLogic.codeLogic.generate(codeLength, exclude);
+        setCodeLogic(p => ({
+            ...p,
+            puzzle,
+            entry: new Array(codeLength).fill(null),
+            selected: 0,
+            feedback: null,
+            roundIncorrect: 0
+        }));
+    };
+
+    const submitCodeLogic = () => {
+        const { puzzle, entry } = codeLogic;
+        if (!puzzle || codeLogic.feedback === 'correct') return;
+        if (entry.some(digit => digit === null)) {
+            playSound('error');
+            showCodeLogicFeedback('incomplete');
+            return;
+        }
+        const isCorrect = entry.every((digit, index) => digit === puzzle.secret[index]);
+        recordAttempt(isCorrect);
+        if (isCorrect) {
+            // iOS 的计分：本题每错一次少 10 分，下限 40。
+            const gained = Math.max(40, 100 - codeLogic.roundIncorrect * 10);
+            const nextScore = score + gained;
+            setScore(nextScore);
+            playSound('success');
+            if (codeFeedbackTimer.current) clearTimeout(codeFeedbackTimer.current);
+            setCodeLogic(p => ({ ...p, feedback: 'correct', solved: p.solved + 1 }));
+            if (mode === 'infinite') {
+                codeFeedbackTimer.current = setTimeout(() => nextCodeLogicPuzzle(), 560);
+            } else {
+                codeFeedbackTimer.current = setTimeout(() => endGame(nextScore), 560);
+            }
+            return;
+        }
+        setScore(Math.max(0, score - 10));
+        playSound('error');
+        setCodeLogic(p => ({ ...p, incorrect: p.incorrect + 1, roundIncorrect: p.roundIncorrect + 1 }));
+        showCodeLogicFeedback('wrong');
     };
 
     const switchArenaTask = () => {
@@ -2740,7 +2905,7 @@ function App() {
             initGameCore(taskType);
             setView(taskType);
         } else {
-            setTimeLeft(TASK_DATA[taskType].time);
+            setTimeLeft(taskType === 'passwordlogic' ? -1 : TASK_DATA[taskType].time);
             initGameCore(taskType);
             setView(taskType);
         }
@@ -2758,6 +2923,10 @@ function App() {
         if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
         feedbackTimer.current = null;
         answerLock.current = false;
+        // 密码推理答对后有 560ms 的提示，之后才结束本局或换下一题。
+        // 玩家在这段时间里退出的话，这个 timer 会把已经回到首页的人再弹到结果页。
+        if (codeFeedbackTimer.current) clearTimeout(codeFeedbackTimer.current);
+        codeFeedbackTimer.current = null;
         setAnswerFeedback(null);
     };
 
@@ -3013,6 +3182,7 @@ function App() {
         return () => {
             if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
             if (neuronMoveTimer.current) clearInterval(neuronMoveTimer.current);
+            if (codeFeedbackTimer.current) clearTimeout(codeFeedbackTimer.current);
             if (resultScoreFrame.current) cancelAnimationFrame(resultScoreFrame.current);
         };
     }, []);
@@ -3110,6 +3280,16 @@ function App() {
                 neuronMoveTimer.current = null;
             }
         };
+    }, [view]);
+
+    // 密码推理不倒计时：它是一道推理题，玩到解出为止，顶栏显示的是已用时间。
+    // timeLeft 保持 -1，所以下面那条倒计时 effect 的两个分支都不会命中。
+    useEffect(() => {
+        if (view !== 'passwordlogic') return undefined;
+        const timer = setInterval(() => {
+            setCodeLogic(p => (p.feedback === 'correct' ? p : { ...p, elapsed: p.elapsed + 1 }));
+        }, 1000);
+        return () => clearInterval(timer);
     }, [view]);
 
     useEffect(() => {
@@ -4494,9 +4674,12 @@ function App() {
                             {mode !== 'comp' && mode !== 'daily' && mode !== 'infinite' && TASK_DATA[view] && (
                                 <div className="text-[9px] font-black text-slate-400 font-mono">{ui.taskBest} {history.taskBestScores?.[view] || 0}</div>
                             )}
+                            {mode === 'infinite' && view === 'passwordlogic' && (
+                                <div className="text-[9px] font-black text-slate-400 font-mono">{ui.codePuzzle.replace('{n}', codeLogic.solved + 1)}</div>
+                            )}
                         </div>
                         <div className="flex items-center justify-end gap-3">
-                            <div className={`text-xs font-mono font-bold px-2 py-1 rounded ${isError ? 'bg-red-500 text-white' : 'bg-slate-100'}`}>{mode === 'infinite' ? '∞' : `${timeLeft}s`}</div>
+                            <div className={`text-xs font-mono font-bold px-2 py-1 rounded ${isError ? 'bg-red-500 text-white' : 'bg-slate-100'}`}>{view === 'passwordlogic' ? `${ui.codeElapsed} ${codeLogic.elapsed}s` : mode === 'infinite' ? '∞' : `${timeLeft}s`}</div>
                             <div className="font-mono text-xl font-black text-indigo-600">{score}</div>
                         </div>
                     </div>
@@ -4814,6 +4997,77 @@ function App() {
                                 </div>
                             </div>
                         )}
+
+                        {view === 'passwordlogic' && codeLogic.puzzle && (() => {
+                            const codeLength = codeLogic.puzzle.codeLength;
+                            const feedbackCopy = codeLogic.feedback === 'incomplete'
+                                ? { text: codeLength === 4 ? ui.codeIncomplete4 : ui.codeIncomplete3, tone: 'bg-slate-400' }
+                                : codeLogic.feedback === 'wrong'
+                                    ? { text: ui.codeWrong, tone: 'bg-rose-500' }
+                                    : codeLogic.feedback === 'correct'
+                                        ? {
+                                            text: mode === 'infinite'
+                                                ? ui.codePuzzleDone.replace('{n}', codeLogic.solved)
+                                                : ui.codeComplete,
+                                            tone: 'bg-emerald-500'
+                                        }
+                                        : null;
+                            const keypadButton = (label, onClick, { primary = false, wide = false } = {}) => (
+                                <button
+                                    key={label}
+                                    onClick={() => { playSound('tap'); onClick(); }}
+                                    className={`h-12 rounded-2xl font-black active:scale-95 transition-transform flex items-center justify-center ${wide ? 'text-xs' : 'text-xl font-mono'} ${primary ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-800 border border-slate-200'}`}
+                                >{label}</button>
+                            );
+                            return (
+                                <div className="codelogic-layout flex flex-col w-full max-w-sm h-full min-h-0 animate-pop-center">
+                                    <div className="flex-shrink-0 text-center">
+                                        <div className="text-base font-black text-slate-800">{ui.codeFind}</div>
+                                        <div className="text-[10px] font-bold text-slate-400 mt-0.5 leading-snug px-2">{codeLength === 4 ? ui.codeSubtitle4 : ui.codeSubtitle3}</div>
+                                    </div>
+
+                                    <div className="flex-shrink-0 flex justify-center gap-2.5 mt-3">
+                                        {codeLogic.entry.map((digit, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => { playSound('tap'); setCodeLogic(p => ({ ...p, selected: index })); }}
+                                                className={`${codeLength === 4 ? 'w-[52px]' : 'w-16'} h-[62px] rounded-2xl bg-white flex items-center justify-center text-3xl font-black font-mono transition-colors ${index === codeLogic.selected ? 'border-2 border-indigo-600' : 'border border-slate-200'} ${digit === null ? 'text-slate-300' : 'text-slate-800'}`}
+                                            >{digit === null ? '–' : digit}</button>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex-shrink-0 h-7 mt-2 flex items-center justify-center">
+                                        {feedbackCopy && (
+                                            <span className={`px-3 h-6 rounded-full text-[11px] font-black text-white flex items-center ${feedbackCopy.tone}`}>{feedbackCopy.text}</span>
+                                        )}
+                                    </div>
+
+                                    <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar space-y-2 py-1">
+                                        {codeLogic.puzzle.clues.map((clue, index) => (
+                                            <div key={index} className="flex items-center gap-2.5 px-3 py-2 min-h-[46px] bg-white rounded-2xl border border-slate-100">
+                                                <span className="w-[22px] h-[22px] flex-shrink-0 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black font-mono flex items-center justify-center">{index + 1}</span>
+                                                <span className="flex-shrink-0 font-mono font-black text-base text-slate-800 tracking-[0.12em]">{clue.guess.join('')}</span>
+                                                <span className="flex-shrink-0 w-px h-6 bg-slate-100"></span>
+                                                <span className="text-[11px] font-bold text-slate-500 leading-snug text-left">{window.PFLGameLogic.codeLogic.clueText(clue.evaluation, isEnglish)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex-shrink-0 mt-2 space-y-1.5">
+                                        {[[1, 2, 3], [4, 5, 6], [7, 8, 9]].map((row, rowIndex) => (
+                                            <div key={rowIndex} className="grid grid-cols-3 gap-1.5">
+                                                {row.map(digit => keypadButton(String(digit), () => enterCodeDigit(digit)))}
+                                            </div>
+                                        ))}
+                                        <div className="grid grid-cols-3 gap-1.5">
+                                            {keypadButton(ui.codeDelete, deleteCodeDigit, { wide: true })}
+                                            {keypadButton('0', () => enterCodeDigit(0))}
+                                            {keypadButton(ui.codeSubmit, submitCodeLogic, { primary: true, wide: true })}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
             )}
@@ -4826,6 +5080,9 @@ function App() {
                     : 0;
                 const resultDuration = lastRunStats?.durationSeconds || 0;
                 const showCompletionTime = lastRunStats?.task === 'schulte';
+                // 密码推理一题 40~100 分，套不上按几百分写的五档评语，
+                // 也没有「正确率」可言——它的指标和 iOS 结果页保持一致。
+                const isCodeLogicResult = lastRunStats?.task === 'passwordlogic';
                 const resultPresentation = getResultPresentation({ isDailyResult, resultAccuracy });
                 return (
                     <div className="flex-1 flex flex-col items-center justify-center px-8 text-center animate-pop-center">
@@ -4834,21 +5091,46 @@ function App() {
                         </div>
                         <div className="text-[10px] font-black brand-text text-slate-400 mb-1">{isDailyResult ? ui.dailyFinishedTitle : ui.resultTitle}</div>
                         <div className={`result-score-counter text-6xl font-black mb-6 font-mono ${isDailyResult ? 'text-emerald-500' : 'text-indigo-600'}`}>{animatedScore}</div>
-                        <div className={`text-xl font-black mb-1 ${isDailyResult ? 'text-emerald-600' : feedback.color}`}>{isDailyResult ? `${ui.dailyStreak} ${dailyStreak} ${ui.dailyDays}` : feedback.label}</div>
-                        <div className="text-xs text-slate-500 mb-4 font-medium leading-relaxed max-w-[240px]">{isDailyResult ? ui.dailyFinishedSub : feedback.sub}</div>
+                        {isCodeLogicResult ? (
+                            <div className="text-sm font-black text-slate-600 mb-5 max-w-[240px]">{ui.codeResultLine}</div>
+                        ) : (
+                            <>
+                                <div className={`text-xl font-black mb-1 ${isDailyResult ? 'text-emerald-600' : feedback.color}`}>{isDailyResult ? `${ui.dailyStreak} ${dailyStreak} ${ui.dailyDays}` : feedback.label}</div>
+                                <div className="text-xs text-slate-500 mb-4 font-medium leading-relaxed max-w-[240px]">{isDailyResult ? ui.dailyFinishedSub : feedback.sub}</div>
+                            </>
+                        )}
                         <div className="result-metrics-grid w-full max-w-sm mb-6">
-                            <div className="result-metric">
-                                <span>{ui.resultAccuracy}</span>
-                                <strong>{resultAccuracy}%</strong>
-                            </div>
-                            <div className="result-metric">
-                                <span>{showCompletionTime ? ui.resultTime : ui.resultCorrect}</span>
-                                <strong>{showCompletionTime ? `${resultDuration}s` : `${lastRunStats?.correct || 0}${ui.resultTimes}`}</strong>
-                            </div>
-                            <div className="result-metric">
-                                <span>{ui.resultMistakes}</span>
-                                <strong>{lastRunStats?.incorrect || 0}{ui.resultTimes}</strong>
-                            </div>
+                            {isCodeLogicResult ? (
+                                <>
+                                    <div className="result-metric">
+                                        <span>{ui.codeResultCompleted}</span>
+                                        <strong>{lastRunStats?.correct || 0}</strong>
+                                    </div>
+                                    <div className="result-metric">
+                                        <span>{ui.codeResultTime}</span>
+                                        <strong>{resultDuration}s</strong>
+                                    </div>
+                                    <div className="result-metric">
+                                        <span>{ui.codeResultIncorrect}</span>
+                                        <strong>{lastRunStats?.incorrect || 0}</strong>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="result-metric">
+                                        <span>{ui.resultAccuracy}</span>
+                                        <strong>{resultAccuracy}%</strong>
+                                    </div>
+                                    <div className="result-metric">
+                                        <span>{showCompletionTime ? ui.resultTime : ui.resultCorrect}</span>
+                                        <strong>{showCompletionTime ? `${resultDuration}s` : `${lastRunStats?.correct || 0}${ui.resultTimes}`}</strong>
+                                    </div>
+                                    <div className="result-metric">
+                                        <span>{ui.resultMistakes}</span>
+                                        <strong>{lastRunStats?.incorrect || 0}{ui.resultTimes}</strong>
+                                    </div>
+                                </>
+                            )}
                         </div>
                         {isDailyResult && (
                             <div className={`daily-result-momentum ${dailyWeeklyGoalComplete ? 'is-rewarded' : ''}`}>
