@@ -33,7 +33,7 @@ const LatexFmt = ({ text }) => {
 
 const UI_TEXT = {
     zh: {
-        appTitle: "前额叶实验室 6.1.7",
+        appTitle: "前额叶实验室 6.2.0",
         bestSynced: "历史最高 (已同步)",
         normal: "基础",
         hard: "进阶",
@@ -47,7 +47,7 @@ const UI_TEXT = {
         arenaShortTitle: "全能竞技",
         arenaSubtitle: "混合：舒尔特方格 / Stroop反应 / 快速SET / N-Back / 神经元计数",
         updateTitle: "实验室更新公告",
-        updateVersion: "Version 6.1.7",
+        updateVersion: "Version 6.2.0",
         updateButton: "知道了，这就去练脑",
         startTraining: "开始训练",
         firstPlayKicker: "\u7b2c\u4e00\u6b21\u6765\uff1f",
@@ -139,7 +139,7 @@ const UI_TEXT = {
         backHome: "返回大厅"
     },
     en: {
-        appTitle: "Prefrontal Lab 6.1.7",
+        appTitle: "Prefrontal Lab 6.2.0",
         bestSynced: "Personal Best",
         normal: "Basic",
         hard: "Advanced",
@@ -153,7 +153,7 @@ const UI_TEXT = {
         arenaShortTitle: "Arena",
         arenaSubtitle: "Mixed training: Schulte Grid / Stroop / SET / N-Back / Neuron Counting",
         updateTitle: "Lab Update",
-        updateVersion: "Version 6.1.7",
+        updateVersion: "Version 6.2.0",
         updateButton: "Got it, start training",
         startTraining: "Start Training",
         firstPlayKicker: "New here?",
@@ -248,20 +248,16 @@ const UI_TEXT = {
 
 const UPDATE_LINES = {
     zh: [
-        "重新设计了“我的”页面：将训练记录、周报和数据入口集中到一个独立界面，让训练进度更清晰、更容易查看。",
-        "新增训练记录与周报：查看训练天数、完成局数、最高分、准确率和训练偏好。",
-        "训练节奏支持按月查看：可用箭头或左右滑动浏览历史月份，点击日期查看当天记录。",
-        "优化记录页解锁逻辑：训练记录不足时也能查看已有内容，不会被空白页面挡住。",
-        "优化热力图可读性：训练日与无训练日区分更清楚，月份切换箭头行为更直观。",
-        "修复电脑端“我的”页面顶部错位和内容遮挡，并改善移动端训练记录浏览体验。"
+        "新增第六个训练模块「密码推理」：四条线索只对应一个密码，把它推理出来。基础是三位数，进阶是四位数。",
+        "密码推理不计时，解出为止，顶栏显示的是已用时间；每次错误提交扣 10 分，改完可以继续提交。",
+        "无限模式下的密码推理会连续出题，解完一道立刻换下一道。",
+        "修正了神经元计数的说明：要数的是形状和颜色都与目标相同的图形，之前的文案只说了形状。"
     ],
     en: [
-        "Redesigned My Lab as a dedicated space for Training Records, Weekly Reports, and personal data, making progress easier to follow.",
-        "Added Training Records and Weekly Reports for training days, sessions, best scores, accuracy, and preferences.",
-        "Training Rhythm now supports monthly browsing with arrows or horizontal swipes, plus daily record details.",
-        "Improved record access so existing training history remains viewable even with limited training days.",
-        "Made the heatmap easier to read with clearer training-day colors and more intuitive month navigation.",
-        "Fixed desktop My Lab header overlap and improved mobile browsing across Training Records."
+        "Added a sixth training module, Code Logic: four clues resolve to exactly one code, and your job is to deduce it. Basic is three digits, Advanced is four.",
+        "Code Logic is untimed — play until you solve it, with elapsed time in the top bar. Each incorrect submission costs 10 points, and you can edit and submit again.",
+        "In Endless mode, Code Logic keeps drawing a new puzzle as soon as you solve one.",
+        "Corrected the Neuron Counting instructions: you count the shapes whose shape and color both match the target. The old wording only mentioned the shape."
     ]
 };
 
@@ -1682,13 +1678,13 @@ function App() {
     const [showUpdateNote, setShowUpdateNote] = useState(() => {
         // 检查本地存储，如果这个版本的 Key 不存在，说明是第一次见，返回 true
         const shouldPreviewUpdate = new URLSearchParams(window.location.search).has('showUpdate');
-        try { return shouldPreviewUpdate || !localStorage.getItem('prefrontal_lab_v6.1.7_update'); } catch (error) { return shouldPreviewUpdate; }
+        try { return shouldPreviewUpdate || !localStorage.getItem('prefrontal_lab_v6.2.0_update'); } catch (error) { return shouldPreviewUpdate; }
     });
 
     const closeUpdateNote = () => {
         playSound('tap');
         // 玩家点击按钮后，在本地存入 'true'，下次刷新就不会再弹了
-        localStorage.setItem('prefrontal_lab_v6.1.7_update', 'true');
+        localStorage.setItem('prefrontal_lab_v6.2.0_update', 'true');
         setShowUpdateNote(false);
     };
 
