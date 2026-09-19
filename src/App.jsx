@@ -110,7 +110,7 @@ const UI_TEXT = {
         continue: "继续",
         refreshSet: "找不到？换一批",
         neuronTarget: "目标图形",
-        neuronInstruction: "数出所有相同图形",
+        neuronInstruction: "形状和颜色都要相同",
         recorded: "已记录",
         reset: "清零",
         submit: "确认提交",
@@ -199,8 +199,8 @@ const UI_TEXT = {
         different: "Different",
         continue: "Continue",
         refreshSet: "No set? Shuffle",
-        neuronTarget: "Target Shape",
-        neuronInstruction: "Count every matching shape",
+        neuronTarget: "TARGET",
+        neuronInstruction: "Match shape and color",
         recorded: "COUNT",
         reset: "Reset",
         submit: "Submit",
@@ -289,11 +289,11 @@ const TASK_TRANSLATIONS = {
     },
     neuroncount: {
         title: "Neuron Counting",
-        homeBasic: "Target count: circles",
+        homeBasic: "Target count: shape + color",
         homeHard: "More distractions",
         guide: {
-            play: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Count every target shape on the screen, then submit the number.</p><div class="bg-slate-50 p-4 rounded-3xl flex flex-col items-center border"><p class="text-[10px] text-slate-400">Count carefully before using the plus and minus buttons.</p></div></div>`,
-            playHard: `<p class="text-slate-600 font-medium text-sm">Advanced mode adds more similar distractors and moving items.</p>`
+            play: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Count targets: <span class="text-amber-600 font-bold">same shape and color</span>.</p><div class="bg-slate-50 p-4 rounded-3xl flex flex-col items-center border"><div class="flex gap-2 mb-3"><div class="w-6 h-6 rounded-full bg-amber-500"></div><div class="w-6 h-6 bg-slate-300"></div><div class="w-6 h-6 rounded-full bg-amber-500"></div></div><p class="text-[10px] text-slate-400">Count to 2, then tap the button twice</p></div></div>`,
+            playHard: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">Advanced adds more similar distractors and moving items.</p><p class="text-slate-600 font-medium text-sm">Count targets: <span class="text-amber-600 font-bold">same shape and color</span>.</p></div>`
         }
     }
 };
@@ -2028,12 +2028,12 @@ function App() {
         //5/11新加入
         neuroncount: {
             title: "神经元计数", en: "Neuron Counting", icon: "binary", color: "text-amber-500", time: 60,
-            homeBasic: "目标计数：圆圈", homeHard: "干扰物增加",
+            homeBasic: "目标计数：同形同色", homeHard: "干扰物增加",
             guide: {
                 goal: "在干扰中精确统计目标数量",
                 play: `
     <div class="space-y-4">
-        <p class="text-slate-600 font-medium text-sm">数出屏幕中 <span class="text-amber-600 font-bold">所有圆圈</span> 的数量。</p>
+        <p class="text-slate-600 font-medium text-sm">数出屏幕中 <span class="text-amber-600 font-bold">形状和颜色都与目标相同</span> 的图形。</p>
         <div class="bg-slate-50 p-4 rounded-3xl flex flex-col items-center border">
             <div class="flex gap-2 mb-3">
                 <div class="w-6 h-6 rounded-full bg-amber-500"></div>
@@ -2043,7 +2043,7 @@ function App() {
             <p class="text-[10px] text-slate-400">默数到 2，然后点击按钮 2 次</p>
         </div>
     </div>`,
-                playHard: `<p class="text-slate-600 font-medium text-sm">目标与干扰项形状极其相似，且数量大幅增加。</p>`
+                playHard: `<div class="space-y-4"><p class="text-slate-600 font-medium text-sm">更多相似干扰项，且部分目标会移动。</p><p class="text-slate-600 font-medium text-sm">数出屏幕中 <span class="text-amber-600 font-bold">形状和颜色都与目标相同</span> 的图形。</p></div>`
             }
         },
 
