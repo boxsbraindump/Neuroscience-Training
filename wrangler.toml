@@ -1,0 +1,14 @@
+# 站点本体：prefrontal-lab.com 的静态页面。
+#
+# 这里只部署静态资源，不带 worker 脚本。数据统计接口 /api/retention*
+# 仍由独立的 prefrontal-lab-retention worker 处理（配置在 cloudflare/），
+# 两者互不影响，不要把它们合到一起——合并会造成路由冲突。
+#
+# Cloudflare 的构建设置必须配套：Root directory 留空（仓库根目录），
+# 这样 `npx wrangler deploy` 读到的才是这份配置，名字才对得上项目名。
+name = "prefrontal"
+compatibility_date = "2026-05-30"
+
+[assets]
+directory = "."
+not_found_handling = "single-page-application"
