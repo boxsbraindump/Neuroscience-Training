@@ -251,12 +251,14 @@ const UPDATE_LINES = {
         "新增第六个训练模块「密码推理」：四条线索只对应一个密码，把它推理出来。基础是三位数，进阶是四位数。",
         "密码推理不计时，解出为止，顶栏显示的是已用时间；每次错误提交扣 10 分，改完可以继续提交。",
         "无限模式下的密码推理会连续出题，解完一道立刻换下一道。",
+        "竞技场现在分基础和进阶两档：基础用各个模块的基础规则，进阶就是竞技场原本的难度。两档各记各的最高分，你之前的竞技纪录归在进阶那一档。",
         "修正了神经元计数的说明：要数的是形状和颜色都与目标相同的图形，之前的文案只说了形状。"
     ],
     en: [
         "Added a sixth training module, Code Logic: four clues resolve to exactly one code, and your job is to deduce it. Basic is three digits, Advanced is four.",
         "Code Logic is untimed — play until you solve it, with elapsed time in the top bar. Each incorrect submission costs 10 points, and you can edit and submit again.",
         "In Endless mode, Code Logic keeps drawing a new puzzle as soon as you solve one.",
+        "The Arena now has Basic and Advanced tiers: Basic runs each module's normal rules, Advanced is the Arena as it has always played. Each tier keeps its own best score, and your existing Arena record belongs to Advanced.",
         "Corrected the Neuron Counting instructions: you count the shapes whose shape and color both match the target. The old wording only mentioned the shape."
     ]
 };
