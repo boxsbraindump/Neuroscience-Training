@@ -39,7 +39,7 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 | Set Logic | Select 3 cards whose properties are all same or all different. | Home task card or arena rotation. | User finds a valid set. | Normal uses shape/color; hard/arena also includes fill opacity, but current fill logic is constrained by only two fill values. |
 | Neuron Counting | Count the shapes whose shape *and* color both match the target, among distractors. | Home task card or arena rotation. | User submits exact count. | Hard/arena adds more items, rotations, scale variation, and moving distractors. |
 | Code Logic | Deduce a hidden code of distinct digits from four clues. | Home task card. | User submits the one code that fits every clue. | Basic is three digits and Advanced is four; Endless rotates three-digit puzzles. Not in the arena rotation or the Daily pool. The puzzle engine lives in `src/gameLogic.js` and is ported from the native app. |
-| Arena mode | Mixed-task challenge. | Home mode `comp`, then arena card. | User plays rotating tasks under 90s timer. | Errors subtract time in arena. Analytics task name is `arena`. |
+| Arena mode | Mixed-task challenge. | Home mode `comp`, then arena card. | User plays rotating tasks under 90s timer. | Errors subtract time in arena. Basic and Advanced are picked on the arena page and default to Basic; each keeps its own best score. Both tiers are open to everyone, so the arena page shows no unlock pill. Analytics keeps `mode = comp` for both and separates them by task name: `arena` for Advanced, `arena-basic` for Basic. |
 | Endless mode | Free practice without timer pressure. | Training mode tab `infinite`, then any task card. | User practices until tapping back, then sees the session result. | Uses basic task difficulty, shows `∞` instead of a timer, and does not update personal best, per-task best, hard unlock, Daily streak, or arena best. |
 | Result | Shows final score and feedback. | Timer ends or solo task completes. | User returns home or starts again. | Updates best scores and unlock state. |
 | Hidden analytics | Owner-only retention and click dashboard. | `?owner=1&analytics` for the current URL only. | Owner loads local or cloud summary and can export/reset/lock. | No normal user navigation entry. |
@@ -54,7 +54,7 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 | `setgame` | Set Logic | 60s solo; 90s arena pool | `cards`, `selected` | +100 valid set, -20 invalid set. | Hard/arena adds `fill` checks, though only true/false fill values exist. |
 | `neuroncount` | Neuron Counting | 60s solo; 90s arena pool | `items`, `target`, `targetCount`, `currentCount` | +80 correct submit. | Hard/arena increases target/distractor counts and visual difficulty. |
 | `passwordlogic` | Code Logic | No timer; the top bar counts elapsed time up | `puzzle`, `entry`, `selected`, `roundIncorrect` | +`max(40, 100 - 10 * wrong submissions this puzzle)` on a correct submit; -10 per wrong submit, floored at 0. | Basic is a three-digit code, Advanced a four-digit one. Basic and Advanced end at the first solved puzzle; Endless keeps drawing new three-digit puzzles until the player leaves. |
-| `arena` | Arena Mode | 90s total | Current task state from the rotating task | Uses per-task scoring; wrong answers can subtract 5s. | Randomly rotates among all five tasks. |
+| `arena` | Arena Mode | 90s total | Current task state from the rotating task | Uses per-task scoring; wrong answers can subtract 5s. | Randomly rotates among the same five tasks in both tiers; Code Logic is not in the rotation. Advanced runs every module's hard rules, Basic runs their normal ones, through the one `isChallengeDifficulty` flag the games already read. |
 | `infinite` | Endless Mode | No timer; UI shows `∞` | Current selected task state | Uses per-task scoring for the current session only. | Basic difficulty. Back button ends the session and shows result, but scores are not persisted as best scores. Schulte automatically starts a new grid after 25. |
 | `daily` | Daily Challenge | Challenge-defined timer: 90s for finish-grid Schulte, 60s for timed-score tasks | Weekday-rotation current challenge state | Uses per-task scoring; final score is stored as today's best. | First pool order starts Monday: `schulte-forward`, `schulte-reverse`, `stroop-color`, `nback-2step`, `set-triad`, `neuron-storm`. Sunday currently wraps to the first challenge until a seventh challenge exists. MVP completion rules are `finish-grid` for Schulte and `timed-score` for the other four tasks. Local streak increments by completed calendar days. |
 
@@ -63,7 +63,8 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 | Field | Type | Required | Shown in UI | Source | Notes |
 | --- | --- | --- | --- | --- | --- |
 | `brain_train_pro_v5.bestScore` | number | yes | Home score card | Browser `localStorage` | Best solo score. Used for hard-mode unlock threshold. |
-| `brain_train_pro_v5.bestCompScore` | number | yes | Home score card in arena mode | Browser `localStorage` | Best arena score. |
+| `brain_train_pro_v5.bestCompScore` | number | yes | Home score card in arena mode | Browser `localStorage` | Best Advanced arena score. Kept for Advanced specifically, because the arena was Advanced-only before the tiers existed, so older records stay comparable. |
+| `brain_train_pro_v5.bestCompBasicScore` | number | yes | Home score card in arena mode | Browser `localStorage` | Best Basic arena score. |
 | `brain_train_pro_v5.isHardUnlocked` | boolean | yes | Mode tabs / unlock pill | Browser `localStorage` | Hard mode unlocks when solo best score reaches 500. |
 | `brain_train_pro_v5.taskBestScores` | object | yes | Game top bar | Browser `localStorage` | Per-task bests for `schulte`, `stroop`, `nback`, `setgame`, `neuroncount`, `passwordlogic`. |
 | `brain_train_pro_data` | object | no | Not directly | Legacy `localStorage` | Migrated into `brain_train_pro_v5` when v5 data does not exist. |
@@ -79,7 +80,7 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 | `analytics_events.event_at` | ISO string | yes | Not directly | Cloudflare D1 | Event timestamp. |
 | `analytics_events.path` | text | no | Not directly | Frontend event payload | Current pathname. |
 | `analytics_events.session_id` | text | no | Not directly | Frontend event payload | Session id generated in app runtime. |
-| `analytics_events.task` | text | no | Top task / clicks | Frontend event payload | Task key, `daily`, or `arena`. |
+| `analytics_events.task` | text | no | Top task / clicks | Frontend event payload | Task key, `daily`, `arena` (Advanced), or `arena-basic`. |
 | `analytics_events.mode` | text | no | Aggregated indirectly | Frontend event payload | `normal`, `hard`, `infinite`, `daily`, or `comp`. |
 | `dailyTask` | text | no | Not directly | Frontend event payload | Underlying task key for Daily Challenge completions/abandons; sent in analytics payload but not currently stored as a separate D1 column. |
 | `dailyDay` | text date | no | Not directly | Frontend event payload | Local day key for Daily Challenge events; sent in analytics payload but not currently stored as a separate D1 column. |

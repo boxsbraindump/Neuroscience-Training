@@ -354,6 +354,7 @@ const CLOUD_ANALYTICS_ENDPOINT = window.PFL_ANALYTICS_ENDPOINT || (window.locati
 const GAME_CLICK_LABELS = {
     daily: 'Daily Challenge',
     arena: 'Cognitive Arena',
+    'arena-basic': 'Cognitive Arena (Basic)',
     schulte: 'Schulte Grid',
     stroop: 'Stroop Test',
     setgame: 'SET Logic',
@@ -1372,6 +1373,7 @@ function App() {
         return 'home';
     });
     const [mode, setMode] = useState('normal');
+    const [arenaDifficulty, setArenaDifficulty] = useState('basic');
     const [score, setScore] = useState(0);
     const [timeLeft, setTimeLeft] = useState(0);
     const [lastScore, setLastScore] = useState(0);
@@ -1418,7 +1420,14 @@ function App() {
     const isGameView = !['home', 'result', 'analytics', 'settings', 'settings-daily', 'weekly-report', 'training-records'].includes(view);
     const isDailyMode = mode === 'daily';
     const isInfiniteMode = mode === 'infinite';
-    const isChallengeDifficulty = mode === 'hard' || mode === 'comp' || isDailyMode;
+    // 竞技场分两档，和 app 一致：进阶就是竞技场一直以来的玩法，
+    // 基础换上每个模块自己的基础规则。这一个开关就是各游戏读的那个，
+    // 所以两档的差异不需要在每个游戏里再写一遍。
+    const isArenaAdvanced = arenaDifficulty === 'advanced';
+    const isChallengeDifficulty = mode === 'hard' || (mode === 'comp' && isArenaAdvanced) || isDailyMode;
+    // 埋点：mode 仍然是 comp（分析面板的竞技开局数按它统计），
+    // 两档靠 task 区分，进阶沿用 arena 以免和历史数据断开。
+    const arenaTaskKey = isArenaAdvanced ? 'arena' : 'arena-basic';
     const dailySpec = getDailySpec();
     const dailyRecord = dailyProgress.days?.[dailySpec.day] || {};
     const dailyStreak = getDailyStreak(dailyProgress.days, dailySpec.day);
@@ -1624,7 +1633,7 @@ function App() {
 
     // --- 数据迁移逻辑：确保 1.0 数据同步到 5.0 ---
     const [history, setHistory] = useState(() => {
-        let base = { bestScore: 0, bestCompScore: 0, isHardUnlocked: false, taskBestScores: DEFAULT_TASK_BESTS };
+        let base = { bestScore: 0, bestCompScore: 0, bestCompBasicScore: 0, isHardUnlocked: false, taskBestScores: DEFAULT_TASK_BESTS };
 
         let v2DataRaw = null;
         let v1DataRaw = null;
@@ -1671,6 +1680,8 @@ function App() {
     const displayedBestScore = isTestDemoBuild
         ? Math.max(1130, Number(history.bestScore) || 0)
         : (Number(history.bestScore) || 0);
+    // 两档各记各的最高分，所以竞技页显示的永远是当前这一档的纪录。
+    const arenaBestScore = isArenaAdvanced ? (history.bestCompScore || 0) : (history.bestCompBasicScore || 0);
 
     // ==========================================
     // ✨ 在这里插入：更新公告状态管理
@@ -2856,9 +2867,9 @@ function App() {
         } else {
             setgameWarmupRef.current = 0;
         }
-        const taskName = mode === 'comp' ? 'arena' : mode === 'daily' ? 'daily' : taskType;
+        const taskName = mode === 'comp' ? arenaTaskKey : mode === 'daily' ? 'daily' : taskType;
         runStatsRef.current = {
-            task: mode === 'comp' ? 'arena' : taskType,
+            task: mode === 'comp' ? arenaTaskKey : taskType,
             attempts: 0,
             correct: 0,
             incorrect: 0,
@@ -3064,7 +3075,7 @@ function App() {
         const isDaily = mode === 'daily';
         const isInfinite = mode === 'infinite';
         const previousBest = isComp
-            ? (history.bestCompScore || 0)
+            ? arenaBestScore
             : isDaily
                 ? (dailyRecord.bestScore || 0)
                 : isInfinite
@@ -3080,7 +3091,7 @@ function App() {
         setLastScore(currentFinalScore);
         setLastRunStats(runStats);
 
-        const completedTask = currentRunRef.current?.task || (isComp ? 'arena' : view);
+        const completedTask = currentRunRef.current?.task || (isComp ? arenaTaskKey : view);
         recordRetention('game_complete', {
             sessionId: sessionIdRef.current,
             task: completedTask,
@@ -3148,7 +3159,12 @@ function App() {
         setHistory(prev => {
             // 计算新的最高分
             const newBestScore = (isComp || isDaily || isInfinite) ? prev.bestScore : Math.max(prev.bestScore, currentFinalScore);
-            const newBestCompScore = isComp ? Math.max(prev.bestCompScore || 0, currentFinalScore) : (prev.bestCompScore || 0);
+            // 每一档各记各的，互不覆盖。旧的 bestCompScore 留给进阶，
+            // 因为改版前的竞技场就是进阶难度，老用户的纪录仍然对得上。
+            const isArenaAdvancedRun = isComp && isArenaAdvanced;
+            const isArenaBasicRun = isComp && !isArenaAdvanced;
+            const newBestCompScore = isArenaAdvancedRun ? Math.max(prev.bestCompScore || 0, currentFinalScore) : (prev.bestCompScore || 0);
+            const newBestCompBasicScore = isArenaBasicRun ? Math.max(prev.bestCompBasicScore || 0, currentFinalScore) : (prev.bestCompBasicScore || 0);
             const taskBestScores = { ...DEFAULT_TASK_BESTS, ...(prev.taskBestScores || {}) };
             if (!isComp && !isDaily && !isInfinite && Object.prototype.hasOwnProperty.call(DEFAULT_TASK_BESTS, view)) {
                 taskBestScores[view] = Math.max(taskBestScores[view] || 0, currentFinalScore);
@@ -3162,6 +3178,7 @@ function App() {
                         ...prev,
                         bestScore: newBestScore,
                         bestCompScore: newBestCompScore,
+                        bestCompBasicScore: newBestCompBasicScore,
                         taskBestScores,
                         isHardUnlocked: updatedUnlockStatus
                     };
@@ -3440,15 +3457,32 @@ function App() {
                             <>
                                 <div className="z-10">
                                     <div className="text-[10px] opacity-60 font-bold uppercase tracking-widest">{mode === 'infinite' ? ui.infiniteScore : ui.bestSynced}</div>
-                                    <div className="score-value text-4xl font-black">{mode === 'comp' ? (history.bestCompScore || 0) : mode === 'infinite' ? '∞' : displayedBestScore}</div>
+                                    <div className="score-value text-4xl font-black">{mode === 'comp' ? arenaBestScore : mode === 'infinite' ? '∞' : displayedBestScore}</div>
                                 </div>
-                                <div className="unlock-pill z-10 text-[10px] font-bold bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md">
-                                    {mode === 'infinite' ? ui.infinitePill : history.isHardUnlocked ? "🔓 Advanced On" : "🔒 500 Unlock"}
-                                </div>
+                                {/* 竞技场两档都开放，这个标签在这里从来没生效过，留着只会让人以为竞技受限。 */}
+                                {mode !== 'comp' && (
+                                    <div className="unlock-pill z-10 text-[10px] font-bold bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md">
+                                        {mode === 'infinite' ? ui.infinitePill : history.isHardUnlocked ? "🔓 Advanced On" : "🔒 500 Unlock"}
+                                    </div>
+                                )}
                             </>
                         )}
                         <div className="score-watermark absolute top-[-20px] right-[-20px] opacity-10 rotate-12"><Icon name="brain" className="w-32 h-32" /></div>
                     </div>
+
+                    {mode === 'comp' && (
+                        <div className="mode-tabs flex w-full max-w-sm bg-slate-200 p-1 rounded-2xl mb-8 shrink-0">
+                            {['basic', 'advanced'].map(tier => (
+                                <button
+                                    key={tier}
+                                    onClick={() => { playSound('tap'); setArenaDifficulty(tier); }}
+                                    className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all ${arenaDifficulty === tier ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+                                >
+                                    {tier === 'basic' ? ui.normal : ui.hard}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     {mode !== 'daily' && mode !== 'comp' && (
                         <div className="mode-tabs flex w-full max-w-sm bg-slate-200 p-1 rounded-2xl mb-8 shrink-0">
@@ -3596,8 +3630,8 @@ function App() {
                         ) : mode === 'comp' ? (
                             <div
                                 onClick={() => startChallenge()}
-                                data-analytics-task="arena"
-                                data-analytics-label={GAME_CLICK_LABELS.arena}
+                                data-analytics-task={arenaTaskKey}
+                                data-analytics-label={GAME_CLICK_LABELS[arenaTaskKey]}
                                 style={{ boxShadow: '0 16px 36px rgba(245, 158, 11, 0.06)' }}
                                 className="task-card arena-task-card flex items-center p-5 bg-white rounded-[1.8rem] shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
                             >
