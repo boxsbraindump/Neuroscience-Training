@@ -163,6 +163,11 @@ body.is-app-scrollable .app-shell {
     gap: 6px;
 }
 
+/* 外观有三个选项（跟随系统 / 浅色 / 深色），语言只有两个。 */
+.settings-language-group.is-three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .settings-language-option {
     height: 36px;
     border: 1px solid #e2e8f0;

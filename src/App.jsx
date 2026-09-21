@@ -61,6 +61,10 @@ const UI_TEXT = {
         navAnalytics: "分析",
         settings: "我的",
         settingsLanguage: "语言",
+        settingsAppearance: "外观",
+        appearanceSystem: "跟随系统",
+        appearanceLight: "浅色",
+        appearanceDark: "深色",
         settingsSound: "音效",
         settingsSoundOn: "开启",
         settingsSoundOff: "关闭",
@@ -167,6 +171,10 @@ const UI_TEXT = {
         navAnalytics: "Analytics",
         settings: "My Lab",
         settingsLanguage: "Language",
+        settingsAppearance: "Appearance",
+        appearanceSystem: "System",
+        appearanceLight: "Light",
+        appearanceDark: "Dark",
         settingsSound: "Sound",
         settingsSoundOn: "On",
         settingsSoundOff: "Off",
@@ -351,6 +359,9 @@ const RETENTION_VISITOR_KEY = 'prefrontal_lab_visitor_id';
 const OWNER_TOKEN_KEY = 'prefrontal_lab_owner_token';
 const DAILY_STORAGE_KEY = 'prefrontal_lab_daily_v4';
 const SOUND_STORAGE_KEY = 'prefrontal_lab_sound_enabled';
+// 和 iOS 用同一个键名；index.html 的启动脚本也读它，在第一帧之前定好深浅色。
+const APPEARANCE_STORAGE_KEY = 'pfl_appearance';
+const APPEARANCE_OPTIONS = ['system', 'light', 'dark'];
 const WEEKLY_DAILY_GOAL = 5;
 const CLOUD_ANALYTICS_ENDPOINT = window.PFL_ANALYTICS_ENDPOINT || (window.location.hostname === 'boxsbraindump.github.io' ? '' : '/api/retention');
 const GAME_CLICK_LABELS = {
@@ -1417,6 +1428,14 @@ function App() {
             return true;
         }
     });
+    const [appearance, setAppearance] = useState(() => {
+        try {
+            const saved = localStorage.getItem(APPEARANCE_STORAGE_KEY);
+            return APPEARANCE_OPTIONS.includes(saved) ? saved : 'system';
+        } catch (error) {
+            return 'system';
+        }
+    });
     const ui = UI_TEXT[lang];
     const isEnglish = lang === 'en';
     const isGameView = !['home', 'result', 'analytics', 'settings', 'settings-daily', 'weekly-report', 'training-records'].includes(view);
@@ -1842,6 +1861,22 @@ function App() {
                     ))}
                 </div>
             </div>
+            <div className="settings-menu-section">
+                <div className="settings-row-label">{ui.settingsAppearance}</div>
+                <div className="settings-language-group is-three">
+                    {APPEARANCE_OPTIONS.map(option => (
+                        <button
+                            key={option}
+                            type="button"
+                            onClick={() => chooseAppearance(option)}
+                            className={`settings-language-option ${appearance === option ? 'is-active' : ''}`}
+                            aria-pressed={appearance === option}
+                        >
+                            {appearanceLabel(option)}
+                        </button>
+                    ))}
+                </div>
+            </div>
             <div className="settings-sound-row">
                 <div className="settings-sound-label">
                     <Icon name={soundEnabled ? 'volume-2' : 'volume-x'} className="w-4 h-4" />
@@ -2263,6 +2298,7 @@ function App() {
             accountBody: 'Your records are saved on this device for now. Account sync will open later for cross-device progress.',
             accountCta: 'Coming soon',
             languageHint: 'Choose the default display language.',
+            appearanceHint: 'Follow the system, or keep it light or dark.',
             soundHint: 'Controls tap, success, error, score, and reward sounds.',
             dailyTitle: 'Training Records',
             dailyBody: 'View your daily, weekly, and monthly training progress.',
@@ -2317,6 +2353,7 @@ function App() {
             accountBody: '目前记录会保存在这台设备上。之后开放账户后，可以同步 Daily streak 和历史记录。',
             accountCta: '即将开放',
             languageHint: '选择默认显示语言。',
+            appearanceHint: '跟随系统，或固定使用浅色、深色。',
             soundHint: '控制点击、答对、答错、计分和奖励音效。',
             dailyTitle: '训练记录',
             dailyBody: '查看每日、每周和每月的训练数据与变化。',
@@ -2485,6 +2522,41 @@ function App() {
     const playSound = (kind, forceEnabled = false) => {
         soundEngineRef.current?.play(kind, forceEnabled || soundEnabled);
     };
+
+    // 深浅色只由 <html> 上的 theme-dark 类决定，样式全在 theme-dark.css 里。
+    // 选「跟随系统」时监听系统切换，这样白天晚上自动变，不用刷新页面。
+    useEffect(() => {
+        try {
+            localStorage.setItem(APPEARANCE_STORAGE_KEY, appearance);
+        } catch (error) {
+            // Appearance is a preference; the page still works without storage.
+        }
+        const media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+        const apply = () => {
+            const isDark = appearance === 'dark' || (appearance === 'system' && !!media && media.matches);
+            document.documentElement.classList.toggle('theme-dark', isDark);
+            const themeColor = document.querySelector('meta[name="theme-color"]');
+            if (themeColor) themeColor.setAttribute('content', isDark ? '#0f172a' : '#f8fafc');
+        };
+        apply();
+        if (appearance !== 'system' || !media) return undefined;
+        if (media.addEventListener) {
+            media.addEventListener('change', apply);
+            return () => media.removeEventListener('change', apply);
+        }
+        media.addListener(apply);
+        return () => media.removeListener(apply);
+    }, [appearance]);
+
+    const chooseAppearance = (next) => {
+        if (next === appearance) return;
+        playSound('tap');
+        setAppearance(next);
+    };
+
+    const appearanceLabel = (option) => (
+        option === 'dark' ? ui.appearanceDark : option === 'light' ? ui.appearanceLight : ui.appearanceSystem
+    );
 
     const toggleSound = () => {
         const nextEnabled = !soundEnabled;
@@ -3777,6 +3849,30 @@ function App() {
                                             aria-pressed={lang === option.key}
                                         >
                                             {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="settings-page-group-divider" />
+
+                            <div className="settings-page-group-row settings-page-group-language">
+                                <div className="settings-page-row-head">
+                                    <div>
+                                        <div className="settings-page-card-title">{ui.settingsAppearance}</div>
+                                        <div className="settings-page-card-body">{settingsPageText.appearanceHint}</div>
+                                    </div>
+                                </div>
+                                <div className="settings-language-group is-page is-three">
+                                    {APPEARANCE_OPTIONS.map(option => (
+                                        <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => chooseAppearance(option)}
+                                            className={`settings-language-option ${appearance === option ? 'is-active' : ''}`}
+                                            aria-pressed={appearance === option}
+                                        >
+                                            {appearanceLabel(option)}
                                         </button>
                                     ))}
                                 </div>
