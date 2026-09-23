@@ -3972,6 +3972,14 @@ body.is-app-scrollable .app-shell {
     animation: control-tap-pulse 0.18s ease-out both;
 }
 
+/* 点错时脉冲本身变成错误红：信号要出现在手指所在的格子上，而不是只有顶栏计时胶囊
+   在眼角闪一下（手机静音时那甚至是唯一信号）。时长、透明度、缩放都不变，只换色相，
+   而且只在点错时。和 iOS SchulteTrainingFlow 的同一处修正对齐。 */
+.schulte-cell.is-tap-pulsing.is-tap-error::after {
+    background: rgba(239, 68, 68, 0.24);
+    box-shadow: inset 0 0 0 2px rgba(239, 68, 68, 0.3);
+}
+
 @keyframes control-tap-pulse {
     0% { opacity: 0.95; }
     100% { opacity: 0; }

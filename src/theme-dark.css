@@ -2003,3 +2003,9 @@ html.theme-dark .mode-tabs button.bg-white { color: #ffffff; }
 
 /* Tailwind 的默认描边色（只写 border 不写颜色时用它），index.html 里已改成这个变量。 */
 html.theme-dark { --pfl-default-border: #334155; }
+
+/* 舒尔特点错的红色脉冲：深色下用提亮一级的 feedbackWrong（和 iOS 的调色板一致）。 */
+html.theme-dark .schulte-cell.is-tap-pulsing.is-tap-error::after {
+    background: rgba(248, 113, 113, 0.24);
+    box-shadow: inset 0 0 0 2px rgba(248, 113, 113, 0.3);
+}

@@ -33,7 +33,7 @@ const LatexFmt = ({ text }) => {
 
 const UI_TEXT = {
     zh: {
-        appTitle: "前额叶实验室 6.2.0",
+        appTitle: "前额叶实验室 6.2.1",
         bestSynced: "历史最高 (已同步)",
         normal: "基础",
         hard: "进阶",
@@ -47,7 +47,7 @@ const UI_TEXT = {
         arenaShortTitle: "全能竞技",
         arenaSubtitle: "混合：舒尔特方格 / Stroop反应 / 快速SET / N-Back / 神经元计数",
         updateTitle: "实验室更新公告",
-        updateVersion: "Version 6.2.0",
+        updateVersion: "Version 6.2.1",
         updateButton: "知道了，这就去练脑",
         startTraining: "开始训练",
         firstPlayKicker: "\u7b2c\u4e00\u6b21\u6765\uff1f",
@@ -143,7 +143,7 @@ const UI_TEXT = {
         backHome: "返回大厅"
     },
     en: {
-        appTitle: "Prefrontal Lab 6.2.0",
+        appTitle: "Prefrontal Lab 6.2.1",
         bestSynced: "Personal Best",
         normal: "Basic",
         hard: "Advanced",
@@ -157,7 +157,7 @@ const UI_TEXT = {
         arenaShortTitle: "Arena",
         arenaSubtitle: "Mixed training: Schulte Grid / Stroop / SET / N-Back / Neuron Counting",
         updateTitle: "Lab Update",
-        updateVersion: "Version 6.2.0",
+        updateVersion: "Version 6.2.1",
         updateButton: "Got it, start training",
         startTraining: "Start Training",
         firstPlayKicker: "New here?",
@@ -256,18 +256,16 @@ const UI_TEXT = {
 
 const UPDATE_LINES = {
     zh: [
-        "新增第六个训练模块「密码推理」：四条线索只对应一个密码，把它推理出来。基础是三位数，进阶是四位数。",
-        "密码推理不计时，解出为止，顶栏显示的是已用时间；每次错误提交扣 10 分，改完可以继续提交。",
-        "无限模式下的密码推理会连续出题，解完一道立刻换下一道。",
-        "竞技场现在分基础和进阶两档：基础用各个模块的基础规则，进阶就是竞技场原本的难度。两档各记各的最高分，你之前的竞技纪录归在进阶那一档。",
-        "修正了神经元计数的说明：要数的是形状和颜色都与目标相同的图形，之前的文案只说了形状。"
+        "新增深色模式：在「我的 → 外观」里选择，可以跟随系统，也可以固定用浅色或深色。",
+        "深色不是把颜色反过来那么简单：卡片、文字、描边各有各的深色值，而游戏本身的颜色（Stroop 的字色、SET 的卡面、神经元的图形）一律不变，免得影响判断。",
+        "舒尔特方格点错时，被点的那一格现在会闪红——以前只有顶栏的计时器会变色，而你的眼睛正盯着格子。",
+        "震动反馈收敛为只在答对和答错时出现，并且关掉音效后依然有效（取决于设备与浏览器是否支持）。"
     ],
     en: [
-        "Added a sixth training module, Code Logic: four clues resolve to exactly one code, and your job is to deduce it. Basic is three digits, Advanced is four.",
-        "Code Logic is untimed — play until you solve it, with elapsed time in the top bar. Each incorrect submission costs 10 points, and you can edit and submit again.",
-        "In Endless mode, Code Logic keeps drawing a new puzzle as soon as you solve one.",
-        "The Arena now has Basic and Advanced tiers: Basic runs each module's normal rules, Advanced is the Arena as it has always played. Each tier keeps its own best score, and your existing Arena record belongs to Advanced.",
-        "Corrected the Neuron Counting instructions: you count the shapes whose shape and color both match the target. The old wording only mentioned the shape."
+        "Added dark mode: choose it under My Lab → Appearance, either following the system or fixed to light or dark.",
+        "Dark mode is not an inversion: surfaces, text and strokes each get their own dark value, while the game colours themselves — Stroop's ink, the SET cards, the Neuron Counting shapes — do not move, because they are the answer.",
+        "A wrong tap in the Schulte Grid now flashes the cell you tapped. Until now only the timer at the top changed colour, while your eyes were on the grid.",
+        "Haptics are now limited to correct and wrong answers, and they keep working when sound is off (where the device and browser support them)."
     ]
 };
 
@@ -458,12 +456,11 @@ const createSoundEngine = () => {
     // 震动和声音是两条独立的输出通道：关掉音效、或者手机本来就静音的人，
     // 正是只剩震动这一个信号的人。所以震动放在 enabled 之前，不跟着音效一起关。
     // （iOS 的 AudioManager 也是这么分的，原因写在那边的注释里。）
+    // 只有「答对」和「答错」两个结果信号带震动，和 iOS 一致。开始、完成、每日打卡
+    // 原来也会震，现在去掉：它们是导航和氛围，处处都震的话「震=结果」就学不出来。
     const HAPTICS = {
-        success: 12,                       // 答对:轻脆一下
-        error: [25, 30, 25],               // 答错:双段闷震="不对"
-        complete: [15, 30, 15, 30, 50],    // 完成:庆祝节奏
-        daily: [12, 25, 12, 25, 12, 25, 60], // 每日打卡:更长的庆祝
-        start: 8                           // 开始:极轻
+        success: 12,                       // 答对：轻脆一下
+        error: [25, 30, 25]                // 答错：双段闷震＝“不对”
     };
 
     return {
@@ -1714,13 +1711,13 @@ function App() {
     const [showUpdateNote, setShowUpdateNote] = useState(() => {
         // 检查本地存储，如果这个版本的 Key 不存在，说明是第一次见，返回 true
         const shouldPreviewUpdate = new URLSearchParams(window.location.search).has('showUpdate');
-        try { return shouldPreviewUpdate || !localStorage.getItem('prefrontal_lab_v6.2.0_update'); } catch (error) { return shouldPreviewUpdate; }
+        try { return shouldPreviewUpdate || !localStorage.getItem('prefrontal_lab_v6.2.1_update'); } catch (error) { return shouldPreviewUpdate; }
     });
 
     const closeUpdateNote = () => {
         playSound('tap');
         // 玩家点击按钮后，在本地存入 'true'，下次刷新就不会再弹了
-        localStorage.setItem('prefrontal_lab_v6.2.0_update', 'true');
+        localStorage.setItem('prefrontal_lab_v6.2.1_update', 'true');
         setShowUpdateNote(false);
     };
 
@@ -2504,6 +2501,7 @@ function App() {
         puzzle: null, entry: [], selected: 0, feedback: null, solved: 0, incorrect: 0, roundIncorrect: 0, elapsed: 0
     });
     const [controlPulse, setControlPulse] = useState(null);
+    const [controlPulseIsError, setControlPulseIsError] = useState(false);
     const nbackSeq = useRef([]);
     const nbackWarmupRef = useRef(false);
     const setgameWarmupRef = useRef(false);
@@ -2642,11 +2640,15 @@ function App() {
         else stats.incorrect += 1;
     };
 
-    const pulseControl = (target) => {
+    // isError 只有舒尔特用得上：其余游戏的对错已经由按钮自己的 is-correct /
+    // is-wrong 状态表达了。一个标志位就够，因为同时只可能有一个格子在脉冲。
+    const pulseControl = (target, isError = false) => {
         if (controlPulseTimer.current) clearTimeout(controlPulseTimer.current);
         setControlPulse(target);
+        setControlPulseIsError(isError);
         controlPulseTimer.current = setTimeout(() => {
             setControlPulse(null);
+            setControlPulseIsError(false);
             controlPulseTimer.current = null;
         }, 180);
     };
@@ -4830,8 +4832,8 @@ function App() {
                                         <button
                                             key={n}
                                             onClick={() => {
-                                                pulseControl(`schulte-${n}`);
                                                 const isCorrectClick = n === schulte.next;
+                                                pulseControl(`schulte-${n}`, !isCorrectClick);
                                                 recordAttempt(isCorrectClick);
                                                 playSound(isCorrectClick ? 'success' : 'error');
                                                 // 只有点击“下一个正确数字”时才触发逻辑
@@ -4852,7 +4854,7 @@ function App() {
                                                     handleArenaError(); // 点错了闪红光
                                                 }
                                             }}
-                                            className={`schulte-cell flex items-center justify-center font-bold ${schulte.cols === 6 ? 'text-sm' : 'text-lg'} rounded-lg border transition-all ${controlPulse === `schulte-${n}` ? 'is-tap-pulsing' : ''}
+                                            className={`schulte-cell flex items-center justify-center font-bold ${schulte.cols === 6 ? 'text-sm' : 'text-lg'} rounded-lg border transition-all ${controlPulse === `schulte-${n}` ? `is-tap-pulsing ${controlPulseIsError ? 'is-tap-error' : ''}` : ''}
     ${(isClicked && (mode === 'hard' || mode === 'daily')) // 竞技不使用盲点，Daily 使用进阶变体
                                                     ? 'bg-white text-slate-900 border-slate-100 shadow-sm' // 只有进阶模式是“盲点”
                                                     : (isClicked
