@@ -455,8 +455,20 @@ const createSoundEngine = () => {
 
     const buzz = (pattern) => { try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) { } };
 
+    // 震动和声音是两条独立的输出通道：关掉音效、或者手机本来就静音的人，
+    // 正是只剩震动这一个信号的人。所以震动放在 enabled 之前，不跟着音效一起关。
+    // （iOS 的 AudioManager 也是这么分的，原因写在那边的注释里。）
+    const HAPTICS = {
+        success: 12,                       // 答对:轻脆一下
+        error: [25, 30, 25],               // 答错:双段闷震="不对"
+        complete: [15, 30, 15, 30, 50],    // 完成:庆祝节奏
+        daily: [12, 25, 12, 25, 12, 25, 60], // 每日打卡:更长的庆祝
+        start: 8                           // 开始:极轻
+    };
+
     return {
         play(kind, enabled = true) {
+            if (HAPTICS[kind]) buzz(HAPTICS[kind]);
             if (!enabled) return;
             getContext();
 
@@ -496,14 +508,6 @@ const createSoundEngine = () => {
 
             // 触感反馈:只在有意义的时刻震动(tap/scoreTick 太频繁,不震)。与音效同开关。
             // Android Chrome 支持;iOS Safari 不支持振动 API,会静默跳过。
-            const HAPTICS = {
-                success: 12,                       // 答对:轻脆一下
-                error: [25, 30, 25],               // 答错:双段闷震="不对"
-                complete: [15, 30, 15, 30, 50],    // 完成:庆祝节奏
-                daily: [12, 25, 12, 25, 12, 25, 60], // 每日打卡:更长的庆祝
-                start: 8                           // 开始:极轻
-            };
-            if (HAPTICS[kind]) buzz(HAPTICS[kind]);
         }
     };
 };
