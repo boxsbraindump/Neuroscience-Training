@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>隐私政策（安卓版）· 前额叶实验室 / Privacy Policy (Android) · Prefrontal Lab</title>
+<style>
+  :root {
+    --ground: #F7F8FC; --surface: #FFFFFF; --line: #E4E7F0;
+    --ink: #1E293B; --soft: #475569; --muted: #64748B; --accent: #4F46E5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0D1119; --surface: #161B27; --line: #262E3E;
+      --ink: #E8ECF5; --soft: #C3CBD9; --muted: #8D99AE; --accent: #8B92F8;
+    }
+  }
+  :root[data-theme="dark"] {
+      --ground: #0D1119; --surface: #161B27; --line: #262E3E;
+      --ink: #E8ECF5; --soft: #C3CBD9; --muted: #8D99AE; --accent: #8B92F8;
+    }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    font-size: 16px; line-height: 1.75; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 22px 80px; }
+  .lang { display: flex; gap: 8px; margin-bottom: 34px; }
+  .lang a {
+    padding: 6px 14px; border-radius: 99px; text-decoration: none;
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--line);
+  }
+  .lang a:hover { color: var(--accent); border-color: var(--accent); }
+  h1 { font-size: 27px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 6px; }
+  .updated { color: var(--muted); font-size: 14px; margin: 0 0 34px; }
+  h2 { font-size: 17px; font-weight: 700; margin: 34px 0 10px; letter-spacing: -.01em; }
+  p { margin: 0 0 14px; color: var(--soft); }
+  ul { margin: 0 0 14px; padding-left: 22px; color: var(--soft); }
+  li { margin-bottom: 6px; }
+  a { color: var(--accent); }
+  .entity { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line);
+            color: var(--muted); font-size: 14px; }
+  section + section { margin-top: 70px; padding-top: 40px; border-top: 1px solid var(--line); }
+
+  .meta { color: var(--muted); font-size: 14px; margin: -26px 0 34px; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 14px; font-size: 15px; color: var(--soft); }
+  th, td { text-align: left; padding: 8px 10px; border: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--ink); font-weight: 700; background: var(--surface); }
+</style>
+<script>
+  // 安卓 App 内打开时会带上 ?theme=dark / light，让页面跟随 App 自己的深浅色设置。
+  (function () {
+    var m = /[?&]theme=(dark|light)/.exec(location.search);
+    if (m) document.documentElement.setAttribute('data-theme', m[1]);
+    // App 内打开时去掉顶部的中英切换（App 只显示当前语言那一份）。
+    var l = /[?&]lang=(zh|en)/.exec(location.search);
+    if (l) document.documentElement.setAttribute('data-only', l[1]);
+  })();
+</script>
+<style>
+  :root[data-only="zh"] #en, :root[data-only="en"] #zh, :root[data-only] .lang { display: none; }
+  :root[data-only] .wrap { padding-top: 28px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="lang">
+    <a href="#zh">中文</a>
+    <a href="#en">English</a>
+  </div>
+
+  <section id="zh">
+    <h1>前额叶实验室（安卓版）隐私政策</h1>
+    <p class="updated">更新日期：2026 年 10 月 5 日</p>
+    <p class="meta">生效日期：2026 年 10 月 5 日</p>
+
+    <p>本政策适用于「前额叶实验室」安卓版（以下简称「本应用」）。本应用由个人开发者 Ziyu He（以下简称「我们」）开发和运营。请你在使用本应用前仔细阅读本政策。</p>
+
+    <h2>一、总述</h2>
+    <p>本应用<strong>不收集、不上传、不出售、不共享</strong>你的任何个人信息。</p>
+    <p>本应用没有账号体系，你无需注册或登录即可使用全部功能。本应用完全离线运行，不会连接任何服务器。</p>
+
+    <h2>二、保存在你设备上的信息</h2>
+    <p>为了让本应用正常工作，以下信息会保存在你自己的手机上：</p>
+    <ul>
+      <li>训练成绩记录（游戏名称、模式、分数、用时、日期）</li>
+      <li>每日挑战的完成日期与连续天数</li>
+      <li>界面语言、外观（深浅色）与音效设置</li>
+      <li>新手教学的完成状态</li>
+      <li>你同意本政策和《用户协议》的记录</li>
+    </ul>
+    <p>以上信息只保存在本应用的本地存储中，不会上传到任何服务器，我们无法访问。卸载本应用，或在系统设置中清除本应用的数据，会一并删除以上全部信息。</p>
+
+    <h2>三、权限说明</h2>
+    <p>本应用<strong>不申请任何系统权限</strong>，包括网络、位置、相机、麦克风、存储、通讯录、电话、短信等。</p>
+
+    <h2>四、第三方 SDK</h2>
+    <p>本应用<strong>未集成任何第三方 SDK</strong>，包括统计分析、广告、推送、登录、支付、崩溃上报等。</p>
+    <table>
+      <tr><th>SDK 名称</th><th>用途</th><th>收集的信息</th></tr>
+      <tr><td>无</td><td>—</td><td>—</td></tr>
+    </table>
+    <p>本应用基于开源框架 Capacitor 构建，用于在手机上显示应用界面。它在本应用中不收集、不传输任何信息。</p>
+
+    <h2>五、本应用不做的事</h2>
+    <ul>
+      <li>不收集姓名、手机号、邮箱、身份证号或任何身份信息</li>
+      <li>不收集设备标识符（如 IMEI、Android ID、OAID）、位置或应用列表</li>
+      <li>不展示广告，不做个性化推荐，不进行任何追踪</li>
+      <li>不使用云端同步</li>
+    </ul>
+
+    <h2>六、未成年人保护</h2>
+    <p>本应用不收集任何人的个人信息，包括未成年人。若你是未成年人，建议在监护人的指导下使用本应用，并合理安排游戏时间。</p>
+
+    <h2>七、你的权利</h2>
+    <p>由于我们不持有你的任何信息，不存在需要向我们申请查阅、更正、复制或删除的数据。你可以在应用内「我的 → 训练记录」查看本地保存的记录；卸载本应用或清除其数据即可删除全部本地信息，也即撤回你的同意。</p>
+
+    <h2>八、本政策的变更</h2>
+    <p>若本应用将来加入任何会收集或传输信息的功能，我们会先更新本政策并标注更新日期，并在应用内以弹窗方式告知你，重新征得你的同意。</p>
+
+    <h2>九、联系我们</h2>
+    <p>如对本政策有任何疑问、意见或投诉，请发送邮件至 <a href="mailto:boxcec1ly@gmail.com">boxcec1ly@gmail.com</a>，我们会在 15 个工作日内回复。</p>
+
+    <p class="entity">运营者：Ziyu He（个人开发者）<br>联系邮箱：boxcec1ly@gmail.com</p>
+  </section>
+
+  <section id="en" lang="en">
+    <h1>Prefrontal Lab for Android — Privacy Policy</h1>
+    <p class="updated">Last updated: October 5, 2026</p>
+    <p class="meta">Effective: October 5, 2026</p>
+
+    <p>This policy covers the Android version of Prefrontal Lab (the “App”), developed and operated by Ziyu He, an individual developer (“we”). Please read it before using the App.</p>
+
+    <h2>1. Summary</h2>
+    <p>The App <strong>does not collect, upload, sell, or share</strong> any of your personal information.</p>
+    <p>The App has no accounts. You do not need to register or sign in to use every feature. The App runs entirely offline and never connects to a server.</p>
+
+    <h2>2. Information kept on your device</h2>
+    <p>So that the App can work, the following is stored on your own phone:</p>
+    <ul>
+      <li>Training results (game, mode, score, time, date)</li>
+      <li>Daily challenge completion dates and streak</li>
+      <li>Language, appearance (light/dark) and sound settings</li>
+      <li>Which tutorials you have completed</li>
+      <li>Your acceptance of this policy and the Terms of Use</li>
+    </ul>
+    <p>This information stays in the App’s local storage. It is never uploaded, and we cannot access it. Uninstalling the App, or clearing its data in system settings, deletes all of it.</p>
+
+    <h2>3. Permissions</h2>
+    <p>The App <strong>requests no system permissions</strong>, including network, location, camera, microphone, storage, contacts, phone, or SMS.</p>
+
+    <h2>4. Third-party SDKs</h2>
+    <p>The App <strong>includes no third-party SDKs</strong> — no analytics, advertising, push, sign-in, payment, or crash reporting.</p>
+    <table>
+      <tr><th>SDK</th><th>Purpose</th><th>Data collected</th></tr>
+      <tr><td>None</td><td>—</td><td>—</td></tr>
+    </table>
+    <p>The App is built on the open-source Capacitor framework, which displays the App’s interface on your phone. In this App it collects and transmits nothing.</p>
+
+    <h2>5. What the App does not do</h2>
+    <ul>
+      <li>Collect your name, phone number, email, ID number, or any identity information</li>
+      <li>Collect device identifiers (such as IMEI, Android ID, or OAID), location, or the list of installed apps</li>
+      <li>Show ads, personalise content, or track you in any way</li>
+      <li>Sync to the cloud</li>
+    </ul>
+
+    <h2>6. Minors</h2>
+    <p>The App collects no personal information from anyone, including minors. If you are a minor, we suggest using the App with a parent or guardian’s guidance and keeping play time reasonable.</p>
+
+    <h2>7. Your rights</h2>
+    <p>Because we hold no information about you, there is nothing to request from us to access, correct, copy, or delete. You can see your local records under My Lab → Training Records. Uninstalling the App or clearing its data deletes everything and withdraws your consent.</p>
+
+    <h2>8. Changes to this policy</h2>
+    <p>If the App ever adds a feature that collects or transmits information, we will update this policy and its date first, tell you in the App with a pop-up, and ask for your consent again.</p>
+
+    <h2>9. Contact</h2>
+    <p>For any question, comment, or complaint about this policy, email <a href="mailto:boxcec1ly@gmail.com">boxcec1ly@gmail.com</a>. We reply within 15 working days.</p>
+
+    <p class="entity">Operator: Ziyu He (individual developer)<br>Contact: boxcec1ly@gmail.com</p>
+  </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户协议（安卓版）· 前额叶实验室 / Terms of Use (Android) · Prefrontal Lab</title>
+<style>
+  :root {
+    --ground: #F7F8FC; --surface: #FFFFFF; --line: #E4E7F0;
+    --ink: #1E293B; --soft: #475569; --muted: #64748B; --accent: #4F46E5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0D1119; --surface: #161B27; --line: #262E3E;
+      --ink: #E8ECF5; --soft: #C3CBD9; --muted: #8D99AE; --accent: #8B92F8;
+    }
+  }
+  :root[data-theme="dark"] {
+      --ground: #0D1119; --surface: #161B27; --line: #262E3E;
+      --ink: #E8ECF5; --soft: #C3CBD9; --muted: #8D99AE; --accent: #8B92F8;
+    }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    font-size: 16px; line-height: 1.75; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 22px 80px; }
+  .lang { display: flex; gap: 8px; margin-bottom: 34px; }
+  .lang a {
+    padding: 6px 14px; border-radius: 99px; text-decoration: none;
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--line);
+  }
+  .lang a:hover { color: var(--accent); border-color: var(--accent); }
+  h1 { font-size: 27px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 6px; }
+  .updated { color: var(--muted); font-size: 14px; margin: 0 0 34px; }
+  h2 { font-size: 17px; font-weight: 700; margin: 34px 0 10px; letter-spacing: -.01em; }
+  p { margin: 0 0 14px; color: var(--soft); }
+  ul { margin: 0 0 14px; padding-left: 22px; color: var(--soft); }
+  li { margin-bottom: 6px; }
+  a { color: var(--accent); }
+  .entity { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line);
+            color: var(--muted); font-size: 14px; }
+  section + section { margin-top: 70px; padding-top: 40px; border-top: 1px solid var(--line); }
+
+  .meta { color: var(--muted); font-size: 14px; margin: -26px 0 34px; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 14px; font-size: 15px; color: var(--soft); }
+  th, td { text-align: left; padding: 8px 10px; border: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--ink); font-weight: 700; background: var(--surface); }
+</style>
+<script>
+  // 安卓 App 内打开时会带上 ?theme=dark / light，让页面跟随 App 自己的深浅色设置。
+  (function () {
+    var m = /[?&]theme=(dark|light)/.exec(location.search);
+    if (m) document.documentElement.setAttribute('data-theme', m[1]);
+    // App 内打开时去掉顶部的中英切换（App 只显示当前语言那一份）。
+    var l = /[?&]lang=(zh|en)/.exec(location.search);
+    if (l) document.documentElement.setAttribute('data-only', l[1]);
+  })();
+</script>
+<style>
+  :root[data-only="zh"] #en, :root[data-only="en"] #zh, :root[data-only] .lang { display: none; }
+  :root[data-only] .wrap { padding-top: 28px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="lang">
+    <a href="#zh">中文</a>
+    <a href="#en">English</a>
+  </div>
+
+  <section id="zh">
+    <h1>前额叶实验室（安卓版）用户协议</h1>
+    <p class="updated">更新日期：2026 年 10 月 5 日</p>
+    <p class="meta">生效日期：2026 年 10 月 5 日</p>
+
+    <p>欢迎使用「前额叶实验室」安卓版（以下简称「本应用」）。本应用由个人开发者 Ziyu He（以下简称「我们」）开发和运营。你点击「同意」或开始使用本应用，即表示你已阅读并同意本协议和《隐私政策》。</p>
+
+    <h2>一、服务内容</h2>
+    <p>本应用是一组认知训练小游戏（如舒尔特方格、Stroop、N-Back、SET、神经元计数、密码推理），提供训练、每日挑战、竞技和训练记录等功能。本应用免费使用，完全离线运行，没有内购和广告。</p>
+
+    <h2>二、非医疗用途声明</h2>
+    <p>本应用的内容仅供娱乐和日常练习，<strong>不构成医疗诊断、治疗或康复建议</strong>，也不保证带来任何特定的认知、学习或健康效果。如有相关健康问题，请咨询专业医生。</p>
+
+    <h2>三、使用规范</h2>
+    <p>你同意不以违法方式使用本应用，不对本应用进行反向工程、破解、修改后再发布，也不将本应用或其内容用于未经许可的商业用途。</p>
+
+    <h2>四、知识产权</h2>
+    <p>本应用的界面设计、文字、图标、游戏规则说明及相关内容的权利归我们所有，或已获得合法授权。未经书面许可，任何人不得复制、传播或改编。</p>
+
+    <h2>五、数据与免责</h2>
+    <p>你的训练记录只保存在你的手机上。卸载本应用、清除其数据或更换手机都会导致记录丢失，我们无法帮你恢复。本应用按「现状」提供，我们会尽力保证其正常运行，但不对因设备、系统或不可抗力造成的中断或数据丢失承担责任。</p>
+
+    <h2>六、未成年人</h2>
+    <p>若你是未成年人，请在监护人的指导下阅读本协议并使用本应用，合理安排游戏时间，注意休息。</p>
+
+    <h2>七、协议的变更与终止</h2>
+    <p>我们可能根据需要修改本协议，修改后会更新日期并在应用内告知你。你可以随时停止使用并卸载本应用。</p>
+
+    <h2>八、适用法律</h2>
+    <p>本协议适用中华人民共和国法律。因本协议产生的争议，双方应友好协商解决。</p>
+
+    <h2>九、联系我们</h2>
+    <p>如对本协议有任何疑问，请发送邮件至 <a href="mailto:boxcec1ly@gmail.com">boxcec1ly@gmail.com</a>。</p>
+
+    <p class="entity">运营者：Ziyu He（个人开发者）<br>联系邮箱：boxcec1ly@gmail.com</p>
+  </section>
+
+  <section id="en" lang="en">
+    <h1>Prefrontal Lab for Android — Terms of Use</h1>
+    <p class="updated">Last updated: October 5, 2026</p>
+    <p class="meta">Effective: October 5, 2026</p>
+
+    <p>Welcome to the Android version of Prefrontal Lab (the “App”), developed and operated by Ziyu He, an individual developer (“we”). By tapping “Agree” or using the App, you confirm that you have read and accept these Terms and the Privacy Policy.</p>
+
+    <h2>1. The service</h2>
+    <p>The App is a set of cognitive training games (Schulte Grid, Stroop, N-Back, SET, Neuron Counting, Code Logic) with training, daily challenges, an arena, and training records. It is free, runs entirely offline, and has no in-app purchases or ads.</p>
+
+    <h2>2. Not medical advice</h2>
+    <p>The App is for entertainment and everyday practice. It <strong>does not provide medical diagnosis, treatment, or rehabilitation advice</strong>, and it does not promise any particular cognitive, learning, or health outcome. For health concerns, please consult a doctor.</p>
+
+    <h2>3. Acceptable use</h2>
+    <p>You agree not to use the App unlawfully, not to reverse-engineer, crack, or modify and redistribute it, and not to use the App or its content commercially without permission.</p>
+
+    <h2>4. Intellectual property</h2>
+    <p>The App’s design, text, icons, game rule descriptions, and related content belong to us or are used under a valid licence. They may not be copied, distributed, or adapted without written permission.</p>
+
+    <h2>5. Data and liability</h2>
+    <p>Your training records exist only on your phone. Uninstalling the App, clearing its data, or changing phones will lose them, and we cannot restore them. The App is provided “as is”; we do our best to keep it working but are not liable for interruptions or data loss caused by devices, systems, or events beyond our control.</p>
+
+    <h2>6. Minors</h2>
+    <p>If you are a minor, please read these Terms and use the App with a parent or guardian’s guidance, keep play time reasonable, and take breaks.</p>
+
+    <h2>7. Changes and termination</h2>
+    <p>We may revise these Terms; when we do, we will update the date and let you know in the App. You can stop using and uninstall the App at any time.</p>
+
+    <h2>8. Governing law</h2>
+    <p>These Terms are governed by the laws of the People’s Republic of China. Any dispute will first be settled through friendly negotiation.</p>
+
+    <h2>9. Contact</h2>
+    <p>For any question about these Terms, email <a href="mailto:boxcec1ly@gmail.com">boxcec1ly@gmail.com</a>.</p>
+
+    <p class="entity">Operator: Ziyu He (individual developer)<br>Contact: boxcec1ly@gmail.com</p>
+  </section>
+</div>
+</body>
+</html>
