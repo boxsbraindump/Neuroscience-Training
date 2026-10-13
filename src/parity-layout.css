@@ -1,0 +1,86 @@
+/* 与 iOS 1.0.2 对齐的版面修正：首页、每日挑战、竞技、「我的」。
+   2026-10-05 先只打进安卓包（AndroidTapTap/android-layout.css），依据是同一屏 iOS 1.0.2（iPhone 17 模拟器）
+   与安卓（Galaxy S23 Ultra）的并排截图；2026-10-13 负责人决定网页也照 iOS，于是整段搬到这里，三端一套样式。
+   编号沿用安卓那份的记录：第 1 项（系统栏颜色）只属于安卓，仍在 android-theme.js；第 9 项（圆体数字）不做。
+   排在其他 parity-*.css 之后；Tailwind 的 CDN 样式插在 <head> 末尾，所以需要盖过它的地方都带 !important。 */
+
+/* 2. 首页顶部：卡片紧贴状态栏下方，留 6px，与 iOS 相同（原先小屏是 16px）。
+   加上 safe-area-inset-top：浏览器标签页和安卓包里它是 0，等于 6px；
+   网页被添加到 iPhone 主屏幕、内容延伸到刘海下面时，卡片仍排在状态栏下方。 */
+@media (max-width: 560px) {
+    .home-screen.app-content-screen {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 6px) !important;
+    }
+}
+
+/* 3. 每日挑战「今日最好」和竞技「历史最高」两张顶部卡：高 112（今天已完成每日挑战时 96），与 iOS 相同。 */
+.home-screen .score-card.daily-score-card,
+.home-screen .score-card.is-arena {
+    min-height: 112px !important;
+    align-items: center;
+}
+
+/* 4. 本周七天的圆圈：未完成时也是实心圆（深色 #334155、浅色 #F8FAFC），描边 strokeStrong，与 iOS 相同。 */
+html.theme-dark .daily-week-dot:not(.is-complete) {
+    background: #334155;
+    border-color: #475569;
+}
+.daily-week-dot:not(.is-complete) {
+    border-color: #cbd5e1;
+}
+
+/* 5. 今日任务图标：iOS 是一个 40px 的大靶心（外圈、内圈 17px、中心 5px 的点），不另画方块底。 */
+.daily-task-icon {
+    background: transparent !important;
+    position: relative;
+    border-radius: 50% !important;
+    box-shadow: inset 0 0 0 2px #10b981;
+    animation: none !important;
+}
+.daily-task-icon svg {
+    display: none;
+}
+.daily-task-icon::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 17px;
+    height: 17px;
+    margin: -8.5px 0 0 -8.5px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px #10b981;
+}
+.daily-task-icon::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    margin: -2.5px 0 0 -2.5px;
+    border-radius: 50%;
+    background: #10b981;
+}
+
+/* 6. 「开始今日挑战」的播放三角是实心的，与 iOS 相同。 */
+.daily-start-button svg.lucide-play {
+    fill: currentColor;
+    stroke: currentColor;
+}
+
+/* 7. 「我的」页标题区下面没有分隔线，与 iOS 相同。 */
+.my-page-hero,
+html.theme-dark .my-page-hero {
+    border-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* 8. 游戏卡片里标题和副标题之间 4px，与 iOS 相同。 */
+.home-screen .task-copy .task-title {
+    margin-bottom: 4px !important;
+    line-height: 1.2 !important;
+}
+.home-screen .task-copy .task-subtitle {
+    line-height: 1.25 !important;
+}
