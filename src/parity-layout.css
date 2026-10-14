@@ -18,13 +18,21 @@
      中心在顶边下 44，看起来偏上、被顶边切掉一截；
    - 「开始 / 1 天」那一行 28 号字的行高：iOS 是系统默认行高（约 1.2），网页原先 1.05，和上下两行挤在一起；
    - 第三行状态文字 10 号，行高 1.2，与 iOS 相同。 */
-.home-screen .home-streak-card .score-watermark {
+.home-screen .home-streak-card .score-watermark,
+.home-screen .score-card.is-arena .score-watermark {
     top: -16px !important;
     right: -20px !important;
 }
-.home-screen .home-streak-card .score-watermark svg {
+.home-screen .home-streak-card .score-watermark svg,
+.home-screen .score-card.is-arena .score-watermark svg {
     width: 136px !important;
     height: 136px !important;
+}
+/* 竞技橙卡的水印与紫卡同一套（iOS 1.0.2 `RootView.arenaScoreCard`：136，中心「卡宽 − 48，52」）；
+   每日挑战的白卡在 iOS 上没有脑形水印（`DailyChallengeHome.dailyScoreCard`），网页多出来的浅绿那只去掉。
+   原先三张卡的脑子一个 136、一个 104 偏上、一个浅绿，负责人 2026-10-13 指出大小不一。 */
+.home-screen .daily-score-card .score-watermark {
+    display: none !important;
 }
 .home-screen .home-streak-card .home-streak-figure .score-value {
     line-height: 1.2 !important;
