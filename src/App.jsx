@@ -4553,7 +4553,7 @@ function App() {
                             <div className="score-watermark absolute top-[-20px] right-[-20px] opacity-10 rotate-12"><Icon name="brain" className="w-32 h-32" /></div>
                         </button>
                     ) : (
-                    <div className={`score-card mode-score-card w-full max-w-sm p-6 rounded-[2.2rem] mb-6 flex justify-between items-end relative overflow-hidden shrink-0 ${mode === 'daily' ? 'daily-score-card' : 'text-white is-arena bg-amber-500'}`}>
+                    <div className={`score-card mode-score-card w-full max-w-sm p-6 rounded-[2.2rem] mb-6 flex justify-between items-end relative overflow-hidden shrink-0 ${mode === 'daily' ? 'daily-score-card' : 'text-white is-arena bg-amber-500'}${dailyRecord.completed ? ' is-done' : ''}`}>
                         {mode === 'daily' ? (
                             <div className="daily-score-summary z-10 w-full">
                                 <div className="daily-best-block">

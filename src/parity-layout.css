@@ -39,6 +39,15 @@
     min-height: 112px !important;
     align-items: center;
 }
+/* 今天的每日挑战做完以后，这两张卡和训练页紫卡一起收成 96 高、内边距 16 / 18，
+   对照 iOS `DailyChallengeHome.dailyScoreCard` 的 `.frame(height: isCompleted ? 96 : 112)`。
+   原先只写了 112，做完挑战后紫卡变扁、这两张没变，三个 tab 的顶卡高低不一（负责人 2026-10-13 在安卓上发现）。 */
+.home-screen .score-card.daily-score-card.is-done,
+.home-screen .score-card.is-arena.is-done {
+    height: 96px;
+    min-height: 96px !important;
+    padding: 16px 18px !important;
+}
 
 /* 4. 本周七天的圆圈：未完成时也是实心圆（深色 #334155、浅色 #F8FAFC），描边 strokeStrong，与 iOS 相同。 */
 html.theme-dark .daily-week-dot:not(.is-complete) {
