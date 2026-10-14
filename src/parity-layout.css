@@ -11,17 +11,26 @@
     .home-screen.app-content-screen {
         padding-top: calc(env(safe-area-inset-top, 0px) + 6px) !important;
     }
+}
 
-    /* 2b. 训练页顶部的每日挑战紫卡：手机上两种状态都用 96 高的紧凑样式（内边距 16 / 18）。
-       有意偏离 iOS 1.0.2，负责人 2026-10-13 在 Galaxy S23 Ultra 上看过后要求的：
-       iOS 是「今天没做 112、做完 96」，但 112 是按 iPhone 440pt 宽定的，安卓和网页的手机宽多在 360–400，
-       同样 112 高显得又高又方。96 / 卡宽 344 ≈ 0.28，正好是 iOS 上 112 / 397 的比例。
-       iOS 自己写明内容区在两种状态下都只占 64pt，所以「开始」那一态放进 96 也不溢出。 */
-    .home-screen .score-card.home-streak-card {
-        height: 96px;
-        min-height: 96px !important;
-        padding: 16px 18px !important;
-    }
+/* 2c. 训练页顶部的每日挑战紫卡，对照 iOS 1.0.2 `WebsiteTrainingHome.scoreCardFace`：
+   - 脑形水印：136 大，中心在「卡宽 − 48，52」，旋转 12°、不透明度 0.10。网页原先是 128（小屏又被缩成 104）、
+     中心在顶边下 44，看起来偏上、被顶边切掉一截；
+   - 「开始 / 1 天」那一行 28 号字的行高：iOS 是系统默认行高（约 1.2），网页原先 1.05，和上下两行挤在一起；
+   - 第三行状态文字 10 号，行高 1.2，与 iOS 相同。 */
+.home-screen .home-streak-card .score-watermark {
+    top: -16px !important;
+    right: -20px !important;
+}
+.home-screen .home-streak-card .score-watermark svg {
+    width: 136px !important;
+    height: 136px !important;
+}
+.home-screen .home-streak-card .home-streak-figure .score-value {
+    line-height: 1.2 !important;
+}
+.home-screen .home-streak-card .home-streak-status {
+    line-height: 1.2;
 }
 
 /* 3. 每日挑战「今日最好」和竞技「历史最高」两张顶部卡：高 112（今天已完成每日挑战时 96），与 iOS 相同。 */
