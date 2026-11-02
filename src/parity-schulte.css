@@ -1,0 +1,404 @@
+/* 1.0.3 舒尔特页与结算页「接着练」，对照 iOS tag ios-1.0.3 的 GameDetailView.swift、SchulteTrainingFlow.swift。
+   数值照 iOS 的 pt；颜色是 iOS Palette 的浅色 / 深色值，深色覆盖写在本文件，用 html.theme-dark 前缀。见外层仓库 docs/parity/1.0.3-schulte.md。 */
+
+/* ---------- 首页舒尔特卡：右侧 i 换成前进箭头（iOS interactiveTaskCard openDetail：16pt NavChevron、textTertiary、48 宽） ---------- */
+.task-card .task-card-chevron {
+    flex-shrink: 0;
+    align-self: stretch;
+    width: 48px;
+    min-height: 48px;
+    margin: 0 -14px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+}
+html.theme-dark .task-card .task-card-chevron { color: #64748b; }
+
+/* ---------- 舒尔特页 ---------- */
+/* 整页一个滚动区；顶栏和开始栏吸附在上下两端，内容从栏下面滚过去（iOS safeAreaInset 顶 / 底）。 */
+.schulte-page {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    background: #f8fafc;
+}
+html.theme-dark .schulte-page { background: #0f172a; }
+
+.schulte-page button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* 顶栏（GDV:131-171）：高 50、上下各 2、左右 8；返回 44×44 里 18pt 箭头；标题 18 black 居中；右侧文字按钮「规则」15 bold。
+   底色是 ultraThinMaterial：浅色下透明毛玻璃，深色下再叠一层 #0F172A 72%（Palette.materialTintBar）。 */
+.schulte-page-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    min-height: 50px;
+    padding: calc(env(safe-area-inset-top, 0px) + 2px) 8px 2px;
+    background: rgba(248, 250, 252, 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+}
+html.theme-dark .schulte-page-topbar { background: rgba(15, 23, 42, 0.72); }
+
+.schulte-page-back {
+    justify-self: start;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    color: #0f172a;
+    cursor: pointer;
+}
+.schulte-page-back svg { stroke-width: 2.2; }
+html.theme-dark .schulte-page-back { color: #f1f5f9; }
+
+.schulte-page-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.2;
+    color: #0f172a;
+    white-space: nowrap;
+}
+html.theme-dark .schulte-page-title { color: #f1f5f9; }
+
+.schulte-page-rules {
+    justify-self: end;
+    height: 44px;
+    padding: 0 8px;
+    border: 0;
+    background: transparent;
+    color: #4f46e5;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+html.theme-dark .schulte-page-rules { color: #818cf8; }
+
+/* 内容：左右 20、顶 16、底 28；内容少时也把开始栏推到页面最下面。 */
+.schulte-page-body {
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px 20px 28px;
+    box-sizing: border-box;
+}
+
+/* 推荐位（GDV:179-213）：靛蓝实底、圆角 18，左右 15、上下 13；眉标 10 black 字距 0.6 accentPale；
+   推荐语 16 black 白字；右侧 40pt 白圆，里面是 13×15 的播放三角，右移 1。 */
+.schulte-featured {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+    padding: 13px 15px;
+    border: 0;
+    border-radius: 18px;
+    background: #4f46e5;
+    color: #ffffff;
+    text-align: left;
+    cursor: pointer;
+}
+html.theme-dark .schulte-featured { background: #6366f1; }
+
+.schulte-featured-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.schulte-featured-eyebrow {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+    line-height: 1.2;
+    color: #a5b4fc;
+}
+html.theme-dark .schulte-featured-eyebrow { color: #c7d2fe; }
+.schulte-featured-line {
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1.3;
+    color: #ffffff;
+}
+.schulte-featured-play {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #4f46e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.schulte-featured-play svg { transform: translateX(1px); }
+html.theme-dark .schulte-featured-play { color: #6366f1; }
+
+/* 尺寸切换（GDV:221-249）：外形照抄首页的基础 / 进阶 / 无限切换——轨道高 52、内边距 5、圆角 26；
+   选中块高 42、圆角 20、白底、黑色 0.04 阴影；字 10 bold；easeOut 0.16s。下面留 13。 */
+.schulte-edge-tabs {
+    display: flex;
+    height: 52px;
+    margin: 0 0 13px;
+    padding: 5px;
+    box-sizing: border-box;
+    border-radius: 26px;
+    background: #e2e8f0;
+}
+.schulte-edge-tabs button {
+    flex: 1;
+    height: 42px;
+    padding: 0;
+    border: 0;
+    border-radius: 20px;
+    background: transparent;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.16s ease-out, color 0.16s ease-out, box-shadow 0.16s ease-out;
+}
+.schulte-edge-tabs button.is-active {
+    background: #ffffff;
+    color: #4f46e5;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+}
+html.theme-dark .schulte-edge-tabs { background: #334155; }
+html.theme-dark .schulte-edge-tabs button { color: #cbd5e1; }
+html.theme-dark .schulte-edge-tabs button.is-active { background: #1e293b; color: #ffffff; }
+
+/* 盘面网格（GDV:251-311）：两列、间距 10、顶部对齐。 */
+.schulte-board-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: start;
+}
+
+/* 单块卡片：内边距 13、圆角 22、surfaceAccent 底；缩略图和名字之间 9；选中时 2pt 靛蓝描边（画在里面）。 */
+.schulte-board-tile {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    padding: 13px;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 22px;
+    background: #eef2ff;
+    box-shadow: inset 0 0 0 2px transparent;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease-out;
+}
+.schulte-board-tile.is-picked { box-shadow: inset 0 0 0 2px #4f46e5; }
+html.theme-dark .schulte-board-tile { background: #2a335c; }
+html.theme-dark .schulte-board-tile.is-picked { box-shadow: inset 0 0 0 2px #6366f1; }
+
+/* 缩略图（GDV:573-640）：格间距 3、圆角 4；起点格 accentFill 底白字，空格 strokeAccent，其余 surface 底 accentForeground 字；
+   字号是格子的 0.52、black、圆体。 */
+.schulte-preview {
+    display: grid;
+    gap: 3px;
+}
+.schulte-preview-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #4f46e5;
+    font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif;
+    font-weight: 900;
+    line-height: 1;
+    overflow: hidden;
+}
+.schulte-preview-cell.is-lead { background: #4f46e5; color: #ffffff; }
+.schulte-preview-cell.is-gone { background: #e0e7ff; }
+html.theme-dark .schulte-preview-cell { background: #1e293b; color: #818cf8; }
+html.theme-dark .schulte-preview-cell.is-lead { background: #6366f1; color: #ffffff; }
+html.theme-dark .schulte-preview-cell.is-gone { background: #3a4184; }
+
+/* 简称 16 black；成绩标签 11 black accentForeground、surface 胶囊、左右 9 上下 3；没有成绩时是 11 bold 灰字、没有胶囊。
+   放得下就并排（间距 6），放不下就上下叠（间距 5），名字不截断（iOS ViewThatFits）。 */
+.schulte-board-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 5px 6px;
+    max-width: 100%;
+}
+.schulte-board-name {
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1.2;
+    color: #0f172a;
+    white-space: nowrap;
+}
+html.theme-dark .schulte-board-name { color: #f1f5f9; }
+.schulte-board-chip {
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #4f46e5;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.schulte-board-chip.is-muted {
+    padding: 0;
+    background: transparent;
+    color: #64748b;
+    font-weight: 700;
+}
+html.theme-dark .schulte-board-chip { background: #1e293b; color: #818cf8; }
+html.theme-dark .schulte-board-chip.is-muted { background: transparent; color: #94a3b8; }
+
+/* 开始栏（GDV:320-390）：选中盘面后从底部滑出；左右 20、顶 12、底 6；规则 15 bold textMid，历史 13 bold textTertiary，
+   两行间距 4、和按钮间距 10；按钮高 54、圆角 27、accentFill 底，17 black 白字，前面 12×14 的播放三角，间距 8。
+   底色和顶栏一样是 ultraThinMaterial。 */
+.schulte-start-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px calc(env(safe-area-inset-bottom, 0px) + 6px);
+    background: rgba(248, 250, 252, 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    animation: schulte-start-bar-in 0.2s ease-out both;
+}
+.schulte-start-bar.is-static { animation: none; }
+.schulte-start-bar.is-leaving {
+    pointer-events: none;
+    animation: schulte-start-bar-out 0.2s ease-out both;
+}
+html.theme-dark .schulte-start-bar { background: rgba(15, 23, 42, 0.72); }
+
+@keyframes schulte-start-bar-in {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+@keyframes schulte-start-bar-out {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(100%); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .schulte-start-bar,
+    .schulte-start-bar.is-leaving { animation-duration: 0.01s; }
+}
+
+.schulte-start-copy {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+}
+.schulte-start-rule {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #334155;
+}
+.schulte-start-history {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #94a3b8;
+}
+html.theme-dark .schulte-start-rule { color: #cbd5e1; }
+html.theme-dark .schulte-start-history { color: #64748b; }
+
+.schulte-start-button {
+    width: 100%;
+    max-width: 440px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 27px;
+    background: #4f46e5;
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+}
+html.theme-dark .schulte-start-button { background: #6366f1; }
+
+/* ---------- 结算页「接着练」（STF:941-971） ---------- */
+/* 在三个指标下面、「返回」上面，下面留 12；surfaceAccent 底、圆角 16、左右 14 上下 11；
+   眉标 10 black 字距 0.6 accentForeground，推荐语 14 black 左对齐；右侧 16pt 前进箭头。 */
+.schulte-next-up {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 11px 14px;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 16px;
+    background: #eef2ff;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+html.theme-dark .schulte-next-up { background: #2a335c; }
+.schulte-next-up-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.schulte-next-up-eyebrow {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+    line-height: 1.2;
+    color: #4f46e5;
+}
+.schulte-next-up-line {
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1.3;
+    color: #0f172a;
+}
+.schulte-next-up-chevron {
+    flex-shrink: 0;
+    display: flex;
+    color: #4f46e5;
+}
+html.theme-dark .schulte-next-up-eyebrow,
+html.theme-dark .schulte-next-up-chevron { color: #818cf8; }
+html.theme-dark .schulte-next-up-line { color: #f1f5f9; }

@@ -2358,6 +2358,49 @@ const suggestSchulteBoard = (results, legacy, excludingSlug = null) => {
     return all.reduce((oldest, board) => (playedAt(board) < playedAt(oldest) ? board : oldest), all[0]);
 };
 
+// 盘面缩略图（iOS GameDetailView.swift VariantBoardPreview）：画的就是盘面本身。
+// 格子 3×3 为 35、4×4 为 26、5×5 为 20、6×6 为 16，间距 3，四种盘面画出来差不多一样宽（约 112）。
+// 中间格是起点，填靛蓝；倒序以最大数起，先偶后奇以 2 起，其余以 1 或 A 起。
+// 其余数字按固定规则放 8 个，每次打开都一样；盲点盘面把 index % 3 == 0 的格子画成空格（起点格除外）。
+const SCHULTE_PREVIEW_CELL = { 3: 35, 4: 26, 5: 20, 6: 16 };
+const SchulteBoardPreview = ({ board }) => {
+    const n = board.side * board.side;
+    const cell = SCHULTE_PREVIEW_CELL[board.side] || 20;
+    const all = board.order === 'letters'
+        ? Array.from({ length: n }, (_, i) => String.fromCharCode(65 + i))
+        : Array.from({ length: n }, (_, i) => String(i + 1));
+    const lead = board.order === 'reverse' ? all[n - 1] : board.order === 'evens' ? all[1] : all[0];
+    const leadIndex = Math.floor(n / 2);
+    const marks = new Array(n).fill(null);
+    for (let spot = 1, step = 0; spot < n && step < 8; spot += 3, step += 1) {
+        const symbol = all[(spot * 7 + 5) % n];
+        // 不放第二个起点数字：一块盘上两个 1 看起来像画错了。
+        if (symbol !== lead) marks[spot] = symbol;
+    }
+    marks[leadIndex] = lead;
+    const isGone = (index) => board.blind && index !== leadIndex && index % 3 === 0;
+    return (
+        <span className="schulte-preview" style={{ gridTemplateColumns: `repeat(${board.side}, ${cell}px)` }} aria-hidden="true">
+            {marks.map((mark, index) => (
+                <span
+                    key={index}
+                    className={`schulte-preview-cell${index === leadIndex ? ' is-lead' : isGone(index) ? ' is-gone' : ''}`}
+                    style={{ width: cell, height: cell, fontSize: Math.round(cell * 0.52 * 10) / 10 }}
+                >
+                    {mark && !isGone(index) ? mark : null}
+                </span>
+            ))}
+        </span>
+    );
+};
+
+// 播放三角（iOS DetailPlayMark）：自绘的实心三角，不用图标库的图标。
+const SchultePlayMark = ({ width, height, className = '' }) => (
+    <svg className={className} width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true" focusable="false">
+        <path d={`M0 0 L${width} ${height / 2} L0 ${height} Z`} fill="currentColor" />
+    </svg>
+);
+
 function App() {
     const DEFAULT_TASK_BESTS = { schulte: 0, stroop: 0, nback: 0, setgame: 0, neuroncount: 0, passwordlogic: 0 };
     const urlParams = new URLSearchParams(window.location.search);
@@ -2467,7 +2510,7 @@ function App() {
     });
     const ui = UI_TEXT[lang];
     const isEnglish = lang === 'en';
-    const isGameView = !['home', 'result', 'analytics', 'settings', 'settings-daily', 'weekly-report', 'training-records'].includes(view);
+    const isGameView = !['home', 'result', 'analytics', 'settings', 'settings-daily', 'weekly-report', 'training-records', 'schulte-page'].includes(view);
     const isDailyMode = mode === 'daily';
     const isInfiniteMode = mode === 'infinite';
     // 竞技场分两档，和 app 一致：进阶就是竞技场一直以来的玩法，
@@ -3535,6 +3578,14 @@ function App() {
     // iOS 从舒尔特页开局不改首页的档位（GameSession 的时钟读 variant）；网页的 mode 同时管首页档位和本局规则，
     // 所以本局期间把 mode 换成盘面的档位，离开时由 leaveSchulteRun 换回来。
     const schulteRunOriginRef = useRef(null);
+    // 舒尔特页（iOS GameDetailView）：显示哪一种尺寸（默认 5×5），选中了哪块盘面（slug），开始栏正在收起的那块。
+    const [schulteEdge, setSchulteEdge] = useState(5);
+    const [schultePick, setSchultePick] = useState(null);
+    const [schulteLeavingPick, setSchulteLeavingPick] = useState(null);
+    // 开始栏只在选中这一刻滑出；打完一局回到这一页时它本来就在（iOS 的页面一直在本局下面），不再播一遍。
+    const [schulteBarAnimates, setSchulteBarAnimates] = useState(true);
+    const schultePreviousPickRef = useRef(null);
+    const schultePageRef = useRef(null);
 
     // ---- 新手教学 ----
     const [tutorialModeEnabled, setTutorialModeEnabledState] = useState(() => {
@@ -4073,8 +4124,73 @@ function App() {
         schulteRunOriginRef.current = null;
         setActiveSchulteBoard(null);
         if (run?.homeMode && run.homeMode !== mode) setMode(run.homeMode);
+        setSchulteBarAnimates(false);
         setView(run?.origin === 'page' ? 'schulte-page' : 'home');
     };
+
+    // 首页舒尔特卡整张都是按钮：打开舒尔特页，不管当前在哪一档（iOS WebsiteTrainingHome schulteTaskCard）。
+    // 每次从首页进来都是新的一页：5×5、没有选中（iOS 每次新建 GameDetailView，关掉时清空 pending）。
+    const openSchultePage = () => {
+        playSound('tap');
+        setSchulteEdge(5);
+        schultePreviousPickRef.current = null; // 新的一页不播上一次开始栏收起的动画
+        setSchultePick(null);
+        setView('schulte-page');
+    };
+
+    // 选中一块盘面（推荐位、「接着练」）：不在当前尺寸就先切过去，再由下面的 effect 滚到屏幕中央。
+    const pickSchulteBoard = (board) => {
+        if (!board) return;
+        if (board.side !== schulteEdge) setSchulteEdge(board.side);
+        setSchulteBarAnimates(true);
+        setSchultePick(board.slug);
+    };
+
+    // 结算页「接着练」：关掉本局，打开舒尔特页并直接选中那块盘面（iOS GameDetailView onContinue；
+    // 从首页首玩引导开的局也一样打开舒尔特页，WebsiteTrainingHome:443-450）。
+    const continueToSchulteBoard = (board) => {
+        playSound('tap');
+        const run = schulteRunOriginRef.current;
+        schulteRunOriginRef.current = null;
+        setActiveSchulteBoard(null);
+        if (run?.homeMode && run.homeMode !== mode) setMode(run.homeMode);
+        pickSchulteBoard(board);
+        setView('schulte-page');
+    };
+
+    // 选中的盘面滚到两条栏之间的正中（iOS onChange(of: pending?.id) → scrollTo(id, anchor: .center)）。
+    // 推荐位或「接着练」选中的盘面可能在屏幕下面看不到的地方；从本局回到这一页时也把选中的那块摆回眼前。
+    useEffect(() => {
+        if (view !== 'schulte-page' || !schultePick) return undefined;
+        const timer = setTimeout(() => {
+            const page = schultePageRef.current;
+            const tile = page?.querySelector(`[data-board="${schultePick}"]`);
+            if (!page || !tile) return;
+            const pageRect = page.getBoundingClientRect();
+            // 两条栏都是吸附的，用它们的高度算可见区域；开始栏刚出现时还在做位移动画，不能读它的位置。
+            const top = pageRect.top + (page.querySelector('.schulte-page-topbar')?.offsetHeight || 0);
+            const bottom = pageRect.bottom - (page.querySelector('.schulte-start-bar:not(.is-leaving)')?.offsetHeight || 0);
+            const rect = tile.getBoundingClientRect();
+            const delta = (rect.top + rect.height / 2) - (top + bottom) / 2;
+            if (Math.abs(delta) < 1) return;
+            const reduceMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+            page.scrollBy({ top: delta, behavior: reduceMotion ? 'auto' : 'smooth' });
+        }, 0);
+        return () => clearTimeout(timer);
+    }, [view, schultePick]);
+
+    // 开始栏收起时留 200ms 播完下滑淡出（iOS .move(edge: .bottom) + .opacity）。换选另一块时开始栏原地换内容，不播动画。
+    useEffect(() => {
+        const previous = schultePreviousPickRef.current;
+        schultePreviousPickRef.current = schultePick;
+        if (schultePick || !previous || view !== 'schulte-page') {
+            setSchulteLeavingPick(null);
+            return undefined;
+        }
+        setSchulteLeavingPick(previous);
+        const timer = setTimeout(() => setSchulteLeavingPick(null), 200);
+        return () => clearTimeout(timer);
+    }, [schultePick]);
 
     const startChallenge = (type, { board = null } = {}) => {
         // 原先第一次玩 SET / N-Back 会先拦下来弹规则卡，并各带一次性热身；现在由游戏内教学取代，与 iOS 一致。
@@ -5079,10 +5195,7 @@ function App() {
                                 {Object.keys(TASK_DATA).map(type => (
                                     <div
                                         key={type}
-                                        onClick={() => (type === 'schulte'
-                                            // 舒尔特按当前档位开对应的盘面：基础 5×5 正序、进阶 5×5 盲点、无限。
-                                            ? startSchulteBoard(getSchulteBoard(mode === 'hard' ? 'blind' : mode === 'infinite' ? 'endless' : 'forward'), { origin: 'home' })
-                                            : startChallenge(type))}
+                                        onClick={() => (type === 'schulte' ? openSchultePage() : startChallenge(type))}
                                         data-analytics-task={type}
                                         data-analytics-label={GAME_CLICK_LABELS[type] || getTaskTitle(type)}
                                         className="task-card flex items-center p-5 bg-white rounded-[1.8rem] border border-slate-100 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
@@ -5096,7 +5209,12 @@ function App() {
                                                 <div className="task-subtitle text-[13px] text-slate-500 font-medium">{getTaskHome(type, mode === 'hard')}</div>
                                             </div>
                                         </div>
-                                        <button type="button" aria-label={isEnglish ? `${getTaskTitle(type)} rules` : `${getTaskTitle(type)}规则`} onClick={(event) => { event.stopPropagation(); playSound('tap'); setShowInfo(type); }} className="rs-info-button"><RulesInfoDot /></button>
+                                        {type === 'schulte' ? (
+                                            // 舒尔特有自己的一页，整张卡都点进去，右侧的 i 换成前进箭头；规则移到那一页的顶栏（iOS interactiveTaskCard openDetail）。
+                                            <span className="task-card-chevron" aria-hidden="true"><Icon name="chevron-right" className="w-4 h-4" /></span>
+                                        ) : (
+                                            <button type="button" aria-label={isEnglish ? `${getTaskTitle(type)} rules` : `${getTaskTitle(type)}规则`} onClick={(event) => { event.stopPropagation(); playSound('tap'); setShowInfo(type); }} className="rs-info-button"><RulesInfoDot /></button>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -5104,6 +5222,129 @@ function App() {
                     </div>
                 </div>
             )}
+
+            {/* 舒尔特页（iOS 1.0.3 GameDetailView.swift）：顶栏、「今天练什么」推荐位、3×3–6×6 尺寸切换、两列盘面卡、底部开始栏。
+                整页是一个滚动区，两条栏吸附在上下两端，内容从栏下面滚过去，最后一行不会被开始栏挡住（iOS safeAreaInset）。 */}
+            {view === 'schulte-page' && (() => {
+                const featured = suggestSchulteBoard(variantResults, schulteLegacy);
+                const barBoard = getSchulteBoard(schultePick || schulteLeavingPick);
+                const isBarLeaving = !schultePick && !!schulteLeavingPick;
+                const columnBoards = SCHULTE_BOARDS.filter(board => board.side === schulteEdge);
+                // 开始栏第二行（iOS historyLine）：永远不和上面卡片的成绩标签矛盾。
+                const historyLine = (board) => {
+                    if (!hasPlayedSchulteBoard(variantResults, schulteLegacy, board)) return isEnglish ? 'Never played' : '还没玩过';
+                    const result = getSchulteResult(variantResults, board);
+                    const plays = Number(result?.plays) || 0;
+                    // 旧档位有改版前的纪录、新库里还没有：写「之前练过」，不说玩过 0 次。
+                    if (!result || plays <= 0) return isEnglish ? 'Played before' : '之前练过';
+                    // 英文「1 plays」不分单复数，照搬 iOS（GDV:327）。
+                    const playsText = isEnglish ? `${plays} plays` : `玩过 ${plays} 次`;
+                    if (board.recordedMode === 'infinite') {
+                        const best = Number(result.bestScore) || 0;
+                        if (best <= 0) return playsText;
+                        return isEnglish ? `Best ${best} pts · ${playsText}` : `最高 ${best} 分 · ${playsText}`;
+                    }
+                    if (typeof result.lastSeconds !== 'number') return playsText;
+                    const last = formatSchulteSeconds(result.lastSeconds);
+                    return isEnglish ? `Last ${last}s · ${playsText}` : `上次 ${last} 秒 · ${playsText}`;
+                };
+                // 卡片上的成绩标签（iOS scoreChip）：无限写分数，其余写最好用时，都没有时写灰字。
+                const scoreChip = (board) => {
+                    if (board.recordedMode === 'infinite') {
+                        const best = getSchulteBoardBestScore(variantResults, schulteLegacy, board);
+                        return best > 0
+                            ? { text: isEnglish ? `${best} pts` : `${best} 分`, muted: false }
+                            : { text: isEnglish ? 'No time yet' : '还没有成绩', muted: true };
+                    }
+                    const seconds = getSchulteBoardBestSeconds(variantResults, schulteLegacy, board);
+                    return seconds !== null
+                        ? { text: isEnglish ? `Best ${formatSchulteSeconds(seconds)}s` : `最好 ${formatSchulteSeconds(seconds)} 秒`, muted: false }
+                        : { text: isEnglish ? 'No time yet' : '还没有成绩', muted: true };
+                };
+                // 读屏文字（iOS VariantCopy.accessibility）。
+                const tileLabel = (board) => {
+                    const name = getSchulteBoardName(board, isEnglish);
+                    const best = getSchulteResult(variantResults, board)?.bestSeconds;
+                    if (typeof best !== 'number') return isEnglish ? `${name}, no time yet` : `${name}，还没有成绩`;
+                    return isEnglish ? `${name}, best ${formatSchulteSeconds(best)} seconds` : `${name}，最好 ${formatSchulteSeconds(best)} 秒`;
+                };
+                return (
+                    <div className="schulte-page no-scrollbar" ref={schultePageRef}>
+                        <div className="schulte-page-topbar">
+                            <button type="button" className="schulte-page-back" aria-label={isEnglish ? 'Back' : '返回'} onClick={() => { playSound('tap'); setView('home'); }}>
+                                <Icon name="chevron-left" className="w-[18px] h-[18px]" />
+                            </button>
+                            <h1 className="schulte-page-title">{getTaskTitle('schulte')}</h1>
+                            {/* 文字按钮「规则」，不是圆圈里的 i（iOS：一个词不需要教）。 */}
+                            <button type="button" className="schulte-page-rules" onClick={() => { playSound('tap'); setShowInfo('schulte'); }}>{isEnglish ? 'Rules' : '规则'}</button>
+                        </div>
+                        <div className="schulte-page-body">
+                            {featured && (
+                                <button type="button" className="schulte-featured" onClick={() => { playSound('tap'); pickSchulteBoard(featured); }}>
+                                    <span className="schulte-featured-copy">
+                                        <span className="schulte-featured-eyebrow">{isEnglish ? 'Try today' : '今天练什么'}</span>
+                                        <span className="schulte-featured-line">{getSchulteSuggestionLine(featured, getSchulteResult(variantResults, featured), hasPlayedSchulteBoard(variantResults, schulteLegacy, featured), isEnglish)}</span>
+                                    </span>
+                                    <span className="schulte-featured-play" aria-hidden="true"><SchultePlayMark width={13} height={15} /></span>
+                                </button>
+                            )}
+                            <div className="schulte-edge-tabs">
+                                {SCHULTE_EDGES.map(edge => (
+                                    <button
+                                        key={edge}
+                                        type="button"
+                                        className={edge === schulteEdge ? 'is-active' : ''}
+                                        aria-pressed={edge === schulteEdge}
+                                        onClick={() => {
+                                            playSound('tap');
+                                            setSchulteEdge(edge);
+                                            // 开始栏作用于选中的盘面，不能留着指向一块刚离开屏幕的盘面。
+                                            if (schultePick && getSchulteBoard(schultePick)?.side !== edge) setSchultePick(null);
+                                        }}
+                                    >{`${edge}×${edge}`}</button>
+                                ))}
+                            </div>
+                            <div className="schulte-board-grid">
+                                {columnBoards.map(board => {
+                                    const picked = schultePick === board.slug;
+                                    const chip = scoreChip(board);
+                                    return (
+                                        <button
+                                            key={board.slug}
+                                            type="button"
+                                            data-board={board.slug}
+                                            className={`schulte-board-tile${picked ? ' is-picked' : ''}`}
+                                            aria-pressed={picked}
+                                            aria-label={tileLabel(board)}
+                                            onClick={() => { playSound('tap'); setSchulteBarAnimates(true); setSchultePick(picked ? null : board.slug); }}
+                                        >
+                                            <SchulteBoardPreview board={board} />
+                                            {/* 名字和成绩标签放得下就并排，放不下就上下叠，名字不截断（iOS ViewThatFits）。 */}
+                                            <span className="schulte-board-meta">
+                                                <span className="schulte-board-name">{getSchulteShortName(board, isEnglish)}</span>
+                                                <span className={`schulte-board-chip${chip.muted ? ' is-muted' : ''}`}>{chip.text}</span>
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        {barBoard && (
+                            <div className={`schulte-start-bar${isBarLeaving ? ' is-leaving' : schulteBarAnimates ? '' : ' is-static'}`}>
+                                <div className="schulte-start-copy">
+                                    <div className="schulte-start-rule">{getSchulteBoardRule(barBoard, isEnglish)}</div>
+                                    <div className="schulte-start-history">{historyLine(barBoard)}</div>
+                                </div>
+                                {/* 不放点击音：开局自己会放开局音，两个叠在一起听起来像响了两下（iOS 3f87659）。 */}
+                                <button type="button" className="schulte-start-button" disabled={isBarLeaving} onClick={() => startSchulteBoard(barBoard, { origin: 'page' })}>
+                                    <SchultePlayMark width={12} height={14} />
+                                    <span>{isEnglish ? `Start ${getSchulteBoardName(barBoard, true)}` : `开始 ${getSchulteBoardName(barBoard, false)}`}</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
 
             {view === 'settings' && (
                 <div className="settings-screen my-page-screen app-content-screen h-full overflow-y-auto no-scrollbar bg-slate-50 px-5 py-5">
@@ -6112,15 +6353,16 @@ function App() {
 
             <RulesSheetLayer
                 type={showInfo}
-                advanced={isChallengeDifficulty}
+                // 舒尔特的规则只从舒尔特页打开，固定显示基础版（iOS GameDetailView SchulteRulesSheet advanced: false）。
+                advanced={showInfo === 'schulte' ? false : isChallengeDifficulty}
                 en={isEnglish}
                 title={showInfo ? getTaskTitle(showInfo) : ''}
                 onClose={() => setShowInfo(null)}
                 onStart={() => {
                     const t = showInfo;
                     setShowInfo(null);
-                    // 舒尔特的规则卡开 5×5 正序（iOS GameDetailView 的规则卡「开始」开 forward）。
-                    if (t === 'schulte') startSchulteBoard(getSchulteBoard(mode === 'hard' ? 'blind' : mode === 'infinite' ? 'endless' : 'forward'), { origin: 'home' });
+                    // 舒尔特页的规则卡「开始」开 5×5 正序，打完回到舒尔特页（iOS GameDetailView start(forward)）。
+                    if (t === 'schulte') startSchulteBoard(getSchulteBoard('forward'), { origin: 'page' });
                     else startChallenge(t);
                 }}
             />
@@ -6728,6 +6970,10 @@ function App() {
                 const resultTimeText = !isDailyResult && typeof lastRunStats?.preciseSeconds === 'number'
                     ? `${formatSchulteSeconds(lastRunStats.preciseSeconds)}s`
                     : `${resultDuration}s`;
+                // 「接着练」（iOS SchulteWebsiteResult nextUp）：只在舒尔特盘面局出现，推荐时排除刚玩完的这块。
+                const nextUpBoard = !isDailyResult && activeSchulteBoard
+                    ? suggestSchulteBoard(variantResults, schulteLegacy, activeSchulteBoard.slug)
+                    : null;
                 // 密码推理一题 40~100 分，套不上按几百分写的五档评语，
                 // 也没有「正确率」可言——它的指标和 iOS 结果页保持一致。
                 const isCodeLogicResult = lastRunStats?.task === 'passwordlogic';
@@ -6860,7 +7106,17 @@ function App() {
                                 <span>{dailyParityText.resultNote}</span>
                             </div>
                         )}
-                        {!isDailyResult && <div className={isCodeLogicTraining ? 'mb-1' : 'mb-8'} />}
+                        {/* 「接着练」在三个指标下面、「返回」上面；不用 bg-slate-900，安卓返回键靠那个类找结算页的主按钮。 */}
+                        {nextUpBoard && (
+                            <button type="button" className="schulte-next-up w-full max-w-sm" onClick={() => continueToSchulteBoard(nextUpBoard)}>
+                                <span className="schulte-next-up-copy">
+                                    <span className="schulte-next-up-eyebrow">{isEnglish ? 'Next up' : '接着练'}</span>
+                                    <span className="schulte-next-up-line">{getSchulteSuggestionLine(nextUpBoard, getSchulteResult(variantResults, nextUpBoard), hasPlayedSchulteBoard(variantResults, schulteLegacy, nextUpBoard), isEnglish)}</span>
+                                </span>
+                                <span className="schulte-next-up-chevron" aria-hidden="true"><Icon name="chevron-right" className="w-4 h-4" /></span>
+                            </button>
+                        )}
+                        {!isDailyResult && !nextUpBoard && <div className={isCodeLogicTraining ? 'mb-1' : 'mb-8'} />}
                         {isDailyResult ? (
                             <div className="w-full max-w-sm flex flex-col gap-3">
                                 <button onClick={() => { playSound('tap'); setMode('daily'); setView('home'); }} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg">{ui.dailySeeTomorrow}</button>
