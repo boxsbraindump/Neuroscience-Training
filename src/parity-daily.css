@@ -721,3 +721,9 @@ html.theme-dark .parity-segmented button { color: #cbd5e1; }
 html.theme-dark .parity-segmented button.is-active { background: #1e293b; color: #ffffff; }
 html.theme-dark .parity-switch { background: #39393d; }
 html.theme-dark .parity-switch.is-on { background: #818cf8; }
+
+/* ---------- 1.0.3：每日挑战开始前的规则卡，需要读的字放大（iOS 8028f61，DailyChallengeFlow.swift:148 / 161 / 181） ----------
+   规则 14 → 17，提示 11 → 13，「暂不挑战」13 → 15。卡片本来就能在 .daily-gate-screen 里滚动，放不下时不会把按钮挤出屏幕。 */
+.daily-gate-rule { font-size: 17px; }
+.daily-gate-tip { font-size: 13px; }
+.daily-gate-later { font-size: 15px; }

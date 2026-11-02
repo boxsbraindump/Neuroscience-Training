@@ -226,3 +226,14 @@ html.theme-dark .code-feedback-pill.is-correct { background: #34d399; }
     display: block;
     line-height: 24px;
 }
+
+/* ---------- 1.0.3：游戏顶栏的标题和「历史最高」放大（iOS 38c435f） ---------- */
+/* 标题 17 bold，竞技保持 14（iOS ArenaTrainingFlow 没改）；「历史最高」9 → 12，black 等宽。
+   标题原来是 Tailwind 的 text-sm，换成这个类，免得和 Tailwind 抢样式。 */
+.game-topbar-title {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.game-topbar-title.is-arena { font-size: 14px; }
+.game-topbar-best { font-size: 12px; line-height: 1.2; }

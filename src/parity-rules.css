@@ -491,3 +491,22 @@ html.theme-dark .rs-layer {
     font-family: system-ui, -apple-system, sans-serif;
 }
 html.theme-dark .task-card .rs-info-dot { border-color: #475569; color: #64748B; }
+
+/* ---------- 1.0.3：抬高规则弹窗里「需要读的字」的下限（iOS 8028f61） ----------
+   只放大规则正文、领起句和补充说明；眉标、示意图标签、chip、密码推理的线索和数字不动，和 iOS 一样。
+   舒尔特也用 .rs-lead / .rs-rule / .rs-tip，iOS 舒尔特同样放大到 15 / 17 / 13，所以直接改共用类。 */
+.rs-card .rs-lead { font-size: 15px; }
+.rs-card .rs-rule { font-size: 17px; }
+.rs-card .rs-tip { font-size: 13px; }
+.rs-card .rs-tip-set { font-size: 13px; }
+.rs-card .rs-note { font-size: 13px; }
+.rs-card .rs-pill { font-size: 13px; }
+.rs-card .rs-nback-hint { font-size: 13px; }
+.rs-card .rs-fill-caption { font-size: 13px; }
+.rs-card .rs-neuron-caption { font-size: 13px; }
+.rs-card .rs-blind-order { font-size: 13px; }
+.rs-card .rs-code-tier { font-size: 13px; }
+.rs-card .rs-code-heading { font-size: 15px; }
+.rs-card .rs-code-example { font-size: 13px; }
+.rs-card .rs-code-note { font-size: 13px; }
+.rs-card .rs-code-rule { font-size: 13px; }

@@ -331,8 +331,8 @@ const RULES_SHEET = {
             en: { lead: 'Train visual search and focus', rule: ['Tap numbers from 1 to 25 in order.'], demo: 'schulte-basic', tip: '💡 Tip: keep your gaze near the centre of the grid and catch the surrounding numbers with your peripheral vision.' }
         },
         advanced: {
-            zh: { lead: '盲点模式：记住已经点击的位置', rule: ['⚠️ 进阶规则：点过的数字会立即消失。'], demo: 'schulte-blind', tip: '💡 记住已清空的位置，避免在空位上浪费搜索时间。' },
-            en: { lead: 'Blind-spot mode: remember cleared positions', rule: ['Advanced: tapped numbers disappear immediately.'], demo: 'schulte-blind', tip: '💡 Remember cleared positions so empty cells do not cost search time.' }
+            zh: { lead: '盲点模式：记住已经点击的位置', rule: ['⚠️ 进阶规则：点过的格子不留标记，得自己记住点过哪些。'], demo: 'schulte-blind', tip: '💡 记住已清空的位置，避免在空位上浪费搜索时间。' },
+            en: { lead: 'Blind-spot mode: remember cleared positions', rule: ['Advanced: a tapped cell looks untouched — you have to remember which ones you\'ve had.'], demo: 'schulte-blind', tip: '💡 Remember cleared positions so empty cells do not cost search time.' }
         }
     },
     stroop: {
@@ -4760,7 +4760,7 @@ function App() {
                                             </div>
                                             <div className="task-copy">
                                                 <div className="task-title font-bold text-base text-slate-800">{getTaskTitle(type)}</div>
-                                                <div className="task-subtitle text-[11px] text-slate-500 font-medium">{getTaskHome(type, mode === 'hard')}</div>
+                                                <div className="task-subtitle text-[13px] text-slate-500 font-medium">{getTaskHome(type, mode === 'hard')}</div>
                                             </div>
                                         </div>
                                         <button type="button" aria-label={isEnglish ? `${getTaskTitle(type)} rules` : `${getTaskTitle(type)}规则`} onClick={(event) => { event.stopPropagation(); playSound('tap'); setShowInfo(type); }} className="rs-info-button"><RulesInfoDot /></button>
@@ -4913,7 +4913,7 @@ function App() {
                                     setView('settings');
                                 }}
                             >
-                                <Icon name="chevron-left" className="w-4 h-4" />
+                                <Icon name="chevron-left" className="w-[18px] h-[18px]" />
                             </button>
                             <h1>{settingsPageText.dailyTitle}</h1>
                             <span aria-hidden="true" />
@@ -5457,7 +5457,7 @@ function App() {
                             }}
                             aria-label={weeklyReportReturnView === 'training-records' ? settingsPageText.recordsBack : settingsPageText.backToSettings}
                         >
-                            <Icon name="chevron-left" className="w-5 h-5" />
+                            <Icon name="chevron-left" className="w-[18px] h-[18px]" />
                         </button>
 
                         {!weeklyReportUnlocked ? (
@@ -5826,23 +5826,22 @@ function App() {
                             }} className="game-back-button text-slate-900" aria-label={isEnglish ? 'Back' : '返回'}><Icon name="chevron-left" className="w-[18px] h-[18px]" /></button>
                         </div>
                         <div className="text-center">
-                            {/* 模式小标题：与 iOS 各 Flow 的顶栏一致——不转大写，训练/无限/每日各自的颜色；
-                                密码推理任何模式都写「训练 / TRAINING」，竞技写「竞技模式 / ARENA MODE」。 */}
-                            <div className={`game-topbar-eyebrow ${mode === 'daily' && view !== 'passwordlogic' ? 'is-daily' : mode === 'infinite' && view !== 'passwordlogic' ? 'is-endless' : 'is-training'}`}>{
-                                view === 'passwordlogic'
-                                    ? (isEnglish ? 'TRAINING' : '训练')
-                                    : mode === 'comp'
+                            {/* 模式小标题：与 iOS 1.0.3 各 Flow 的顶栏一致（e86883e）——普通训练（基础 / 进阶）不再写「训练」，
+                                只有无限、每日挑战和竞技保留；密码推理任何模式都不写。不转大写，各自的颜色。 */}
+                            {view !== 'passwordlogic' && (mode === 'daily' || mode === 'infinite' || mode === 'comp') && (
+                                <div className={`game-topbar-eyebrow ${mode === 'daily' ? 'is-daily' : mode === 'infinite' ? 'is-endless' : 'is-training'}`}>{
+                                    mode === 'comp'
                                         ? (isEnglish ? 'ARENA MODE' : '竞技模式')
                                         : mode === 'daily'
                                             ? ui.dailyTitle
-                                            : mode === 'infinite'
-                                                ? (isEnglish ? 'Endless' : '无限模式')
-                                                : (isEnglish ? 'Training' : '训练')
-                            }</div>
-                            <div className="text-sm font-bold">{mode === 'comp' ? ui.arenaShortTitle : getTaskTitle(view)}</div>
+                                            : (isEnglish ? 'Endless' : '无限模式')
+                                }</div>
+                            )}
+                            {/* 标题 17、历史最高 12（iOS 38c435f）；竞技顶栏 iOS 没改，仍是 14。 */}
+                            <div className={`game-topbar-title ${mode === 'comp' ? 'is-arena' : ''}`}>{mode === 'comp' ? ui.arenaShortTitle : getTaskTitle(view)}</div>
                             {/* 历史最高：只在基础/进阶显示，标签和数字之间两个空格；密码推理顶栏没有这一行（iOS 相同）。 */}
                             {mode !== 'comp' && mode !== 'daily' && mode !== 'infinite' && view !== 'passwordlogic' && TASK_DATA[view] && (
-                                <div className="text-[9px] font-black text-slate-400 font-mono whitespace-pre">{`${ui.taskBest}  ${history.taskBestScores?.[view] || 0}`}</div>
+                                <div className="game-topbar-best font-black text-slate-400 font-mono whitespace-pre">{`${ui.taskBest}  ${history.taskBestScores?.[view] || 0}`}</div>
                             )}
                         </div>
                         {/* 右侧挤不下时（密码推理无限模式四样东西并排），只让「结束本次训练」省略，其余不缩。 */}

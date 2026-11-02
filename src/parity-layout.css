@@ -121,3 +121,10 @@ html.theme-dark .my-page-hero {
 .home-screen .task-copy .task-subtitle {
     line-height: 1.25 !important;
 }
+
+/* 1.0.3：训练记录页和周报的返回箭头，和 iOS 一样用深墨色（textPrimary），尺寸 18 写在 App.jsx。
+   iOS 从 1.0.2 起就是深墨色，网页一直是 slate-500，负责人 2026-11-02 定为对齐 iOS。 */
+.training-records-topbar .settings-page-back,
+.weekly-report-back { color: #0f172a; }
+html.theme-dark .training-records-topbar .settings-page-back,
+html.theme-dark .weekly-report-back { color: #f1f5f9; }
