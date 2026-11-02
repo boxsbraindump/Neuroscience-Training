@@ -849,7 +849,9 @@ const createSoundEngine = () => {
     // 原来也会震，现在去掉：它们是导航和氛围，处处都震的话「震=结果」就学不出来。
     const HAPTICS = {
         success: 12,                       // 答对：轻脆一下
-        error: [25, 30, 25]                // 答错：双段闷震＝“不对”
+        error: [25, 30, 25],               // 答错：双段闷震＝“不对”
+        // 舒尔特盘面破纪录：短促两下（负责人 2026-11-02 定，对应 iOS Haptics.record）。只震不响，每局最多一次。
+        record: [20, 60, 20]
     };
 
     // 防连发（与 iOS AudioManager.cooldown 一致）：每种音效各自计时，距上次同种音效不到间隔就整次丢弃，
@@ -2156,6 +2158,10 @@ const isSchulteWarmUp = (board) => board.side <= 4;
 const isSchulteExistingTier = (board) => board.recordedMode !== 'variant';
 // 本局按哪一档跑：variant 盘面按基础的规则跑（有时钟、不是无限），盲点由盘面自己的 blind 决定。
 const getSchulteRunMode = (board) => (board.recordedMode === 'variant' ? 'normal' : board.recordedMode);
+// 局内棋盘的列数和字号（iOS STF:453-455、711：6×6 字号 14，3×3 为 26，其余 18）。
+// 类名必须是完整的字面量：安卓包的 Tailwind 是静态扫描源码生成的，拼出来的类名会被漏掉。
+const SCHULTE_GRID_COLS = { 3: 'grid-cols-3', 4: 'grid-cols-4', 5: 'grid-cols-5', 6: 'grid-cols-6' };
+const SCHULTE_CELL_TEXT = { 3: 'text-[26px]', 4: 'text-lg', 5: 'text-lg', 6: 'text-sm' };
 
 // 盘面所在的那一列（iOS PlayVariant.style）。字母和无限不属于任何一列。
 const getSchulteBoardStyle = (board) => {
@@ -2796,24 +2802,11 @@ function App() {
         try { localStorage.setItem('pfl_first_play_nudge_done', 'true'); } catch (e) { }
         setShowFirstPlayNudge(false);
         if (shouldStart) {
-            // 与 iOS 一致（WebsiteTrainingHome.swift startFirstPlaySchulte）：先切回基础，再开舒尔特。
-            // startChallenge 读的是本次渲染里的 mode，在进阶/无限档直接调用会按旧档位开局，
-            // 所以档位不是基础时，等 mode 真正变成 normal 之后再由下面的 effect 开局。
-            if (mode === 'normal') {
-                startChallenge('schulte');
-            } else {
-                pendingFirstPlayStartRef.current = true;
-                setMode('normal');
-            }
+            // 与 iOS 一致（WebsiteTrainingHome.swift startFirstPlaySchulte）：首页档位切回基础，开 5×5 正序。
+            // 盘面局按盘面自己的档位开局，不读本次渲染里的 mode，所以不用再等 mode 变成 normal 才开局。
+            startSchulteBoard(getSchulteBoard('forward'), { origin: 'home', homeMode: 'normal' });
         }
     };
-
-    const pendingFirstPlayStartRef = useRef(false);
-    useEffect(() => {
-        if (!pendingFirstPlayStartRef.current || mode !== 'normal') return;
-        pendingFirstPlayStartRef.current = false;
-        startChallenge('schulte');
-    }, [mode]);
 
     const markWeeklyReportPromptSeen = () => {
         try {
@@ -3535,6 +3528,13 @@ function App() {
     const hiddenAtRef = useRef(null);
     const gameLifecycleRef = useRef({});
     const [isAppHidden, setIsAppHidden] = useState(false);
+    // 本局的舒尔特盘面；null 表示不是盘面局（每日挑战、竞技、其他五个游戏）。局内顶栏、棋盘和结算页都读它，
+    // 一直留到离开结算页。
+    const [activeSchulteBoard, setActiveSchulteBoard] = useState(null);
+    // 盘面局从哪里开的（'page' 舒尔特页 / 'home' 首页首玩引导），以及开局前首页是哪一档。
+    // iOS 从舒尔特页开局不改首页的档位（GameSession 的时钟读 variant）；网页的 mode 同时管首页档位和本局规则，
+    // 所以本局期间把 mode 换成盘面的档位，离开时由 leaveSchulteRun 换回来。
+    const schulteRunOriginRef = useRef(null);
 
     // ---- 新手教学 ----
     const [tutorialModeEnabled, setTutorialModeEnabledState] = useState(() => {
@@ -3581,12 +3581,13 @@ function App() {
         setTutorialModeEnabledState(true);
         try { localStorage.setItem(TUTORIAL_MODE_STORAGE_KEY, 'true'); } catch (e) { }
     };
-    const shouldShowTutorial = (task) => tutorialModeEnabled
+    // runMode：本局实际的档位。盘面局在开局的同一刻才把 mode 换成盘面的档位，所以由调用方传进来。
+    const shouldShowTutorial = (task, runMode = mode) => tutorialModeEnabled
         && TRAINING_TUTORIAL_TASKS.includes(task)
-        && mode !== 'daily'
-        && mode !== 'comp'
+        && runMode !== 'daily'
+        && runMode !== 'comp'
         && !completedTutorials.includes(task)
-        && (task !== 'passwordlogic' || mode === 'normal');
+        && (task !== 'passwordlogic' || runMode === 'normal');
     const cancelTutorial = () => {
         clearTutorialTimers();
         if (tutorialRef.current) setTutorial(null);
@@ -3734,13 +3735,23 @@ function App() {
         const isHard = isChallengeDifficulty;
         const tutorialTask = tutorialRef.current?.task;
         if (type === 'schulte') {
+            // 先看本局的盘面，再看每日挑战的变体（iOS GameSession.makeRound）；竞技两样都没有，照旧是 5×5 正序。
+            const board = currentRunRef.current?.board || null;
             const variant = currentRunRef.current?.dailyVariant;
-            const cols = variant === 'grid6' ? 6 : 5;
-            const count = cols * cols; // 25 或 36
-            const symbols = variant === 'letters'
+            const cols = board ? board.side : (variant === 'grid6' ? 6 : 5);
+            const count = cols * cols; // 9 / 16 / 25 / 36
+            const order = board ? board.order : (variant === 'reverse' || variant === 'letters' ? variant : 'forward');
+            const symbols = order === 'letters'
                 ? Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i)) // A..Y
                 : Array.from({ length: count }, (_, i) => i + 1);              // 1..N
-            const sequence = variant === 'reverse' ? [...symbols].reverse() : symbols;
+            // 先偶后奇：全部偶数升序，再接全部奇数升序；先奇后偶反过来。两半都是往上数。
+            const sequence = order === 'reverse'
+                ? [...symbols].reverse()
+                : order === 'evens'
+                    ? [...symbols.filter(n => n % 2 === 0), ...symbols.filter(n => n % 2 === 1)]
+                    : order === 'odds'
+                        ? [...symbols.filter(n => n % 2 === 1), ...symbols.filter(n => n % 2 === 0)]
+                        : symbols;
             const grid = [...symbols].sort(() => Math.random() - 0.5);
             setSchulte({ grid, sequence, index: 0, next: sequence[0], cols });
         } else if (type === 'stroop') {
@@ -4049,22 +4060,50 @@ function App() {
         setView(next);
     };
 
-    const startChallenge = (type) => {
+    // 舒尔特盘面局：记下从哪里开的、开局前首页是哪一档，再按盘面开局。
+    const startSchulteBoard = (board, { origin = 'page', homeMode = mode } = {}) => {
+        if (!board) return;
+        schulteRunOriginRef.current = { origin, homeMode };
+        startChallenge('schulte', { board });
+    };
+
+    // 盘面局结束或放弃后离开：回到开局的地方（舒尔特页或首页），把首页档位换回开局前那一档。
+    const leaveSchulteRun = () => {
+        const run = schulteRunOriginRef.current;
+        schulteRunOriginRef.current = null;
+        setActiveSchulteBoard(null);
+        if (run?.homeMode && run.homeMode !== mode) setMode(run.homeMode);
+        setView(run?.origin === 'page' ? 'schulte-page' : 'home');
+    };
+
+    const startChallenge = (type, { board = null } = {}) => {
         // 原先第一次玩 SET / N-Back 会先拦下来弹规则卡，并各带一次性热身；现在由游戏内教学取代，与 iOS 一致。
         clearAnswerFeedback();
         setScore(0);
         nbackSeq.current = [];
         const activeDailySpec = getDailySpec();
-        const taskType = mode === 'daily' ? activeDailySpec.task : type;
+        // 本局的档位：盘面局按盘面（时钟、无限、盲点都由盘面决定，iOS GameSession 读 variant），其余照旧读 mode。
+        // mode 在这里同步换成盘面的档位，这样局内各处 mode === 'infinite' / 'hard' 的分支和改版前完全一样。
+        const runMode = board ? getSchulteRunMode(board) : mode;
+        // 事件里的 mode：正序、盲点、无限照旧写 normal、hard、infinite，其余盘面写 variant，另带 variant 字段。
+        const eventMode = board ? board.recordedMode : runMode;
+        if (!board) schulteRunOriginRef.current = null;
+        setActiveSchulteBoard(board);
+        if (runMode !== mode) setMode(runMode);
+        const taskType = runMode === 'daily' ? activeDailySpec.task : type;
         cancelTutorial();
-        const runsTutorial = shouldShowTutorial(taskType);
+        // 舒尔特新手教学：网页和安卓保留（负责人 2026-11-02 定）。iOS 1.0.3 里它永远不出现——所有开局路径都带盘面，
+        // 而 SchulteTrainingFlow.swift:39 只在没有盘面时教学；判断是 iOS 的 bug，由 iOS 1.0.4 修。
+        // 教学文案是「按 1 → 25 的顺序」，所以只在 5×5 正序次序的三块盘面上出现，也就是改版前基础、进阶、无限三档开局的那块盘面。
+        const runsTutorial = shouldShowTutorial(taskType, runMode)
+            && (!board || board.slug === 'forward' || board.slug === 'blind' || board.slug === 'endless');
         // 必须在 initGameCore 之前定下来：教学局的牌面（Stroop 首题、SET 示范板、神经元 1+5、密码 178）由它生成。
         if (runsTutorial) setTutorial({ task: taskType, correct: 0, step: taskType === 'passwordlogic' ? { kind: 'orientation' } : null });
         // 教学局不播开局音，正式开局时才播（iOS 同样如此）。
         if (!runsTutorial) playSound('start');
-        const taskName = mode === 'comp' ? arenaTaskKey : mode === 'daily' ? 'daily' : taskType;
+        const taskName = runMode === 'comp' ? arenaTaskKey : runMode === 'daily' ? 'daily' : taskType;
         runStatsRef.current = {
-            task: mode === 'comp' ? arenaTaskKey : taskType,
+            task: runMode === 'comp' ? arenaTaskKey : taskType,
             attempts: 0,
             correct: 0,
             incorrect: 0,
@@ -4075,37 +4114,44 @@ function App() {
         setLastRunStats(null);
         currentRunRef.current = {
             task: taskName,
-            dailyChallengeId: mode === 'daily' ? activeDailySpec.id : null,
-            dailyInstanceId: mode === 'daily' ? activeDailySpec.instanceId : null,
-            dailyTask: mode === 'daily' ? taskType : null,
-            dailyDay: mode === 'daily' ? activeDailySpec.day : null,
-            dailyVariant: mode === 'daily' ? activeDailySpec.variant : null,
-            dailyCompletion: mode === 'daily' ? activeDailySpec.completion : null,
-            dailyDuration: mode === 'daily' ? activeDailySpec.duration : null,
-            mode,
+            dailyChallengeId: runMode === 'daily' ? activeDailySpec.id : null,
+            dailyInstanceId: runMode === 'daily' ? activeDailySpec.instanceId : null,
+            dailyTask: runMode === 'daily' ? taskType : null,
+            dailyDay: runMode === 'daily' ? activeDailySpec.day : null,
+            dailyVariant: runMode === 'daily' ? activeDailySpec.variant : null,
+            dailyCompletion: runMode === 'daily' ? activeDailySpec.completion : null,
+            dailyDuration: runMode === 'daily' ? activeDailySpec.duration : null,
+            board,
+            mode: eventMode,
             startedAt: new Date().toISOString()
         };
         recordRetention('game_start', {
             sessionId: sessionIdRef.current,
             task: taskName,
-            mode,
-            dailyChallengeId: mode === 'daily' ? activeDailySpec.id : null,
-            dailyInstanceId: mode === 'daily' ? activeDailySpec.instanceId : null,
-            dailyTask: mode === 'daily' ? taskType : null,
-            dailyDay: mode === 'daily' ? activeDailySpec.day : null,
-            dailyVariant: mode === 'daily' ? activeDailySpec.variant : null,
-            dailyCompletion: mode === 'daily' ? activeDailySpec.completion : null,
-            dailyDuration: mode === 'daily' ? activeDailySpec.duration : null
+            mode: eventMode,
+            ...(board ? { variant: board.slug } : {}),
+            dailyChallengeId: runMode === 'daily' ? activeDailySpec.id : null,
+            dailyInstanceId: runMode === 'daily' ? activeDailySpec.instanceId : null,
+            dailyTask: runMode === 'daily' ? taskType : null,
+            dailyDay: runMode === 'daily' ? activeDailySpec.day : null,
+            dailyVariant: runMode === 'daily' ? activeDailySpec.variant : null,
+            dailyCompletion: runMode === 'daily' ? activeDailySpec.completion : null,
+            dailyDuration: runMode === 'daily' ? activeDailySpec.duration : null
         });
-        if (mode === 'comp') {
+        if (runMode === 'comp') {
             setTimeLeft(ARENA_DURATION_SECONDS);
             switchArenaTask();
-        } else if (mode === 'daily') {
+        } else if (runMode === 'daily') {
             setTimeLeft(activeDailySpec.duration || TASK_DATA[taskType].time);
             initGameCore(taskType);
             setView(taskType);
-        } else if (mode === 'infinite') {
+        } else if (runMode === 'infinite') {
             setTimeLeft(-1);
+            initGameCore(taskType);
+            setView(taskType);
+        } else if (board) {
+            // 时钟取盘面自己的秒数（iOS GameSession.duration 读 variant.seconds）。
+            setTimeLeft(board.seconds);
             initGameCore(taskType);
             setView(taskType);
         } else {
@@ -4353,23 +4399,42 @@ function App() {
         });
     };
 
-    const endGame = (finalScoreOverride) => {
+    // cleared：舒尔特把整盘点完时为 true（最后一格的点击传进来），超时、离开太久、无限局按返回都是 false。
+    const endGame = (finalScoreOverride, { cleared = false } = {}) => {
         clearAnswerFeedback();
         cancelTutorial();
         const currentFinalScore = typeof finalScoreOverride === 'number' ? finalScoreOverride : score;
         const isComp = mode === 'comp';
         const isDaily = mode === 'daily';
         const isInfinite = mode === 'infinite';
-        const previousBest = isComp
-            ? arenaBestScore
-            : isDaily
-                ? (dailyRecord.bestScore || 0)
-                : isInfinite
-                    ? 0
-                    : (history.taskBestScores?.[view] || 0);
+        const schulteBoard = currentRunRef.current?.board || null;
+        // 要比的分数在写入本局之前读。盘面局比的是这块盘面自己的最高分（iOS STF previousBest / bestScore(for:)）。
+        const previousBest = schulteBoard
+            ? getSchulteBoardBestScore(variantResults, schulteLegacy, schulteBoard)
+            : isComp
+                ? arenaBestScore
+                : isDaily
+                    ? (dailyRecord.bestScore || 0)
+                    : isInfinite
+                        ? 0
+                        : (history.taskBestScores?.[view] || 0);
+        // 盘面局的破纪录要同时满足：清盘、之前有成绩、本局分数更高（iOS STF isImproved）。
+        // 无限盘面一盘接一盘、按返回结算，永远不算破纪录（负责人 2026-11-02 定），只记最高分和次数。
+        const isImproved = schulteBoard
+            ? schulteBoard.recordedMode !== 'infinite' && cleared && previousBest > 0 && currentFinalScore > previousBest
+            : previousBest > 0 && currentFinalScore > previousBest;
+        // 用时精确到 0.1 秒，从时间戳算、扣掉离开的时间，限制在 [0, 时钟] 之内（iOS 2d80be5 GameSession.elapsedPrecise）；
+        // 结算页和成绩库都用 max(0.1, …)。事件里的 durationSeconds 仍是整数秒，周报要读它。
+        const preciseSeconds = schulteBoard && runStatsRef.current.startedAtMs
+            ? Math.max(0.1, Math.min(
+                schulteBoard.recordedMode === 'infinite' ? Infinity : schulteBoard.seconds,
+                Math.max(0, (Date.now() - runStatsRef.current.startedAtMs - awayMsRef.current) / 1000)
+            ))
+            : null;
         const runStats = {
             ...runStatsRef.current,
-            isImproved: previousBest > 0 && currentFinalScore > previousBest,
+            isImproved,
+            ...(schulteBoard ? { board: schulteBoard.slug, cleared, preciseSeconds } : {}),
             // 竞技按「90 − 剩余秒数」计时长，罚掉的秒也算（iOS ArenaSession.elapsedSeconds）。
             durationSeconds: !runStatsRef.current.startedAtMs
                 ? 0
@@ -4384,7 +4449,8 @@ function App() {
         recordRetention('game_complete', {
             sessionId: sessionIdRef.current,
             task: completedTask,
-            mode,
+            mode: schulteBoard ? schulteBoard.recordedMode : mode,
+            ...(schulteBoard ? { variant: schulteBoard.slug } : {}),
             score: currentFinalScore,
             attempts: runStats.attempts,
             correct: runStats.correct,
@@ -4445,9 +4511,24 @@ function App() {
         }
         currentRunRef.current = null;
 
+        if (schulteBoard) {
+            // 每块盘面自己的成绩（iOS recordVariant）。先读存储里最新的那份再合并；存储不可用时沿用内存里的。
+            const nextResults = recordSchulteVariant(readVariantResults() || variantResults, schulteBoard, {
+                seconds: preciseSeconds,
+                score: currentFinalScore,
+                cleared
+            });
+            setVariantResults(nextResults);
+            // 破纪录震一下：短促两下（负责人 2026-11-02 定）。iOS 用系统的 success 通知震动（Haptics.record），
+            // 网页没有对应物，走现有的震动通道；只有安卓有效，iOS Safari 不支持震动。
+            if (isImproved) playSound('record');
+        }
+        // 正序、盲点照旧写旧的「历史最高」；其余盘面两样都不写（iOS best(for:) 只读基础和进阶）。
+        const skipsTaskBest = schulteBoard?.recordedMode === 'variant';
+
         setHistory(prev => {
             // 计算新的最高分
-            const newBestScore = (isComp || isDaily || isInfinite) ? prev.bestScore : Math.max(prev.bestScore, currentFinalScore);
+            const newBestScore = (isComp || isDaily || isInfinite || skipsTaskBest) ? prev.bestScore : Math.max(prev.bestScore, currentFinalScore);
             // 每一档各记各的，互不覆盖。旧的 bestCompScore 留给进阶，
             // 因为改版前的竞技场就是进阶难度，老用户的纪录仍然对得上。
             const isArenaAdvancedRun = isComp && isArenaAdvanced;
@@ -4455,7 +4536,7 @@ function App() {
             const newBestCompScore = isArenaAdvancedRun ? Math.max(prev.bestCompScore || 0, currentFinalScore) : (prev.bestCompScore || 0);
             const newBestCompBasicScore = isArenaBasicRun ? Math.max(prev.bestCompBasicScore || 0, currentFinalScore) : (prev.bestCompBasicScore || 0);
             const taskBestScores = { ...DEFAULT_TASK_BESTS, ...(prev.taskBestScores || {}) };
-            if (!isComp && !isDaily && !isInfinite && Object.prototype.hasOwnProperty.call(DEFAULT_TASK_BESTS, view)) {
+            if (!isComp && !isDaily && !isInfinite && !skipsTaskBest && Object.prototype.hasOwnProperty.call(DEFAULT_TASK_BESTS, view)) {
                 taskBestScores[view] = Math.max(taskBestScores[view] || 0, currentFinalScore);
             }
 
@@ -4998,7 +5079,10 @@ function App() {
                                 {Object.keys(TASK_DATA).map(type => (
                                     <div
                                         key={type}
-                                        onClick={() => startChallenge(type)}
+                                        onClick={() => (type === 'schulte'
+                                            // 舒尔特按当前档位开对应的盘面：基础 5×5 正序、进阶 5×5 盲点、无限。
+                                            ? startSchulteBoard(getSchulteBoard(mode === 'hard' ? 'blind' : mode === 'infinite' ? 'endless' : 'forward'), { origin: 'home' })
+                                            : startChallenge(type))}
                                         data-analytics-task={type}
                                         data-analytics-label={GAME_CLICK_LABELS[type] || getTaskTitle(type)}
                                         className="task-card flex items-center p-5 bg-white rounded-[1.8rem] border border-slate-100 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
@@ -6032,7 +6116,13 @@ function App() {
                 en={isEnglish}
                 title={showInfo ? getTaskTitle(showInfo) : ''}
                 onClose={() => setShowInfo(null)}
-                onStart={() => { const t = showInfo; setShowInfo(null); startChallenge(t); }}
+                onStart={() => {
+                    const t = showInfo;
+                    setShowInfo(null);
+                    // 舒尔特的规则卡开 5×5 正序（iOS GameDetailView 的规则卡「开始」开 forward）。
+                    if (t === 'schulte') startSchulteBoard(getSchulteBoard(mode === 'hard' ? 'blind' : mode === 'infinite' ? 'endless' : 'forward'), { origin: 'home' });
+                    else startChallenge(t);
+                }}
             />
 
             {isGameView && (
@@ -6042,11 +6132,12 @@ function App() {
                             <button onClick={() => {
                                 playSound('tap');
                                 clearAnswerFeedback();
-                                // 教学或交接中离开：直接回首页，不结算、不记录（教学没做完，下次还会出现）。
+                                // 教学或交接中离开：直接回首页（盘面局回到开局的地方），不结算、不记录（教学没做完，下次还会出现）。
                                 if (tutorialRef.current || tutorialHandoff) {
                                     cancelTutorial();
                                     currentRunRef.current = null;
-                                    setView('home');
+                                    if (activeSchulteBoard) leaveSchulteRun();
+                                    else setView('home');
                                     return;
                                 }
                                 // 无限模式返回即结算；密码推理例外：返回键直接退出、不结算不记录（与 iOS 一致），
@@ -6059,7 +6150,8 @@ function App() {
                                     recordRetention('game_abandon', {
                                         sessionId: sessionIdRef.current,
                                         task: currentRunRef.current.task,
-                                        mode,
+                                        mode: activeSchulteBoard ? activeSchulteBoard.recordedMode : mode,
+                                        ...(activeSchulteBoard ? { variant: activeSchulteBoard.slug } : {}),
                                         ...getCurrentRunAnalytics(),
                                         dailyChallengeId: currentRunRef.current.dailyChallengeId || null,
                                         dailyInstanceId: currentRunRef.current.dailyInstanceId || null,
@@ -6071,13 +6163,16 @@ function App() {
                                     });
                                     currentRunRef.current = null;
                                 }
-                                setView('home');
+                                // 从舒尔特页开的局回到舒尔特页（iOS 关掉本局的全屏层，下面就是那一页）。
+                                if (activeSchulteBoard) leaveSchulteRun();
+                                else setView('home');
                             }} className="game-back-button text-slate-900" aria-label={isEnglish ? 'Back' : '返回'}><Icon name="chevron-left" className="w-[18px] h-[18px]" /></button>
                         </div>
                         <div className="text-center">
                             {/* 模式小标题：与 iOS 1.0.3 各 Flow 的顶栏一致（e86883e）——普通训练（基础 / 进阶）不再写「训练」，
                                 只有无限、每日挑战和竞技保留；密码推理任何模式都不写。不转大写，各自的颜色。 */}
-                            {view !== 'passwordlogic' && (mode === 'daily' || mode === 'infinite' || mode === 'comp') && (
+                            {/* 舒尔特盘面局（含无限盘面）不写眉标：标题已经是盘面全名（iOS STF topbarEyebrow 只给关卡和每日挑战）。 */}
+                            {view !== 'passwordlogic' && !(view === 'schulte' && activeSchulteBoard) && (mode === 'daily' || mode === 'infinite' || mode === 'comp') && (
                                 <div className={`game-topbar-eyebrow ${mode === 'daily' ? 'is-daily' : mode === 'infinite' ? 'is-endless' : 'is-training'}`}>{
                                     mode === 'comp'
                                         ? (isEnglish ? 'ARENA MODE' : '竞技模式')
@@ -6087,9 +6182,17 @@ function App() {
                                 }</div>
                             )}
                             {/* 标题 17、历史最高 12（iOS 38c435f）；竞技顶栏 iOS 没改，仍是 14。 */}
-                            <div className={`game-topbar-title ${mode === 'comp' ? 'is-arena' : ''}`}>{mode === 'comp' ? ui.arenaShortTitle : getTaskTitle(view)}</div>
+                            {/* 舒尔特盘面局的标题是盘面全名，例如「5×5 先偶后奇」、无限盘面叫「无限」（iOS STF topbarTitle）。 */}
+                            <div className={`game-topbar-title ${mode === 'comp' ? 'is-arena' : ''}`}>{mode === 'comp' ? ui.arenaShortTitle : (view === 'schulte' && activeSchulteBoard) ? getSchulteBoardName(activeSchulteBoard, isEnglish) : getTaskTitle(view)}</div>
+                            {/* 舒尔特盘面局：第三行是这块盘面自己的最高分，无限盘面也显示；还没有成绩时写「还没有成绩」（iOS STF bestLine）。 */}
+                            {view === 'schulte' && activeSchulteBoard && (() => {
+                                const boardBest = getSchulteBoardBestScore(variantResults, schulteLegacy, activeSchulteBoard);
+                                return (
+                                    <div className="game-topbar-best font-black text-slate-400 font-mono whitespace-pre">{boardBest > 0 ? `${ui.taskBest}  ${boardBest}` : (isEnglish ? 'No score yet' : '还没有成绩')}</div>
+                                );
+                            })()}
                             {/* 历史最高：只在基础/进阶显示，标签和数字之间两个空格；密码推理顶栏没有这一行（iOS 相同）。 */}
-                            {mode !== 'comp' && mode !== 'daily' && mode !== 'infinite' && view !== 'passwordlogic' && TASK_DATA[view] && (
+                            {!(view === 'schulte' && activeSchulteBoard) && mode !== 'comp' && mode !== 'daily' && mode !== 'infinite' && view !== 'passwordlogic' && TASK_DATA[view] && (
                                 <div className="game-topbar-best font-black text-slate-400 font-mono whitespace-pre">{`${ui.taskBest}  ${history.taskBestScores?.[view] || 0}`}</div>
                             )}
                         </div>
@@ -6136,14 +6239,18 @@ function App() {
                                         : (isEnglish ? `Tap the numbers in order from 1 to 25. Next, find ${schulte.next}.` : `按 1 → 25 的顺序，依次点击数字。接着找到 ${schulte.next}`)
                                 }</div>
                             )}
-                            <div className={`grid gap-1.5 w-full max-w-sm aspect-square ${schulte.cols === 6 ? 'grid-cols-6' : 'grid-cols-5'}`}>
+                            <div className={`grid gap-1.5 w-full max-w-sm aspect-square ${SCHULTE_GRID_COLS[schulte.cols] || 'grid-cols-5'}`}>
                                 {schulte.grid.map(n => {
                                     // 核心逻辑：判断当前格子的状态
                                     const schulteSequence = schulte.sequence || Array.from({ length: 25 }, (_, i) => i + 1);
                                     const currentIndex = schulte.index || 0;
                                     const clickedNumbers = new Set(schulteSequence.slice(0, currentIndex));
                                     const isClicked = clickedNumbers.has(n); // 是否已经点过了
-                                    const isHardMode = isChallengeDifficulty; // 是否是进阶或挑战模式
+                                    // 盲点：盘面局由盘面自己决定（iOS STF usesBlindSelection 读 variant.blind），所以倒序、字母、
+                                    // 先偶后奇这些盘面不是盲点；没有盘面时照旧——进阶、每日（进阶变体）和进阶竞技用盲点，基础竞技照常标记。
+                                    const usesBlindSelection = activeSchulteBoard
+                                        ? activeSchulteBoard.blind
+                                        : (mode === 'hard' || mode === 'daily' || (mode === 'comp' && isArenaAdvanced));
 
                                     return (
                                         <button
@@ -6172,7 +6279,7 @@ function App() {
                                                     if (currentIndex >= schulteSequence.length - 1) {
                                                         const finalScore = mode === 'infinite' ? score + 10 : score + 10 + (timeLeft * 10);
                                                         setScore(finalScore);
-                                                        mode === 'comp' ? switchArenaTask() : mode === 'infinite' ? initGameCore('schulte') : endGame(finalScore);
+                                                        mode === 'comp' ? switchArenaTask() : mode === 'infinite' ? initGameCore('schulte') : endGame(finalScore, { cleared: true });
                                                     } else {
                                                         setSchulte(p => {
                                                             const sequence = p.sequence || Array.from({ length: 25 }, (_, i) => i + 1);
@@ -6185,8 +6292,8 @@ function App() {
                                                     handleArenaError(); // 点错了闪红光
                                                 }
                                             }}
-                                            className={`schulte-cell flex items-center justify-center font-bold ${schulte.cols === 6 ? 'text-sm' : 'text-lg'} rounded-lg border transition-all ${tutorialTask === 'schulte' && n === schulte.next && (schulte.index || 0) < 5 ? 'is-tutorial-target' : ''} ${controlPulse === `schulte-${n}` ? `is-tap-pulsing ${controlPulseIsError ? 'is-tap-error' : ''}` : ''}
-    ${(isClicked && (mode === 'hard' || mode === 'daily' || (mode === 'comp' && isArenaAdvanced))) // 进阶、每日（进阶变体）和进阶竞技用盲点：已点格不标记；基础竞技照常标记
+                                            className={`schulte-cell flex items-center justify-center font-bold ${SCHULTE_CELL_TEXT[schulte.cols] || 'text-lg'} rounded-lg border transition-all ${tutorialTask === 'schulte' && n === schulte.next && (schulte.index || 0) < 5 ? 'is-tutorial-target' : ''} ${controlPulse === `schulte-${n}` ? `is-tap-pulsing ${controlPulseIsError ? 'is-tap-error' : ''}` : ''}
+    ${(isClicked && usesBlindSelection) // 盲点：已点格不标记
                                                     ? 'bg-white text-slate-900 border-slate-100 shadow-sm' // 只有进阶模式是“盲点”
                                                     : (isClicked
                                                         // 竞技和基础模式：点过的格子只有底色是 20% 的靛蓝，数字不跟着变淡（与 iOS 一致）
@@ -6617,6 +6724,10 @@ function App() {
                     : 0;
                 const resultDuration = lastRunStats?.durationSeconds || 0;
                 const showCompletionTime = lastRunStats?.task === 'schulte';
+                // 舒尔特训练局的用时写一位小数（iOS 2d80be5 TimeCopy）；每日挑战结算在 iOS 仍是整数（STF:91），照旧。
+                const resultTimeText = !isDailyResult && typeof lastRunStats?.preciseSeconds === 'number'
+                    ? `${formatSchulteSeconds(lastRunStats.preciseSeconds)}s`
+                    : `${resultDuration}s`;
                 // 密码推理一题 40~100 分，套不上按几百分写的五档评语，
                 // 也没有「正确率」可言——它的指标和 iOS 结果页保持一致。
                 const isCodeLogicResult = lastRunStats?.task === 'passwordlogic';
@@ -6714,7 +6825,7 @@ function App() {
                                     </div>
                                     <div className="result-metric">
                                         <span>{showCompletionTime ? ui.resultTime : ui.resultCorrect}</span>
-                                        <strong>{showCompletionTime ? `${resultDuration}s` : `${lastRunStats?.correct || 0}${ui.resultTimes}`}</strong>
+                                        <strong>{showCompletionTime ? resultTimeText : `${lastRunStats?.correct || 0}${ui.resultTimes}`}</strong>
                                     </div>
                                     <div className="result-metric">
                                         <span>{ui.resultMistakes}</span>
@@ -6757,7 +6868,12 @@ function App() {
                                 <button onClick={() => setDailyGateOpen(true)} className="w-full py-4 bg-white border border-slate-200 text-slate-700 rounded-2xl font-black">{ui.dailyPracticeAgain}</button>
                             </div>
                         ) : (
-                            <button onClick={() => { playSound('tap'); setView('home'); }} className="w-full max-w-sm py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg">{isCodeLogicTraining ? (isEnglish ? 'Back to Training' : '返回训练') : ui.backHome}</button>
+                            <button onClick={() => {
+                                playSound('tap');
+                                // 舒尔特盘面局回到开局的地方：从舒尔特页开的回舒尔特页，首玩引导开的回首页（iOS 关掉本局的全屏层）。
+                                if (activeSchulteBoard) leaveSchulteRun();
+                                else setView('home');
+                            }} className="w-full max-w-sm py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg">{isCodeLogicTraining ? (isEnglish ? 'Back to Training' : '返回训练') : ui.backHome}</button>
                         )}
                     </div>
                 );
