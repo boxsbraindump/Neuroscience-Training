@@ -4586,6 +4586,11 @@ function App() {
             dailyDuration: currentRunRef.current?.dailyDuration || null,
             durationSeconds: runStats.durationSeconds
         });
+        // 破纪录（每日挑战除外）时发个信号。网页自己不用；安卓包的 android-review.js 靠它决定何时请玩家去 TapTap 评价，
+        // iOS 1.0.4 在同一时刻用系统评分弹窗（负责人 2026-11-02 定）。放在 game_complete 之后，今天这局已经算进「玩过的日子」。
+        if (isImproved && !isDaily) {
+            try { window.dispatchEvent(new CustomEvent('pfl:personal-best', { detail: { task: completedTask } })); } catch (error) { }
+        }
 
         if (isDaily) {
             const day = currentRunRef.current?.dailyDay || getDayKey();
