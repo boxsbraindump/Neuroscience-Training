@@ -33,7 +33,7 @@ const LatexFmt = ({ text }) => {
 
 const UI_TEXT = {
     zh: {
-        appTitle: "前额叶实验室 6.2.1",
+        appTitle: "前额叶实验室 1.0.3",
         bestSynced: "历史最高 (已同步)",
         normal: "基础",
         hard: "进阶",
@@ -46,7 +46,7 @@ const UI_TEXT = {
         arenaShortTitle: "全能竞技",
         arenaSubtitle: "混合：舒尔特方格 / Stroop反应 / 快速SET / N-Back / 神经元计数",
         updateTitle: "实验室更新公告",
-        updateVersion: "Version 6.2.1",
+        updateVersion: "版本 1.0.3",
         updateButton: "知道了，这就去练脑",
         startTraining: "开始训练",
         firstPlayKicker: "\u7b2c\u4e00\u6b21\u6765\uff1f",
@@ -142,7 +142,7 @@ const UI_TEXT = {
         backHome: "返回大厅"
     },
     en: {
-        appTitle: "Prefrontal Lab 6.2.1",
+        appTitle: "Prefrontal Lab 1.0.3",
         bestSynced: "Personal Best",
         normal: "Basic",
         hard: "Advanced",
@@ -155,7 +155,7 @@ const UI_TEXT = {
         arenaShortTitle: "Arena",
         arenaSubtitle: "Mixed training: Schulte Grid / Stroop / SET / N-Back / Neuron Counting",
         updateTitle: "Lab Update",
-        updateVersion: "Version 6.2.1",
+        updateVersion: "Version 1.0.3",
         updateButton: "Got it, start training",
         startTraining: "Start Training",
         firstPlayKicker: "New here?",
@@ -252,18 +252,23 @@ const UI_TEXT = {
     }
 };
 
+// 1.0.3 的公告（三端统一版本号，2026-11-02 负责人定）。措辞照 iOS 1.0.3 的 UpdateNoteCopy（WebsiteTrainingHome.swift:1186），
+// 去掉两条不适用于网页和安卓的：「全部免费」（网页和安卓从来没收过费，写了反而像以前收过）、
+// 「跟随系统字号」（网页没有这个设置），换成这次网页真正做了的「需要读的字调大了」。
+const UPDATE_NOTE_VERSION = '1.0.3';
+const UPDATE_NOTE_STORAGE_KEY = `prefrontal_lab_v${UPDATE_NOTE_VERSION}_update`;
 const UPDATE_LINES = {
     zh: [
-        "新增深色模式：在「我的 → 外观」里选择，可以跟随系统，也可以固定用浅色或深色。",
-        "深色不是把颜色反过来那么简单：卡片、文字、描边各有各的深色值，而游戏本身的颜色（Stroop 的字色、SET 的卡面、神经元的图形）一律不变，免得影响判断。",
-        "舒尔特方格点错时，被点的那一格现在会闪红——以前只有顶栏的计时器会变色，而你的眼睛正盯着格子。",
-        "震动反馈收敛为只在答对和答错时出现，并且关掉音效后依然有效（取决于设备与浏览器是否支持）。"
+        "舒尔特方格有了自己的页面，22 种盘面。先选尺寸（3×3 / 4×4 / 5×5 / 6×6），再选玩法：正序、倒序、先偶后奇、先奇后偶、盲点，外加字母盘和无限模式。倒序、字母和 6×6 以前只有每日挑战抽到才玩得上。",
+        "新增 3×3 与 4×4。棋盘上的数字是跟着格子大小走的，所以小盘面不只是更简单，也是更看得清。",
+        "一局打完会推荐下一块盘面；游戏顶部现在写的是当前玩法和这块盘面自己的最高分，不再是所有盘面共用一个数字。用时记到 0.1 秒。",
+        "需要读的字调大了：规则说明、每日挑战的提示和训练卡片下面那行小字都放大了，以前这些字在手机上要眯着眼看。"
     ],
     en: [
-        "Added dark mode: choose it under My Lab → Appearance, either following the system or fixed to light or dark.",
-        "Dark mode is not an inversion: surfaces, text and strokes each get their own dark value, while the game colours themselves — Stroop's ink, the SET cards, the Neuron Counting shapes — do not move, because they are the answer.",
-        "A wrong tap in the Schulte Grid now flashes the cell you tapped. Until now only the timer at the top changed colour, while your eyes were on the grid.",
-        "Haptics are now limited to correct and wrong answers, and they keep working when sound is off (where the device and browser support them)."
+        "Schulte Grid has a page of its own, with 22 boards. Pick a size — 3×3, 4×4, 5×5, 6×6 — then a way to play it: forward, reverse, evens first, odds first, or blind, plus the letters board and Endless. Reverse, letters and the 6×6 used to turn up only when the Daily Challenge picked them.",
+        "New 3×3 and 4×4 boards. A board's digits are sized from its cells, so a small board is not only easier — it is more legible.",
+        "After a round you are offered the next board to try, and the in-game header now names the board you are on and shows that board's own best, rather than one number shared by all of them. Times are kept to a tenth of a second.",
+        "Text you have to read is larger: rules, the Daily Challenge tip and the line under each training card."
     ]
 };
 
@@ -2821,12 +2826,12 @@ function App() {
         const shouldPreviewUpdate = new URLSearchParams(window.location.search).has('showUpdate');
         if (shouldPreviewUpdate) return true;
         try {
-            if (localStorage.getItem('prefrontal_lab_v6.2.1_update')) return false;
+            if (localStorage.getItem(UPDATE_NOTE_STORAGE_KEY)) return false;
             const isReturningPlayer = ['brain_train_pro_v5', 'brain_train_pro_data', DAILY_STORAGE_KEY, RETENTION_STORAGE_KEY]
                 .some(key => localStorage.getItem(key) !== null)
                 || Object.keys(localStorage).some(key => /^prefrontal_lab_v[\d.]+_update$/.test(key));
             if (!isReturningPlayer) {
-                localStorage.setItem('prefrontal_lab_v6.2.1_update', 'true');
+                localStorage.setItem(UPDATE_NOTE_STORAGE_KEY, 'true');
                 return false;
             }
             return true;
@@ -2836,7 +2841,7 @@ function App() {
     const closeUpdateNote = () => {
         playSound('tap');
         // 玩家点击按钮后，在本地存入 'true'，下次刷新就不会再弹了
-        localStorage.setItem('prefrontal_lab_v6.2.1_update', 'true');
+        localStorage.setItem(UPDATE_NOTE_STORAGE_KEY, 'true');
         setShowUpdateNote(false);
     };
 
@@ -6316,13 +6321,14 @@ function App() {
             {/* 更新说明弹窗 */}
             {showUpdateNote && !urlParams.has('suppressUpdate') && view !== 'analytics' && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 backdrop-blur-xl bg-slate-900/60 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-sm max-h-[calc(100dvh-3rem)] rounded-[2.5rem] p-8 shadow-2xl animate-pop-center relative overflow-y-auto overscroll-contain">
+                    {/* 弹窗固定大小，内容多时只在中间那段里滚，标题和按钮始终可见（负责人 2026-11-02：iOS 的公告在小屏上滑不到按钮，玩家会被卡住）。 */}
+                    <div className="update-note-card bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-pop-center relative flex flex-col overflow-hidden">
                         {/* 背景装饰图层 */}
                         <div className="absolute top-0 right-0 p-4 opacity-5">
                             <Icon name="wrench" className="w-20 h-20" />
                         </div>
 
-                        <div className="flex items-center gap-3 mb-6">
+                        <div className="flex items-center gap-3 mb-6 shrink-0">
                             <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
                                 <Icon name="rocket" className="w-6 h-6" />
                             </div>
@@ -6332,7 +6338,7 @@ function App() {
                             </div>
                         </div>
 
-                        <div className="space-y-4 mb-8">
+                        <div className="update-note-lines space-y-4 mb-6 flex-1 min-h-0 overflow-y-auto overscroll-contain">
                             {UPDATE_LINES[lang].map((text, i) => (
                                 <div key={i} className="flex items-start gap-3">
                                     <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
@@ -6343,7 +6349,7 @@ function App() {
 
                         <button
                             onClick={closeUpdateNote}
-                            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform"
+                            className="w-full shrink-0 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform"
                         >
                             {ui.updateButton}
                         </button>

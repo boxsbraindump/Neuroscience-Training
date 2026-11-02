@@ -128,3 +128,8 @@ html.theme-dark .my-page-hero {
 .weekly-report-back { color: #0f172a; }
 html.theme-dark .training-records-topbar .settings-page-back,
 html.theme-dark .weekly-report-back { color: #f1f5f9; }
+
+/* 1.0.3：更新公告固定大小（最高 560，屏幕再矮就留出上下 3rem），标题和按钮不动，只有中间的条目在弹窗里滚。
+   负责人 2026-11-02 定：保留网页的公告样式（模糊背景、扳手水印），并修掉 iOS 公告在小屏上滑不到按钮的问题。 */
+.update-note-card { max-height: min(560px, calc(100dvh - 6rem)); }
+.update-note-lines { scrollbar-width: thin; }
