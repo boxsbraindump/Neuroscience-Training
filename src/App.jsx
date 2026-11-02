@@ -2108,6 +2108,250 @@ const ARENA_COPY = {
     }
 };
 
+// ==========================================
+// 舒尔特盘面（1.0.3 移植，参照 iOS tag ios-1.0.3 的 PlayVariant.swift、PlayerProfile.swift、GameDetailView.swift，
+// 外加 2d80be5 的 0.1 秒用时）。这是 iOS 先做的功能，以 iOS 为准。
+// ==========================================
+// 22 块盘面，顺序、slug、边长、时钟与 iOS PlayVariantPlan.schulte 逐字一致。slug 就是成绩库的键，以后不能改名。
+// recordedMode 用网页自己的档位名：5×5 正序记为基础（normal）、5×5 盲点记为进阶（hard）、无限记为无限（infinite），
+// 和改版前这三档的旧纪录接得上；其余记为 variant，不进旧的「历史最高」（taskBestScores / bestScore），
+// 因为 6×6 和 3×3 不是同一块盘面，一个最高分不能同时代表两者。
+const SCHULTE_BOARDS = [
+    // 正序
+    { slug: 'grid3', side: 3, order: 'forward', blind: false, seconds: 30, recordedMode: 'variant' },
+    { slug: 'grid4', side: 4, order: 'forward', blind: false, seconds: 45, recordedMode: 'variant' },
+    { slug: 'forward', side: 5, order: 'forward', blind: false, seconds: 60, recordedMode: 'normal' },
+    { slug: 'grid6', side: 6, order: 'forward', blind: false, seconds: 120, recordedMode: 'variant' },
+    // 倒序：6×6 倒序封顶 120 秒，不按 1.5 倍给 180（iOS 7b059d7）
+    { slug: 'reverse3', side: 3, order: 'reverse', blind: false, seconds: 45, recordedMode: 'variant' },
+    { slug: 'reverse4', side: 4, order: 'reverse', blind: false, seconds: 70, recordedMode: 'variant' },
+    { slug: 'reverse', side: 5, order: 'reverse', blind: false, seconds: 90, recordedMode: 'variant' },
+    { slug: 'reverse6', side: 6, order: 'reverse', blind: false, seconds: 120, recordedMode: 'variant' },
+    // 先偶后奇：时钟同倒序
+    { slug: 'evens3', side: 3, order: 'evens', blind: false, seconds: 45, recordedMode: 'variant' },
+    { slug: 'evens4', side: 4, order: 'evens', blind: false, seconds: 70, recordedMode: 'variant' },
+    { slug: 'evens5', side: 5, order: 'evens', blind: false, seconds: 90, recordedMode: 'variant' },
+    { slug: 'evens6', side: 6, order: 'evens', blind: false, seconds: 120, recordedMode: 'variant' },
+    // 先奇后偶
+    { slug: 'odds3', side: 3, order: 'odds', blind: false, seconds: 45, recordedMode: 'variant' },
+    { slug: 'odds4', side: 4, order: 'odds', blind: false, seconds: 70, recordedMode: 'variant' },
+    { slug: 'odds5', side: 5, order: 'odds', blind: false, seconds: 90, recordedMode: 'variant' },
+    { slug: 'odds6', side: 6, order: 'odds', blind: false, seconds: 120, recordedMode: 'variant' },
+    // 盲点：5×5 仍是一直以来的进阶档
+    { slug: 'blind3', side: 3, order: 'forward', blind: true, seconds: 30, recordedMode: 'variant' },
+    { slug: 'blind4', side: 4, order: 'forward', blind: true, seconds: 45, recordedMode: 'variant' },
+    { slug: 'blind', side: 5, order: 'forward', blind: true, seconds: 60, recordedMode: 'hard' },
+    { slug: 'blind6', side: 6, order: 'forward', blind: true, seconds: 120, recordedMode: 'variant' },
+    // 表外：字母只能是 25 格（A–Y）；无限没有时钟
+    { slug: 'letters', side: 5, order: 'letters', blind: false, seconds: 90, recordedMode: 'variant' },
+    { slug: 'endless', side: 5, order: 'forward', blind: false, seconds: 0, recordedMode: 'infinite' }
+];
+const SCHULTE_BOARD_BY_SLUG = SCHULTE_BOARDS.reduce((map, board) => ({ ...map, [board.slug]: board }), {});
+const SCHULTE_EDGES = [3, 4, 5, 6];
+const getSchulteBoard = (slug) => SCHULTE_BOARD_BY_SLUG[slug] || null;
+const getSchulteBoardId = (board) => `schulte-${board.slug}`;
+// 热身盘（iOS isWarmUp）：玩过任意一块 5×5 以上的盘面后，不再推荐 3×3、4×4。
+const isSchulteWarmUp = (board) => board.side <= 4;
+// 三块旧档位改名而来的盘面（iOS isExistingTier）：它们有改版前的旧纪录。
+const isSchulteExistingTier = (board) => board.recordedMode !== 'variant';
+// 本局按哪一档跑：variant 盘面按基础的规则跑（有时钟、不是无限），盲点由盘面自己的 blind 决定。
+const getSchulteRunMode = (board) => (board.recordedMode === 'variant' ? 'normal' : board.recordedMode);
+
+// 盘面所在的那一列（iOS PlayVariant.style）。字母和无限不属于任何一列。
+const getSchulteBoardStyle = (board) => {
+    if (board.slug === 'letters' || board.slug === 'endless') return null;
+    if (board.blind) return 'blind';
+    if (board.order === 'reverse' || board.order === 'evens' || board.order === 'odds') return board.order;
+    return 'forward';
+};
+// 玩法名（iOS BoardOrder.label；盲点的名字在 VariantCopy.style）。
+const SCHULTE_STYLE_LABELS = {
+    forward: { zh: '正序', en: 'Forward' },
+    reverse: { zh: '倒序', en: 'Reverse' },
+    evens: { zh: '先偶后奇', en: 'Evens first' },
+    odds: { zh: '先奇后偶', en: 'Odds first' },
+    blind: { zh: '盲点', en: 'Blind' }
+};
+// 用时一律写一位小数，28 秒也写成「28.0」（iOS TimeCopy）。存的是完整精度，只在显示时取一位。
+const formatSchulteSeconds = (value) => Number(value).toFixed(1);
+// 简称：盘面卡上用，尺寸已经由上面的切换给出（iOS VariantCopy.shortName）。
+const getSchulteShortName = (board, en) => {
+    if (board.slug === 'letters') return en ? 'Letters' : '字母';
+    if (board.slug === 'endless') return en ? 'Endless' : '无限';
+    return SCHULTE_STYLE_LABELS[getSchulteBoardStyle(board) || 'forward'][en ? 'en' : 'zh'];
+};
+// 全名：开始栏、推荐位、「接着练」、局内顶栏用，例如「5×5 先偶后奇」（iOS VariantCopy.name）。
+const getSchulteBoardName = (board, en) => {
+    const style = getSchulteBoardStyle(board);
+    if (!style) return getSchulteShortName(board, en);
+    return `${board.side}×${board.side} ${SCHULTE_STYLE_LABELS[style][en ? 'en' : 'zh']}`;
+};
+// 一句话规则（iOS VariantCopy.rule，文案逐字照抄）。
+const getSchulteBoardRule = (board, en) => {
+    const n = board.side * board.side;
+    if (board.slug === 'letters') return en ? 'Letters instead of numbers, A through Y' : '数字换成字母，从 A 点到 Y';
+    if (board.slug === 'endless') return en ? 'No clock — one board after another' : '没有时限，一盘接一盘';
+    switch (getSchulteBoardStyle(board)) {
+        case 'reverse': return en ? `${n} cells, from ${n} back down to 1` : `${n} 格，从 ${n} 倒着点回 1`;
+        case 'evens': return en ? `${n} cells: every even number, then every odd one` : `${n} 格，先把偶数点完，再从 1 点奇数`;
+        case 'odds': return en ? `${n} cells: every odd number, then every even one` : `${n} 格，先把奇数点完，再从 2 点偶数`;
+        case 'blind': return en ? `${n} cells; a tapped cell looks untouched — you have to remember` : `${n} 格，点过的格子不留标记，得自己记住`;
+        default: return en ? `${n} cells, in order from 1 to ${n}` : `${n} 格，按 1 到 ${n} 的顺序点完`;
+    }
+};
+// 推荐语：推荐位和结算页「接着练」共用，同一块盘面不会因为两个不同的理由被推荐（iOS VariantCopy.suggestion）。
+const getSchulteSuggestionLine = (board, result, played, en) => {
+    const label = getSchulteBoardName(board, en);
+    if (!played) return en ? `${label} — never played` : `${label} · 还没玩过`;
+    const best = typeof result?.bestSeconds === 'number' ? result.bestSeconds : null;
+    const last = typeof result?.lastSeconds === 'number' ? result.lastSeconds : null;
+    if (best !== null && last !== null && last > best) {
+        const gap = formatSchulteSeconds(last - best);
+        return en ? `${label} — ${gap}s off your best` : `${label} · 离你的纪录差 ${gap} 秒`;
+    }
+    return en ? `${label} — ${getSchulteBoardRule(board, true)}` : `${label} · ${getSchulteBoardRule(board, false)}`;
+};
+
+// ---- 每块盘面的成绩库（iOS PlayerProfile.variantResults，键 pfl_variant_results） ----
+// 结构同 iOS：{ "schulte-<slug>": { bestSeconds, bestScore, lastSeconds, plays, lastPlayed } }。
+// 秒数存完整精度（iOS 2d80be5 起是 Double）；lastPlayed 存 ISO 字符串；没有的值存 null。
+// 和留存事件分开存：事件只保留最近 500 条，会被挤掉；这里回答的是「这一块盘面你练得怎么样」。
+const VARIANT_RESULTS_STORAGE_KEY = 'pfl_variant_results';
+// 返回 null 表示存储不可用（这时调用方沿用内存里的那份），{} 表示还没有成绩。
+const readVariantResults = () => {
+    let raw = null;
+    try { raw = localStorage.getItem(VARIANT_RESULTS_STORAGE_KEY); } catch (error) { return null; }
+    if (!raw) return {};
+    try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    } catch (error) { }
+    // 读不懂的存档先原样备份，再按空的处理，免得下一次写入把它悄悄覆盖掉。
+    try { localStorage.setItem(`${VARIANT_RESULTS_STORAGE_KEY}_recovery_backup`, raw); } catch (backupError) { }
+    return {};
+};
+const getSchulteResult = (results, board) => {
+    const result = results?.[getSchulteBoardId(board)];
+    return result && typeof result === 'object' ? result : null;
+};
+// 记一局（iOS recordVariant）：每进一次结算页 plays + 1、更新 lastPlayed、bestScore 取大；
+// 只有清盘才写 lastSeconds，并让 bestSeconds 取小。慢的一局永远拿不走纪录。中途按返回不进结算页，不记。
+const recordSchulteVariant = (results, board, { seconds, score, cleared }) => {
+    const previous = getSchulteResult(results, board) || {};
+    const next = {
+        ...previous,
+        bestSeconds: typeof previous.bestSeconds === 'number' ? previous.bestSeconds : null,
+        bestScore: Math.max(Number(previous.bestScore) || 0, Number(score) || 0),
+        lastSeconds: typeof previous.lastSeconds === 'number' ? previous.lastSeconds : null,
+        plays: (Number(previous.plays) || 0) + 1,
+        lastPlayed: new Date().toISOString()
+    };
+    if (cleared && Number.isFinite(seconds)) {
+        next.lastSeconds = seconds;
+        next.bestSeconds = next.bestSeconds === null ? seconds : Math.min(next.bestSeconds, seconds);
+    }
+    const nextResults = { ...(results || {}), [getSchulteBoardId(board)]: next };
+    try { localStorage.setItem(VARIANT_RESULTS_STORAGE_KEY, JSON.stringify(nextResults)); } catch (error) { }
+    return nextResults;
+};
+
+// ---- 老玩家的旧纪录：首次启动新版本时拍一次快照（键 pfl_variant_legacy_v1） ----
+// iOS 让 forward / blind / endless 三块盘面每次都拿 records 的全量历史比一遍（PlayerProfile.hasPlayed、
+// bestScore(for:)，GameDetailView.bestSeconds）。网页没有全量历史：留存事件只留最近 500 条，点击和切页也算在里面，
+// 老对局会被慢慢挤掉。所以只在第一次打开新版本时读一次，之后只读快照、不再重扫。
+// 快照单独存，不混进 pfl_variant_results：那边的 plays 决定开始栏写「之前练过」还是「玩过 n 次」。
+const VARIANT_LEGACY_STORAGE_KEY = 'pfl_variant_legacy_v1';
+const SCHULTE_LEGACY_TIERS = { forward: 'normal', blind: 'hard', endless: 'infinite' };
+const buildSchulteLegacySnapshot = () => {
+    let events = [];
+    try {
+        const stored = JSON.parse(localStorage.getItem(RETENTION_STORAGE_KEY) || 'null');
+        if (stored && Array.isArray(stored.events)) events = stored.events;
+    } catch (error) { }
+    let mergedBest = 0;
+    try {
+        const v5 = JSON.parse(localStorage.getItem('brain_train_pro_v5') || 'null');
+        mergedBest = Math.max(0, Number(v5?.taskBestScores?.schulte) || 0);
+    } catch (error) { }
+    const boards = {};
+    Object.entries(SCHULTE_LEGACY_TIERS).forEach(([slug, mode]) => {
+        // 只看改版前的训练局：每日挑战记为 task 'daily'、竞技记为 'arena'，都不会混进来；新版本的盘面局带 variant 字段。
+        const runs = events.filter(event => event && event.name === 'game_complete' && event.task === 'schulte' && event.mode === mode && !event.variant);
+        const scores = runs.map(event => Number(event.score)).filter(Number.isFinite);
+        // 最好用时只取清盘局：清盘至少 25 格 × 10 分，没清完的局最多 240 分，所以 score >= 250 就是清盘（iOS 同理）。
+        // 无限盘面看的是分数，不取用时（iOS bestSeconds 对无限直接跳过旧纪录）。
+        const clearedSeconds = slug === 'endless' ? [] : runs
+            .filter(event => Number(event.score) >= 250 && Number(event.durationSeconds) > 0)
+            .map(event => Number(event.durationSeconds));
+        boards[slug] = {
+            played: runs.length > 0,
+            bestScore: scores.length ? Math.max(0, ...scores) : 0,
+            bestSeconds: clearedSeconds.length ? Math.min(...clearedSeconds) : null
+        };
+    });
+    // 负责人 2026-11-02 定：5×5 正序的旧最高分取「正序事件里的最高分」和合并最高分 taskBestScores.schulte 中较大的一个，
+    // 事件被挤掉的老玩家最高分不会变低，也不会在低于真实纪录的分数上弹「破纪录」。代价是一部分进阶分数算给了正序。
+    // 「玩过」同理。盲点和无限不做这一步。
+    boards.forward.bestScore = Math.max(boards.forward.bestScore, mergedBest);
+    boards.forward.played = boards.forward.played || mergedBest > 0;
+    return { version: 1, createdAt: new Date().toISOString(), boards };
+};
+const readSchulteLegacySnapshot = () => {
+    try {
+        const stored = JSON.parse(localStorage.getItem(VARIANT_LEGACY_STORAGE_KEY) || 'null');
+        if (stored && stored.boards && typeof stored.boards === 'object') return stored;
+    } catch (error) { }
+    const snapshot = buildSchulteLegacySnapshot();
+    try { localStorage.setItem(VARIANT_LEGACY_STORAGE_KEY, JSON.stringify(snapshot)); } catch (error) { }
+    return snapshot;
+};
+const getSchulteLegacy = (legacy, board) => (isSchulteExistingTier(board) ? legacy?.boards?.[board.slug] || null : null);
+
+// 这块盘面玩过没有（iOS hasPlayed）：新库里有，或者旧档位有旧纪录。
+const hasPlayedSchulteBoard = (results, legacy, board) => !!getSchulteResult(results, board) || !!getSchulteLegacy(legacy, board)?.played;
+// 这块盘面自己的最高分（iOS bestScore(for:)）：新库和旧纪录比，取高的。
+const getSchulteBoardBestScore = (results, legacy, board) => Math.max(
+    Number(getSchulteResult(results, board)?.bestScore) || 0,
+    Number(getSchulteLegacy(legacy, board)?.bestScore) || 0
+);
+// 这块盘面的最好用时（iOS GameDetailView.bestSeconds）：两边比，不偏向任何一边；无限盘面不看旧纪录。
+const getSchulteBoardBestSeconds = (results, legacy, board) => {
+    const stored = getSchulteResult(results, board)?.bestSeconds;
+    const candidates = [typeof stored === 'number' ? stored : null];
+    if (board.recordedMode !== 'infinite') {
+        const old = getSchulteLegacy(legacy, board)?.bestSeconds;
+        candidates.push(typeof old === 'number' ? old : null);
+    }
+    const values = candidates.filter(value => value !== null);
+    return values.length ? Math.min(...values) : null;
+};
+// 推荐哪一块（iOS suggestedVariant）：先去掉刚玩完的那块；玩过任意一块非热身盘面就不再推荐 3×3、4×4；
+// 有没玩过的就推荐表里第一块没玩过的；否则推荐「上次比最好慢、且差得最少」的那块；再否则推荐最久没玩的那块。
+const suggestSchulteBoard = (results, legacy, excludingSlug = null) => {
+    let all = SCHULTE_BOARDS.filter(board => board.slug !== excludingSlug);
+    if (all.some(board => !isSchulteWarmUp(board) && hasPlayedSchulteBoard(results, legacy, board))) {
+        all = all.filter(board => !isSchulteWarmUp(board));
+    }
+    if (!all.length) return null;
+    const fresh = all.find(board => !hasPlayedSchulteBoard(results, legacy, board));
+    if (fresh) return fresh;
+    let closest = null;
+    all.forEach(board => {
+        const result = getSchulteResult(results, board);
+        const best = result?.bestSeconds;
+        const last = result?.lastSeconds;
+        if (typeof best !== 'number' || typeof last !== 'number' || !(last > best)) return;
+        const gap = (last - best) / Math.max(1, best);
+        if (!closest || gap < closest.gap) closest = { board, gap };
+    });
+    if (closest) return closest.board;
+    const playedAt = (board) => {
+        const time = Date.parse(getSchulteResult(results, board)?.lastPlayed || '');
+        return Number.isFinite(time) ? time : -Infinity;
+    };
+    return all.reduce((oldest, board) => (playedAt(board) < playedAt(oldest) ? board : oldest), all[0]);
+};
+
 function App() {
     const DEFAULT_TASK_BESTS = { schulte: 0, stroop: 0, nback: 0, setgame: 0, neuroncount: 0, passwordlogic: 0 };
     const urlParams = new URLSearchParams(window.location.search);
@@ -2510,6 +2754,11 @@ function App() {
         }
         return base;
     });
+
+    // 舒尔特每块盘面的成绩（pfl_variant_results），和老玩家旧纪录的一次性快照（pfl_variant_legacy_v1）。
+    // 快照在第一次渲染时就拍：这时本次打开的 session_start 等事件都还没写进留存数据。
+    const [variantResults, setVariantResults] = useState(() => readVariantResults() || {});
+    const [schulteLegacy] = useState(() => readSchulteLegacySnapshot());
 
     // 两档各记各的最高分，所以竞技页显示的永远是当前这一档的纪录。
     const arenaBestScore = isArenaAdvanced ? (history.bestCompScore || 0) : (history.bestCompBasicScore || 0);
