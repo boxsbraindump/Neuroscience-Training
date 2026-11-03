@@ -4177,6 +4177,20 @@ body.is-app-scrollable .app-shell {
         z-index: 2;
     }
 
+    /* 标题区是回官网首页的链接（App.jsx）：不带下划线，悬停时标题变靛蓝 */
+    a.app-nav-brand {
+        color: inherit;
+        text-decoration: none;
+        border-radius: 16px;
+    }
+    a.app-nav-brand:hover .app-nav-title {
+        color: #4f46e5;
+    }
+    a.app-nav-brand:focus-visible {
+        outline: 3px solid #4f46e5;
+        outline-offset: 4px;
+    }
+
     .app-nav-logo {
         width: 42px;
         height: 42px;

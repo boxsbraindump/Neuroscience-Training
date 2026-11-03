@@ -1625,6 +1625,10 @@ html.theme-dark .nback-choice-button::after {
         color: #f1f5f9;
     }
 
+    html.theme-dark a.app-nav-brand:hover .app-nav-title {
+        color: #a5b4fc;
+    }
+
     html.theme-dark .app-nav-subtitle {
         color: #64748b;
     }

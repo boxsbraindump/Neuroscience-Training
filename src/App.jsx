@@ -4951,7 +4951,8 @@ function App() {
                     aria-hidden={(showInfo || isFirstPlayNudgeVisible) ? 'true' : undefined}
                     inert={(showInfo || isFirstPlayNudgeVisible) ? '' : undefined}
                 >
-                    <div className="app-nav-brand">
+                    {/* 网页版点标题回官网首页：带 ?home，否则首页的脚本会把玩过的设备又跳回 /play。安卓包里用 android-layout.css 让它点不动 */}
+                    <a className="app-nav-brand" href="./?home" title={isEnglish ? 'Prefrontal Lab home' : 'Prefrontal Lab 首页'} aria-label={isEnglish ? 'Prefrontal Lab home' : 'Prefrontal Lab 首页'}>
                         <div className="app-nav-logo">
                             <Icon name="brain-circuit" className="w-5 h-5" />
                         </div>
@@ -4959,7 +4960,7 @@ function App() {
                             <div className="app-nav-title">{ui.appTitle}</div>
                             <div className="app-nav-subtitle">Prefrontal Lab</div>
                         </div>
-                    </div>
+                    </a>
                     <div className="app-nav-items" style={{ '--nav-count': navItems.length }}>
                         {/* 选中色块单独一层，切 tab 时滑过去（与 iOS matchedGeometryEffect 一致）。 */}
                         {activeNavIndex >= 0 && (
