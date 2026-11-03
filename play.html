@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="google-site-verification" content="3s9HhfGiufMn-CV7OhrmbOc2FRz2rrW3vr4sDleNKUE" />
+    <title>Prefrontal Lab | Cognitive Training Games</title>
+    <meta name="description"
+        content="Prefrontal Lab is a fast cognitive training game suite for attention, working memory, visual search, inhibition, and reasoning." />
+    <meta name="application-name" content="Prefrontal Lab" />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://prefrontal-lab.com/play" />
+    <meta property="og:title" content="Prefrontal Lab | Cognitive Training Games" />
+    <meta property="og:description"
+        content="Train attention, working memory, visual search, inhibition, and reasoning with quick brain-training games." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://prefrontal-lab.com/play" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Prefrontal Lab | Cognitive Training Games" />
+    <meta name="twitter:description"
+        content="Quick cognitive training games for attention, memory, inhibition, and reasoning." />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+    <meta name="theme-color" content="#f8fafc">
+    <script>
+        // 在第一帧之前决定深浅色，否则选了深色的人每次打开都会先闪一下白屏。
+        // 和 App.jsx 里的外观设置读同一个键；存储不可用时按系统来。
+        (function () {
+            var pref = 'system';
+            try { pref = localStorage.getItem('pfl_appearance') || 'system'; } catch (e) { }
+            var systemDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (pref === 'dark' || (pref === 'system' && systemDark)) {
+                document.documentElement.classList.add('theme-dark');
+                document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0f172a');
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="./src/styles.css?v=v632-103-release">
+    <link rel="stylesheet" href="./src/theme-dark.css?v=v632-103-release">
+    <link rel="stylesheet" href="./src/parity-shell.css?v=v632-103-release">
+    <link rel="stylesheet" href="./src/parity-rules.css?v=v632-103-release">
+    <link rel="stylesheet" href="./src/parity-game.css?v=v632-103-release">
+    <link rel="stylesheet" href="./src/parity-arena.css?v=v632-103-release">
+    <link rel="stylesheet" href="./src/parity-daily.css?v=v632-103-release">
+    <link rel="stylesheet" href="./src/parity-layout.css?v=v632-103-release">
+    <link rel="stylesheet" href="./src/parity-schulte.css?v=v632-103-release">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js" crossorigin></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // 只带 border、不写颜色的元素（规则弹窗里的示例框等）用的是 Tailwind 的默认描边色。
+        // 把它换成变量，浅色下仍是原来的 #e5e7eb，深色下由 theme-dark.css 改成描边色。
+        tailwind.config = { theme: { extend: { borderColor: { DEFAULT: 'var(--pfl-default-border, #e5e7eb)' } } } };
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script src="./src/gameLogic.js?v=v632-103-release"></script>
+    <script type="text/babel" data-presets="env,react" src="./src/App.jsx?v=v632-103-release"></script>
+</body>
+
+</html>

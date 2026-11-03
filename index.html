@@ -1,69 +1,445 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="google-site-verification" content="3s9HhfGiufMn-CV7OhrmbOc2FRz2rrW3vr4sDleNKUE" />
-    <title>Prefrontal Lab | Cognitive Training Games</title>
-    <meta name="description"
-        content="Prefrontal Lab is a fast cognitive training game suite for attention, working memory, visual search, inhibition, and reasoning." />
-    <meta name="application-name" content="Prefrontal Lab" />
-    <meta name="robots" content="index,follow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Prefrontal Lab | 认知训练小游戏</title>
+    <meta name="description" content="Prefrontal Lab（前额叶实验室）：舒尔特方格、Stroop、N-Back、SET 等经典认知任务做成的小游戏。iPhone、安卓和网页都能玩，免费。" />
+    <meta name="theme-color" content="#FFFFFF">
     <link rel="canonical" href="https://prefrontal-lab.com/" />
-    <meta property="og:title" content="Prefrontal Lab | Cognitive Training Games" />
-    <meta property="og:description"
-        content="Train attention, working memory, visual search, inhibition, and reasoning with quick brain-training games." />
+    <meta property="og:title" content="Prefrontal Lab | 认知训练小游戏" />
+    <meta property="og:description" content="六个认知训练小游戏，iPhone、安卓和网页都能玩，免费。" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://prefrontal-lab.com/" />
-    <meta property="og:locale" content="en_US" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Prefrontal Lab | Cognitive Training Games" />
-    <meta name="twitter:description"
-        content="Quick cognitive training games for attention, memory, inhibition, and reasoning." />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
-    <meta name="theme-color" content="#f8fafc">
+    <meta property="og:image" content="https://prefrontal-lab.com/landing/app-icon-256.png" />
+    <link rel="icon" type="image/png" href="./landing/app-icon-256.png">
+    <!-- 官网首页（2026-11 起；游戏在 play.html，也就是 /play）。首屏是白底（2026-11-02 负责人在靛蓝底和白底之间选了白底），Prefrontal Lab 和三台展开的手机（App 的真实截图），往下每个游戏占满一屏自己的颜色，
+         盘面停在正在玩的那一刻，想玩就去网页版。每两屏之间有一根图标里的那种白线，每一根走法都不一样，
+         最后一根收进下载区的 App 图标。 -->
     <script>
-        // 在第一帧之前决定深浅色，否则选了深色的人每次打开都会先闪一下白屏。
-        // 和 App.jsx 里的外观设置读同一个键；存储不可用时按系统来。
+        // 官网 2026-11 起占了首页，游戏挪到 /play。打开过游戏的设备直接进游戏，收藏了首页、
+        // 或者在 iPhone 上「添加到主屏幕」的老玩家就不会先看到官网。「打开过」的判断和游戏自己认老玩家用的是同一组 key
+        // （App.jsx 更新公告那里的 isReturningPlayer）：游戏一打开就会写 prefrontal_lab_retention_v1。
+        // 带 ?home 时不跳，用来在玩过的设备上看官网。查询参数原样带过去（来源统计要用）。
         (function () {
-            var pref = 'system';
-            try { pref = localStorage.getItem('pfl_appearance') || 'system'; } catch (e) { }
-            var systemDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            if (pref === 'dark' || (pref === 'system' && systemDark)) {
-                document.documentElement.classList.add('theme-dark');
-                document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0f172a');
-            }
+            try {
+                if (new URLSearchParams(location.search).has('home')) return;
+                var keys = ['brain_train_pro_v5', 'brain_train_pro_data', 'prefrontal_lab_daily_v4', 'prefrontal_lab_retention_v1'];
+                var played = keys.some(function (k) { return localStorage.getItem(k) !== null; })
+                    || Object.keys(localStorage).some(function (k) { return /^prefrontal_lab_v[\d.]+_update$/.test(k); });
+                if (played) location.replace('./play.html' + location.search + location.hash);
+            } catch (e) { }
         })();
     </script>
-    <link rel="stylesheet" href="./src/styles.css?v=v632-103-release">
-    <link rel="stylesheet" href="./src/theme-dark.css?v=v632-103-release">
-    <link rel="stylesheet" href="./src/parity-shell.css?v=v632-103-release">
-    <link rel="stylesheet" href="./src/parity-rules.css?v=v632-103-release">
-    <link rel="stylesheet" href="./src/parity-game.css?v=v632-103-release">
-    <link rel="stylesheet" href="./src/parity-arena.css?v=v632-103-release">
-    <link rel="stylesheet" href="./src/parity-daily.css?v=v632-103-release">
-    <link rel="stylesheet" href="./src/parity-layout.css?v=v632-103-release">
-    <link rel="stylesheet" href="./src/parity-schulte.css?v=v632-103-release">
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js" crossorigin></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // 只带 border、不写颜色的元素（规则弹窗里的示例框等）用的是 Tailwind 的默认描边色。
-        // 把它换成变量，浅色下仍是原来的 #e5e7eb，深色下由 theme-dark.css 改成描边色。
-        tailwind.config = { theme: { extend: { borderColor: { DEFAULT: 'var(--pfl-default-border, #e5e7eb)' } } } };
+        // 滚动动效只在用户没要求减少动效、浏览器也支持 IntersectionObserver 时打开；脚本出错就关掉，退回静态页面
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+            document.documentElement.classList.add('v2-anim');
+            window.addEventListener('error', function () { document.documentElement.classList.remove('v2-anim'); });
+        }
     </script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="./landing/v2.css?v=20261102l">
 </head>
 
 <body>
-    <div id="root"></div>
+    <!-- ========== 首屏 ========== -->
+    <section class="v2-hero" id="top">
+        <header class="v2-nav v2-wrap">
+            <a class="v2-brand v2-wordmark" href="#top"><img class="v2-logo" src="./landing/app-icon-256.png" alt="" width="40" height="40">Prefrontal Lab</a>
+            <nav class="v2-nav-links" aria-label="页面导航" data-i18n-attr="aria-label">
+                <a href="#stroop" data-i18n>六个游戏</a>
+                <a href="./play.html" data-i18n>在网页上玩</a>
+                <button type="button" class="v2-lang" id="lang-toggle">EN</button>
+                <a class="v2-chunky v2-chunky-brand v2-chunky-sm" href="#download" data-i18n>下载 App</a>
+            </nav>
+        </header>
 
-    <script src="./src/gameLogic.js?v=v632-103-release"></script>
-    <script type="text/babel" data-presets="env,react" src="./src/App.jsx?v=v632-103-release"></script>
+        <div class="v2-wrap v2-hero-grid">
+            <div class="v2-hero-copy">
+                <h1>Prefrontal<br>Lab</h1>
+                <p class="v2-zhname" data-zh-only>前额叶实验室</p>
+                <p class="v2-lead" data-i18n>六个小游戏，每天几分钟，练专注、记忆和判断。</p>
+                <p class="v2-hero-note" data-i18n>免费，不用注册。iPhone、安卓和网页都能玩。</p>
+                <div class="v2-hero-actions">
+                    <a class="v2-chunky v2-chunky-brand" href="./play.html" data-i18n>在网页上玩</a>
+                    <a class="v2-text-link" href="#download" data-i18n>下载 App</a>
+                </div>
+            </div>
+
+            <!-- 三台手机，放 App 的真实截图（screenshots/appstore/src 与 src-en，缩到 640 宽）。
+                 会轮流换到最前面，点哪台哪台就到前面 -->
+            <div class="v2-phones" id="phones">
+                <button type="button" class="v2-phone is-left" aria-label="每日挑战首页" data-i18n-attr="aria-label">
+                    <span class="v2-phone-screen"><img alt="" data-src-zh="./landing/shots/daily-zh.jpg" data-src-en="./landing/shots/daily-en.jpg" width="639" height="1390"></span>
+                </button>
+                <button type="button" class="v2-phone is-front" aria-label="训练列表：六个游戏" data-i18n-attr="aria-label">
+                    <span class="v2-phone-screen"><img alt="" data-src-zh="./landing/shots/train-zh.jpg" data-src-en="./landing/shots/train-en.jpg" width="639" height="1390"></span>
+                </button>
+                <button type="button" class="v2-phone is-right" aria-label="每周报告" data-i18n-attr="aria-label">
+                    <span class="v2-phone-screen"><img alt="" data-src-zh="./landing/shots/week-zh.jpg" data-src-en="./landing/shots/week-en.jpg" width="639" height="1390"></span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== Stroop：红 ========== -->
+    <section class="v2-game v2-game-stroop" id="stroop">
+        <svg class="v2-seam" viewBox="0 0 1000 320" aria-hidden="true"><defs><linearGradient id="seam-1" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="320"><stop offset="0.5" stop-color="#4843DB" /><stop offset="0.5" stop-color="#FFFFFF" /></linearGradient></defs><path class="v2-seam-line" d="M60 70 V240 Q60 290 110 290 H300" stroke="url(#seam-1)" /><path class="v2-seam-dot is-start" d="M60 70 h0" stroke="url(#seam-1)" /><path class="v2-seam-dot" d="M300 290 h0" stroke="url(#seam-1)" /></svg>
+        <span class="v2-game-mark" aria-hidden="true">STROOP</span>
+        <div class="v2-wrap v2-game-grid">
+            <div class="v2-game-copy">
+                <h2 data-i18n>看颜色，<br>别看字</h2>
+                <p class="v2-game-name" data-i18n>Stroop 干扰</p>
+                <p class="v2-game-skill" data-i18n>练认知抑制控制</p>
+                <p data-i18n>忽略文字含义，点击与文字物理颜色相符的按钮。写的是「红」、颜色是黄，就点黄。大脑会下意识先读字，要硬把注意力拉回颜色上。</p>
+                <p class="v2-game-tier" data-i18n>进阶是双重语义冲突：色块换成文字按钮。</p>
+                <a class="v2-chunky v2-chunky-white v2-game-cta" href="./play.html" data-i18n>在网页上玩</a>
+            </div>
+            <!-- 盘面：网页版 Stroop 局中实测（2026-10-28），停在答对黄色的那一刻 -->
+            <div class="v2-card" data-ui aria-hidden="true">
+                <div class="v2-stroop">
+                    <span class="v2-stroop-word" style="color:#F59E0B" data-i18n>红</span>
+                    <div class="v2-stroop-grid">
+                        <span><i style="background:#EF4444"></i></span>
+                        <span><i style="background:#10B981"></i></span>
+                        <span><i style="background:#3B82F6"></i></span>
+                        <span class="ok" data-moment><i style="background:#F59E0B"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== N-Back：深靛蓝，盘面在左 ========== -->
+    <section class="v2-game v2-game-nback v2-flip" id="nback">
+        <svg class="v2-seam" viewBox="0 0 1000 320" aria-hidden="true"><defs><linearGradient id="seam-2" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="320"><stop offset="0.5" stop-color="#FFFFFF" /><stop offset="0.5" stop-color="#FFFFFF" /></linearGradient></defs><path class="v2-seam-line" d="M60 70 V110 Q60 150 100 150 H620 Q660 150 660 190 V290" stroke="url(#seam-2)" /><path class="v2-seam-dot is-start" d="M60 70 h0" stroke="url(#seam-2)" /><path class="v2-seam-dot" d="M660 290 h0" stroke="url(#seam-2)" /></svg>
+        <span class="v2-game-mark is-left" aria-hidden="true">N-BACK</span>
+        <div class="v2-wrap v2-game-grid">
+            <div class="v2-game-copy">
+                <h2 data-i18n>记住上一个，<br>再忘掉它</h2>
+                <p class="v2-game-name" data-i18n>N-Back 记忆</p>
+                <p class="v2-game-skill" data-i18n>练不断更新暂存的信息</p>
+                <p data-i18n>数字一个接一个出现，判断当前数字是否与前 1 步出现的相同。每看到一个新数字，都要把记住的那个换掉。</p>
+                <p class="v2-game-tier" data-i18n>进阶是 2-Back：和前第 2 步比。答错扣 3 秒。</p>
+                <a class="v2-chunky v2-chunky-white v2-game-cta" href="./play.html" data-i18n>在网页上玩</a>
+            </div>
+            <!-- 盘面：网页版 N-Back 局中实测，停在「匹配」答对变绿的那一刻（App.jsx 的 answerFeedback） -->
+            <div class="v2-card is-tilt-right" data-ui aria-hidden="true">
+                <div class="v2-nback">
+                    <span class="v2-nback-label" data-i18n>第 3 题</span>
+                    <span class="v2-nback-card">7</span>
+                    <div class="v2-nback-actions">
+                        <span class="is-match ok" data-moment data-i18n>匹配</span>
+                        <span data-i18n>不同</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== SET：绿 ========== -->
+    <section class="v2-game v2-game-set" id="set">
+        <svg class="v2-seam" viewBox="0 0 1000 320" aria-hidden="true"><defs><linearGradient id="seam-3" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="320"><stop offset="0.5" stop-color="#FFFFFF" /><stop offset="0.5" stop-color="#FFFFFF" /></linearGradient></defs><path class="v2-seam-line" d="M660 70 V170 Q660 210 620 210 H130 Q90 210 90 250 V292" stroke="url(#seam-3)" /><path class="v2-seam-line" d="M660 170 V276" stroke="url(#seam-3)" /><path class="v2-seam-dot is-start" d="M660 70 h0" stroke="url(#seam-3)" /><path class="v2-seam-dot" d="M90 292 h0" stroke="url(#seam-3)" /><path class="v2-seam-dot" d="M660 276 h0" stroke="url(#seam-3)" /></svg>
+        <span class="v2-game-mark" aria-hidden="true">SET</span>
+        <div class="v2-wrap v2-game-grid">
+            <div class="v2-game-copy">
+                <h2 data-i18n>全都一样，<br>或全不一样</h2>
+                <p class="v2-game-name" data-i18n>SET 逻辑</p>
+                <p class="v2-game-skill" data-i18n>练逻辑处理</p>
+                <p data-i18n>找出 3 张牌，使它们的颜色和形状各自全部相同或全部不同。三个圆、红蓝绿各一，成立；两红一蓝，不成立。</p>
+                <p class="v2-game-tier" data-i18n>进阶加上填充度，也必须全同或全异。</p>
+                <a class="v2-chunky v2-chunky-white v2-game-cta" href="./play.html" data-i18n>在网页上玩</a>
+            </div>
+            <!-- 盘面：boards.css（网页版计算样式），左列三个圆刚好成组 -->
+            <div class="v2-card" data-ui aria-hidden="true">
+                <div class="v2-set">
+                    <span class="is-success" data-moment><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg></span>
+                    <span class="r"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg></span>
+                    <span class="g"><svg viewBox="0 0 24 24"><path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /></svg></span>
+                    <span class="is-success" data-moment><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg></span>
+                    <span class="bl"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg></span>
+                    <span class="bl"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" /></svg></span>
+                    <span class="is-success" data-moment><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg></span>
+                    <span class="bl"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg></span>
+                    <span class="g"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" /></svg></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 神经元计数：琥珀，浅底深字 ========== -->
+    <section class="v2-game v2-game-neuron v2-layout-split" id="neuron">
+        <svg class="v2-seam" viewBox="0 0 1000 320" aria-hidden="true"><defs><linearGradient id="seam-4" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="320"><stop offset="0.5" stop-color="#FFFFFF" /><stop offset="0.5" stop-color="#451A03" /></linearGradient></defs><path class="v2-seam-line" d="M90 70 V80 Q90 110 120 110 H320 Q350 110 350 140 V180 Q350 210 380 210 H600 Q630 210 630 240 V292" stroke="url(#seam-4)" /><path class="v2-seam-dot is-start" d="M90 70 h0" stroke="url(#seam-4)" /><path class="v2-seam-dot" d="M630 292 h0" stroke="url(#seam-4)" /></svg>
+        <span class="v2-game-mark is-left" aria-hidden="true">COUNT</span>
+        <div class="v2-wrap v2-game-grid">
+            <div class="v2-game-copy">
+                <h2 data-i18n>只数<br>对的那一种</h2>
+                <p class="v2-game-name" data-i18n>神经元计数</p>
+                <p class="v2-game-skill" data-i18n>练在干扰中精确统计</p>
+                <p data-i18n>数出屏幕中形状和颜色都与目标相同的图形。这一局的目标是绿色圆形，答案是 3：绿色方块和其他颜色的圆都不算。</p>
+                <p class="v2-game-tier" data-i18n>进阶有更多相似干扰项，目标还会移动。</p>
+                <a class="v2-chunky v2-chunky-white v2-game-cta" href="./play.html" data-i18n>在网页上玩</a>
+            </div>
+            <!-- 盘面：boards.css 的神经元场地，那一局的真实点位 -->
+            <div class="v2-card is-flat" data-ui aria-hidden="true">
+                <div class="v2-neuron-wrap">
+                    <div class="v2-neuron-head"><span data-i18n>目标</span><s class="green circle"></s></div>
+                    <div class="v2-neuron"><s class="amber tri" style="left:11.4%;top:11.7%"></s><s class="rose tri" style="left:35.5%;top:10%"></s><s class="blue square" style="left:61.9%;top:10.8%"></s><s class="amber square" style="left:87.1%;top:10%"></s><s class="green circle" style="left:11.4%;top:32.5%"></s><s class="purple tri" style="left:37.7%;top:28.8%"></s><s class="amber tri" style="left:60.1%;top:31.4%"></s><s class="amber square" style="left:88.1%;top:27.9%"></s><s class="green square" style="left:13.3%;top:47.0%"></s><s class="blue square" style="left:38.6%;top:49.4%"></s><s class="green circle" style="left:61.6%;top:52.1%"></s><s class="green circle" style="left:90.6%;top:52.9%"></s><s class="purple tri" style="left:9.5%;top:72.7%"></s><s class="blue square" style="left:37.9%;top:68.9%"></s><s class="purple tri" style="left:61.1%;top:68.9%"></s><s class="amber circle" style="left:88.2%;top:71.6%"></s><s class="purple tri" style="left:12.5%;top:90%"></s></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 密码推理：深色，像一把锁 ========== -->
+    <section class="v2-game v2-game-code v2-layout-center" id="code">
+        <svg class="v2-seam" viewBox="0 0 1000 320" aria-hidden="true"><defs><linearGradient id="seam-5" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="320"><stop offset="0.5" stop-color="#451A03" /><stop offset="0.5" stop-color="#FFFFFF" /></linearGradient></defs><path class="v2-seam-line" d="M630 70 V140 Q630 190 580 190 H380 Q320 190 320 130 Q320 80 370 80 Q420 80 420 130 V240 Q420 292 480 292 H640" stroke="url(#seam-5)" /><path class="v2-seam-dot is-start" d="M630 70 h0" stroke="url(#seam-5)" /><path class="v2-seam-dot" d="M640 292 h0" stroke="url(#seam-5)" /></svg>
+        <span class="v2-game-mark" aria-hidden="true">CODE</span>
+        <div class="v2-wrap v2-game-grid">
+            <div class="v2-game-copy">
+                <h2 data-i18n>四条线索，<br>一个答案</h2>
+                <p class="v2-game-name" data-i18n>密码推理</p>
+                <p class="v2-game-skill" data-i18n>练从线索中推理出唯一的密码</p>
+                <p data-i18n>四条线索要一起看；每题只有一个答案，数字不会重复，首位不会是 0。没有倒计时，慢慢推。</p>
+                <p class="v2-game-tier" data-i18n>进阶是四位数字。</p>
+                <a class="v2-chunky v2-chunky-white v2-game-cta" href="./play.html" data-i18n>在网页上玩</a>
+            </div>
+            <!-- 盘面：2026-10-28 网页局中实测的那一题，已经填了 5 和 1（答案 519）。官网上只放输入格和线索，键盘没放：它没有信息量，还会让这一屏太长 -->
+            <div class="v2-card is-flat" data-ui aria-hidden="true">
+                <div class="v2-code">
+                    <p class="v2-code-title" data-i18n>找出隐藏密码</p>
+                    <p class="v2-code-sub" data-i18n>四条线索只会对应一个三位密码，首位不会是 0</p>
+                    <div class="v2-code-slots"><b class="is-filled" data-moment>5</b><b class="is-filled" data-moment>1</b><b class="is-focus">—</b></div>
+                    <div class="v2-code-clues">
+                        <div><b>1</b><span>279</span><i></i><em data-i18n>1 个数字正确且位置正确</em></div>
+                        <div><b>2</b><span>701</span><i></i><em data-i18n>1 个数字正确，但位置错误</em></div>
+                        <div><b>3</b><span>941</span><i></i><em data-i18n>2 个数字正确，但位置都错误</em></div>
+                        <div><b>4</b><span>915</span><i></i><em data-i18n>3 个数字正确：1 个位置正确，另 2 个位置错误</em></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 下载：线收进 App 图标 ========== -->
+    <section class="v2-download" id="download">
+        <svg class="v2-seam is-to-icon" viewBox="0 0 1000 640" aria-hidden="true"><defs><linearGradient id="seam-6" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="640"><stop offset="0.5" stop-color="#FFFFFF" /><stop offset="0.5" stop-color="#FFFFFF" /></linearGradient></defs><path class="v2-seam-line" d="M90 230 V512 Q90 560 138 560 H272" stroke="url(#seam-6)" /><path class="v2-seam-dot is-start" d="M90 230 h0" stroke="url(#seam-6)" /></svg>
+        <div class="v2-wrap">
+            <img class="v2-download-icon" src="./landing/app-icon-256.png" alt="Prefrontal Lab App 图标" data-i18n-attr="alt" width="120" height="120">
+            <h2 data-i18n>装在手机上，<br>或者直接在网页上玩</h2>
+            <p class="v2-download-lead" data-i18n>三个平台是同一套游戏，成绩各自保存。</p>
+            <div class="v2-stores">
+                <!-- App Store 徽章是 Apple 官方原图，不改动；TapTap 没有公开的官方徽章，先用文字 -->
+                <a class="v2-store" href="https://apps.apple.com/app/id6774438286" target="_blank" rel="noopener">
+                    <span class="v2-store-name">iPhone</span>
+                    <img src="./landing/badge-app-store-zh.svg" data-src-zh="./landing/badge-app-store-zh.svg" data-src-en="./landing/badge-app-store-en.svg" alt="在 App Store 下载" data-i18n-attr="alt" width="136" height="44">
+                </a>
+                <a class="v2-store" href="https://www.taptap.cn/app/975111" target="_blank" rel="noopener">
+                    <span class="v2-store-name" data-i18n>安卓</span>
+                    <span class="v2-store-action" data-i18n>在 TapTap 下载 ↗</span>
+                </a>
+                <a class="v2-store is-primary" href="./play.html">
+                    <span class="v2-store-name" data-i18n>网页版</span>
+                    <span class="v2-store-action" data-i18n>在网页上玩</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="v2-footer">
+        <div class="v2-wrap v2-footer-inner">
+            <div>
+                <span class="v2-wordmark is-footer"><img class="v2-logo" src="./landing/app-icon-256.png" alt="" width="40" height="40">Prefrontal Lab</span>
+                <span class="v2-zhname is-footer" data-zh-only>前额叶实验室</span>
+                <p data-i18n>免费的认知训练小游戏</p>
+            </div>
+            <nav aria-label="页脚" data-i18n-attr="aria-label">
+                <a href="#top" data-i18n>舒尔特方格</a><a href="#stroop">Stroop</a><a href="#nback">N-Back</a>
+                <a href="#set">SET</a><a href="#neuron" data-i18n>神经元计数</a><a href="#code" data-i18n>密码推理</a>
+                <a href="./support.html" data-i18n>支持</a><a href="./privacy.html" data-i18n>隐私政策</a>
+            </nav>
+        </div>
+        <p class="v2-wrap v2-footer-copy" data-i18n>© 2026 Prefrontal Lab。这是练习用的游戏，不是医疗或诊断工具。</p>
+    </footer>
+
+    <script>
+        // ---------- 中英文 ----------
+        // 中文写在 HTML 里，英文在这张对照表里，以中文原文为键。语言和游戏页共用 prefrontal_lab_lang；
+        // 没存过时照游戏的规则：系统语言列表第一项是 zh 才用中文。?lang=en / ?lang=zh 可以直接指定。
+        // 游戏名、规则、盘面文字的英文取自 iOS Resources/WebsiteContent.json 与网页 App.jsx 的 UI_TEXT。
+        var V2_EN = {
+            "六个游戏": "Six games",
+            "网页版": "Web version",
+            "下载 App": "Get the app",
+            "六个小游戏，每天几分钟，练专注、记忆和判断。": "Six small games, a few minutes a day, for focus, memory and judgement.",
+            "免费，不用注册。iPhone、安卓和网页都能玩。": "Free, no sign-up. On iPhone, Android and the web.",
+            "在网页上玩": "Play on the web",
+            "看颜色，<br>别看字": "Read the color,<br>not the word",
+            "忽略文字含义，点击与文字物理颜色相符的按钮。写的是「红」、颜色是黄，就点黄。大脑会下意识先读字，要硬把注意力拉回颜色上。": "Ignore the word meaning and choose its actual color. If it says Red in yellow, tap yellow. Your brain reads the word first — you have to pull your attention back to the color.",
+            "进阶是双重语义冲突：色块换成文字按钮。": "Advanced is double conflict: choose the written color name instead.",
+            "红": "Red",
+            "记住上一个，<br>再忘掉它": "Remember one,<br>then let it go",
+            "数字一个接一个出现，判断当前数字是否与前 1 步出现的相同。每看到一个新数字，都要把记住的那个换掉。": "Numbers appear one at a time. Decide whether the number matches the one 1 step ago — and swap what you hold in mind with every new number.",
+            "进阶是 2-Back：和前第 2 步比。答错扣 3 秒。": "Advanced is 2-Back: compare with 2 steps ago. Wrong answers cost 3 seconds.",
+            "第 3 题": "Question 3",
+            "匹配": "Match",
+            "不同": "Different",
+            "全都一样，<br>或全不一样": "All the same,<br>or all different",
+            "找出 3 张牌，使它们的颜色和形状各自全部相同或全部不同。三个圆、红蓝绿各一，成立；两红一蓝，不成立。": "Find 3 cards whose color and shape are each all the same or all different. Three circles in red, blue and green make a set; two reds and a blue don't.",
+            "进阶加上填充度，也必须全同或全异。": "Advanced mode adds fill level as a dimension.",
+            "只数<br>对的那一种": "Count only<br>the right ones",
+            "数出屏幕中形状和颜色都与目标相同的图形。这一局的目标是绿色圆形，答案是 3：绿色方块和其他颜色的圆都不算。": "Count every shape that matches the target in both shape and color. Here the target is a green circle, so the answer is 3 — green squares and circles of other colors don't count.",
+            "进阶有更多相似干扰项，目标还会移动。": "Advanced adds more similar moving distractions.",
+            "目标": "TARGET",
+            "四条线索，<br>一个答案": "Four clues,<br>one answer",
+            "四条线索要一起看；每题只有一个答案，数字不会重复，首位不会是 0。没有倒计时，慢慢推。": "Read all four clues together. Each puzzle has one answer, digits do not repeat, and the first digit is never 0. There is no countdown, so take your time.",
+            "进阶是四位数字。": "Advanced is a four-digit code.",
+            "找出隐藏密码": "Find the hidden code",
+            "四条线索只会对应一个三位密码，首位不会是 0": "Four clues resolve to one unique 3-digit code; the first digit is never 0",
+            "1 个数字正确且位置正确": "1 digit is correct and in the correct position",
+            "1 个数字正确，但位置错误": "1 digit is correct, but in the wrong position",
+            "2 个数字正确，但位置都错误": "2 digits are correct, but all are in the wrong position",
+            "3 个数字正确：1 个位置正确，另 2 个位置错误": "3 digits are correct: 1 in the correct position and 2 in the wrong position",
+            "安卓": "Android",
+            "在 TapTap 下载 ↗": "Get it on TapTap (China) ↗",
+            "免费的认知训练小游戏": "Free cognitive training games",
+            "舒尔特方格": "Schulte Grid",
+            "神经元计数": "Neuron Counting",
+            "密码推理": "Code Logic",
+            "支持": "Support",
+            "隐私政策": "Privacy",
+            "© 2026 Prefrontal Lab。这是练习用的游戏，不是医疗或诊断工具。": "© 2026 Prefrontal Lab. A game for practice, not a medical or diagnostic tool.",
+            "Stroop 干扰": "Stroop Test",
+            "练认知抑制控制": "Inhibition control",
+            "N-Back 记忆": "N-Back Memory",
+            "练不断更新暂存的信息": "Working-memory updating",
+            "SET 逻辑": "SET Logic",
+            "练逻辑处理": "Logical processing",
+            "练在干扰中精确统计": "Counting accurately among distractions",
+            "练从线索中推理出唯一的密码": "Deducing one unique code from the clues",
+            "装在手机上，<br>或者直接在网页上玩": "On your phone,<br>or right on the web",
+            "三个平台是同一套游戏，成绩各自保存。": "The same games on all three; results are saved separately on each."
+        };
+        var V2_EN_ATTR = {
+            "页面导航": "Page navigation",
+            "页脚": "Footer",
+            "每日挑战首页": "Daily Challenge home",
+            "训练列表：六个游戏": "Training list: six games",
+            "每周报告": "Weekly report",
+            "Prefrontal Lab App 图标": "Prefrontal Lab app icon",
+            "在 App Store 下载": "Download on the App Store"
+        };
+        var V2_META = {
+            zh: { title: document.title, description: document.querySelector('meta[name="description"]').content },
+            en: { title: 'Prefrontal Lab | Cognitive Training Games', description: 'Prefrontal Lab: free cognitive training games built on classic tasks — the Schulte grid, Stroop, N-Back and SET. Play on iPhone, Android or the web.' }
+        };
+        var v2Lang = (function () {
+            var fromUrl = new URLSearchParams(location.search).get('lang');
+            if (fromUrl === 'zh' || fromUrl === 'en') return fromUrl;
+            try { var saved = localStorage.getItem('prefrontal_lab_lang'); if (saved === 'zh' || saved === 'en') return saved; } catch (e) { }
+            var first = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+            return first.toLowerCase().split(/[-_]/)[0] === 'zh' ? 'zh' : 'en';
+        })();
+        function isEn() { return v2Lang === 'en'; }
+        function applyLang() {
+            var en = isEn();
+            document.documentElement.lang = en ? 'en' : 'zh-CN';
+            document.title = V2_META[v2Lang].title;
+            document.querySelector('meta[name="description"]').content = V2_META[v2Lang].description;
+            document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                if (el.dataset.zh === undefined) el.dataset.zh = el.innerHTML.trim();
+                el.innerHTML = en ? (V2_EN[el.dataset.zh] || el.dataset.zh) : el.dataset.zh;
+            });
+            document.querySelectorAll('[data-i18n-attr]').forEach(function (el) {
+                var name = el.dataset.i18nAttr;
+                if (el.dataset.zhAttr === undefined) el.dataset.zhAttr = el.getAttribute(name);
+                el.setAttribute(name, en ? (V2_EN_ATTR[el.dataset.zhAttr] || el.dataset.zhAttr) : el.dataset.zhAttr);
+            });
+            // 截图和徽章：中英文各一套，按语言换 src（截图不预先写 src，免得英文用户先下一遍中文图）
+            document.querySelectorAll('[data-src-en]').forEach(function (el) {
+                el.setAttribute('src', en ? el.dataset.srcEn : el.dataset.srcZh);
+            });
+            var toggle = document.getElementById('lang-toggle');
+            toggle.textContent = en ? '中文' : 'EN';
+            toggle.setAttribute('aria-label', en ? '切换到中文' : 'Switch to English');
+        }
+        document.getElementById('lang-toggle').addEventListener('click', function () {
+            v2Lang = isEn() ? 'zh' : 'en';
+            try { localStorage.setItem('prefrontal_lab_lang', v2Lang); } catch (e) { }
+            applyLang();
+        });
+        applyLang();
+
+        // ---------- 首屏三台手机：每 3.5 秒换一台到最前面；点哪台哪台到前面，之后停下自动轮换 ----------
+        (function () {
+            var phones = Array.prototype.slice.call(document.querySelectorAll('#phones .v2-phone'));
+            var SLOTS = ['is-left', 'is-front', 'is-right'];
+            var order = [0, 1, 2]; // order[k] = 站在第 k 个位置上的那台
+            var timer = null;
+            function place() {
+                order.forEach(function (phoneIndex, slot) {
+                    SLOTS.forEach(function (c) { phones[phoneIndex].classList.remove(c); });
+                    phones[phoneIndex].classList.add(SLOTS[slot]);
+                });
+            }
+            function bringToFront(phoneIndex) {
+                var at = order.indexOf(phoneIndex);
+                if (at === 1) return;
+                // 被点的那台和中间那台换位置
+                order[at] = order[1]; order[1] = phoneIndex;
+                place();
+            }
+            phones.forEach(function (phone, i) {
+                phone.addEventListener('click', function () {
+                    if (timer) { clearInterval(timer); timer = null; }
+                    bringToFront(i);
+                });
+            });
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                timer = setInterval(function () { bringToFront(order[2]); }, 3500);
+            }
+        })();
+
+        // ---------- 滚动动效 ----------
+        // 一种动作贯穿全页：交界处的线从起点画到终点（终点圆点在线画完时出现），
+        // 游戏屏的文字依次浮上来、盘面卡片带一点回弹落位，落定后盘面再「玩」到那一步；
+        // 首屏打开时三台手机从叠在一起展开。终态都写在 HTML 里，没开动效时就是这个样子。
+        (function () {
+            if (!document.documentElement.classList.contains('v2-anim')) return;
+            // 线：用路径长度做虚线，偏移从整段长度收到 0 就是「画出来」
+            document.querySelectorAll('.v2-seam-line').forEach(function (path) {
+                path.style.setProperty('--len', Math.ceil(path.getTotalLength()) + 2);
+            });
+            // 盘面上那一步：先拿掉它的状态，进入视野、卡片落定后再按顺序加回去
+            var STATES = ['ok', 'is-success', 'is-filled'];
+            document.querySelectorAll('[data-moment]').forEach(function (el) {
+                el.dataset.moment = STATES.filter(function (c) { return el.classList.contains(c); }).join(' ');
+                STATES.forEach(function (c) { el.classList.remove(c); });
+                el.classList.add('is-pending');
+            });
+            function play(section) {
+                Array.prototype.forEach.call(section.querySelectorAll('[data-moment]'), function (el, i) {
+                    setTimeout(function () {
+                        el.classList.remove('is-pending');
+                        el.dataset.moment.split(' ').forEach(function (c) { if (c) el.classList.add(c); });
+                    }, 900 + i * 280);
+                });
+            }
+            var seen = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add('is-in');
+                    if (entry.target.matches('.v2-game')) play(entry.target);
+                    seen.unobserve(entry.target);
+                });
+            }, { threshold: 0.22 });
+            document.querySelectorAll('.v2-seam, .v2-game, .v2-download').forEach(function (el) { seen.observe(el); });
+            // 首屏：下一帧再加 is-in，过渡才会发生
+            requestAnimationFrame(function () { requestAnimationFrame(function () {
+                document.querySelector('.v2-hero').classList.add('is-in');
+            }); });
+        })();
+    </script>
 </body>
 
 </html>

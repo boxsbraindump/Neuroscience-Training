@@ -5,7 +5,7 @@ Last audited: 2026-06-01
 This file is the shared source of truth between design and backend work.
 It summarizes what is currently confirmed from the local project files:
 
-- `index.html`
+- `play.html`（游戏；2026-11 前叫 `index.html`，现在 `index.html` 是官网首页）
 - `src/App.jsx`
 - `src/gameLogic.js`
 - `src/styles.css`
@@ -68,7 +68,7 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 | `brain_train_pro_v5.isHardUnlocked` | boolean | yes | Mode tabs / unlock pill | Browser `localStorage` | Hard mode unlocks when solo best score reaches 500. |
 | `brain_train_pro_v5.taskBestScores` | object | yes | Game top bar | Browser `localStorage` | Per-task bests for `schulte`, `stroop`, `nback`, `setgame`, `neuroncount`, `passwordlogic`. |
 | `brain_train_pro_data` | object | no | Not directly | Legacy `localStorage` | Migrated into `brain_train_pro_v5` when v5 data does not exist. |
-| `pfl_appearance` | string | no | Whole app | Browser `localStorage` | `system` (default), `light`, or `dark`. Same key name as the iOS app. Read twice: by a boot script in `index.html` before first paint, so a dark-mode visitor never sees a white flash, and by `App.jsx`, which applies the `theme-dark` class to `<html>` and follows the OS live while set to `system`. All dark styling lives in `src/theme-dark.css` and is scoped to that class, so light mode is unchanged. |
+| `pfl_appearance` | string | no | Whole app | Browser `localStorage` | `system` (default), `light`, or `dark`. Same key name as the iOS app. Read twice: by a boot script in `play.html` before first paint, so a dark-mode visitor never sees a white flash, and by `App.jsx`, which applies the `theme-dark` class to `<html>` and follows the OS live while set to `system`. All dark styling lives in `src/theme-dark.css` and is scoped to that class, so light mode is unchanged. |
 | `prefrontal_lab_lang` | string | no | Whole app | Browser `localStorage` | `zh` or `en`; new visitors default to English, while returning visitors keep their saved language. |
 | `prefrontal_lab_v6.2.1_update` | string flag | no | Update note visibility | Browser `localStorage` | Stored after user closes update note. |
 | `prefrontal_lab_owner_token` | string | no | Analytics password input memory | Browser `localStorage` | Stores owner analytics token locally after successful cloud load. Owner page itself is only reachable with the hidden `?owner=1&analytics` URL. |
@@ -167,8 +167,8 @@ Update this file whenever a UI decision affects data, APIs, permissions, analyti
 
 - Public site listed in project map: `https://prefrontal-lab.com`.
 - Owner analyzer URL: `https://prefrontal-lab.com/?owner=1&analytics`.
-- Frontend is a static React app loaded by `index.html` with React, ReactDOM, Babel, Tailwind, lucide, and KaTeX from CDNs.
-- `index.html` currently cache-busts `styles.css`, `gameLogic.js`, and `App.jsx` with `v=seo-en-default-20260608`.
+- Frontend is a static React app loaded by `play.html` (served at `/play`; `index.html` is the marketing home page since 2026-11) with React, ReactDOM, Babel, Tailwind, lucide, and KaTeX from CDNs.
+- `play.html` currently cache-busts `styles.css`, `gameLogic.js`, and `App.jsx` with `v=seo-en-default-20260608`.
 - Default analytics endpoint is `/api/retention`, overrideable by `window.PFL_ANALYTICS_ENDPOINT`.
 - Cloudflare Worker name used by Git builds: `prefrontal`.
 - Cloudflare Worker routes listed in the project map are `prefrontal-lab.com/api/retention*` and `www.prefrontal-lab.com/api/retention*`.

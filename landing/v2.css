@@ -1,0 +1,464 @@
+/* 官网第二版样稿（landing-v2.html）。
+   首屏：白底靛蓝字（2026-11-02 负责人从靛蓝底和白底两版里选了白底），Prefrontal Lab 和三台展开的手机
+   （App 真实截图），手机有实色的浅靛蓝厚底。
+   往下每个游戏占满一屏它自己的颜色，字很大，盘面停在正在玩的那一刻；想玩就去网页版。
+   每两屏之间一根图标里的那种线（等粗、圆头、圆角拐弯、末端实心圆点），每根走法都不一样。
+   大标题、字标、按钮用资源圆体的子集（landing/fonts/README.md）；正文仍用系统字体。
+   字号只用五档：112（首屏标题）/ 64（各屏标题）/ 24（引导句、字标、平台名）/ 18（正文、按钮）/ 14（小字）。
+   不加载 Google Fonts：国内打不开。 */
+
+@font-face {
+    font-family: "Prefrontal Rounded";
+    src: url("./fonts/prefrontal-rounded.woff2") format("woff2");
+    font-weight: 200 900;
+    font-display: swap;
+}
+
+:root {
+    --v2-brand: #4843DB;
+    --v2-brand-edge: #2E2A9E;
+    --v2-on-brand-muted: #E4E2FA;
+    --v2-stroop: #E11D48;      /* rose-600：游戏里 Stroop 是 rose 系，加深一档让白字够对比 */
+    --v2-stroop-deep: #BE123C; /* rose-700 */
+    --v2-stroop-soft: #FFE4E6; /* rose-100 */
+    --v2-thread-left: max(40px, calc(50% - 580px));
+    --v2-round: "Prefrontal Rounded", -apple-system, BlinkMacSystemFont, "PingFang SC", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    margin: 0;
+    background: #F8FAFC;
+    color: #0F172A;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+    font-size: 18px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+h1, h2, p { margin: 0; }
+a { color: inherit; }
+img { display: block; }
+[hidden] { display: none !important; }
+
+.v2-wrap { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+
+/* ---------- 有手感的按钮：实色厚底边，按下去整体下沉 ---------- */
+.v2-chunky {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    padding: 0 30px;
+    border: 0;
+    border-bottom: 6px solid var(--edge, #2E2A9E);
+    border-radius: 18px;
+    font: inherit;
+    font-family: var(--v2-round);
+    font-size: 18px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 80ms ease, border-bottom-width 80ms ease;
+}
+.v2-chunky:active { transform: translateY(4px); border-bottom-width: 2px; }
+.v2-chunky:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 3px; }
+.v2-chunky-white { background: #FFFFFF; color: var(--v2-brand); --edge: #C9C6F5; }
+.v2-chunky-brand { background: var(--v2-brand); color: #FFFFFF; --edge: var(--v2-brand-edge); }
+.v2-chunky-brand:focus-visible { outline-color: var(--v2-brand); }
+.v2-chunky-sm { height: 44px; padding: 0 18px; font-size: 14px; border-bottom-width: 4px; border-radius: 14px; }
+.v2-chunky-sm:active { transform: translateY(3px); border-bottom-width: 1px; }
+.v2-text-link { color: var(--v2-brand); font-weight: 700; text-decoration: none; }
+.v2-text-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+/* ---------- 首屏 ---------- */
+.v2-hero {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    background: #FFFFFF;
+    color: var(--v2-brand);
+    overflow-x: clip; /* 只裁左右：下一屏的线要能伸上来 */
+}
+.v2-nav { height: 88px; display: flex; align-items: center; justify-content: space-between; }
+.v2-nav-links { display: flex; align-items: center; gap: 28px; }
+.v2-nav-links > a:not(.v2-chunky) { font-size: 14px; font-weight: 700; text-decoration: none; color: #6B67C9; }
+.v2-nav-links > a:not(.v2-chunky):hover { color: var(--v2-brand); }
+/* 语言切换：和导航链接同一档，不抢「下载 App」 */
+.v2-lang { height: 44px; padding: 0 14px; border: 0; border-radius: 14px; background: #EEEDFE; color: var(--v2-brand); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.v2-lang:hover { background: #E0DEFC; }
+.v2-lang:focus-visible { outline: 3px solid var(--v2-brand); outline-offset: 2px; }
+/* 字标：中英文都写 Prefrontal Lab，用圆体 */
+.v2-wordmark { font-family: var(--v2-round); font-size: 24px; font-weight: 800; letter-spacing: -0.01em; color: var(--v2-brand); text-decoration: none; white-space: nowrap; }
+.v2-wordmark.is-footer { display: flex; font-size: 24px; color: var(--v2-brand); }
+/* Logo 就是 App 图标，放在字标左边；首屏和页脚都是浅底，靛蓝图标自己就有轮廓，不加边 */
+.v2-wordmark { display: inline-flex; align-items: center; gap: 12px; }
+.v2-logo { width: 40px; height: 40px; border-radius: 22%; }
+.v2-wordmark.is-footer .v2-logo { width: 44px; height: 44px; }
+/* 中文名的小字，只在中文版出现：跟在 Prefrontal Lab 下面，字距放开一点，像副标 */
+html[lang="en"] [data-zh-only] { display: none !important; }
+.v2-zhname { margin-top: 14px; font-family: var(--v2-round); font-size: 18px; font-weight: 700; letter-spacing: 0.32em; color: #6B67C9; }
+.v2-zhname.is-footer { display: block; margin-top: 4px; font-size: 14px; letter-spacing: 0.28em; color: #64748B; }
+
+.v2-hero-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 520px; /* 手机区收窄 40，给 112 号的「Prefrontal」留出位置 */
+    gap: 48px;
+    align-items: center;
+    padding-top: 16px;
+    padding-bottom: 176px;
+}
+.v2-hero h1 {
+    font-family: var(--v2-round);
+    font-size: clamp(72px, 7.8vw, 112px);
+    line-height: 0.94;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+}
+.v2-lead { margin-top: 32px; max-width: 18em; font-size: 24px; line-height: 1.5; color: #1E1B4B; }
+.v2-hero-note { margin-top: 14px; font-size: 14px; color: #64748B; }
+.v2-hero-actions { margin-top: 36px; display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; }
+
+/* 三台手机：同一个中心点，用位移和旋转摆开；换位置时平滑过去。
+   机身是实色的厚底（往右下错开的浅靛蓝），让它像拿在手里的东西，不是一张平图 */
+.v2-phones { position: relative; width: 520px; height: 660px; }
+.v2-phone {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 270px;
+    padding: 10px;
+    border: 0;
+    border-radius: 48px;
+    background: #0B0B14;
+    box-shadow: 12px 14px 0 #C9C6F5;
+    cursor: pointer;
+    transition: transform 650ms cubic-bezier(0.2, 0.75, 0.2, 1), box-shadow 650ms ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.v2-phone-screen { display: block; border-radius: 38px; overflow: hidden; background: #F8FAFC; }
+.v2-phone-screen img { width: 100%; height: auto; }
+.v2-phone.is-front { z-index: 3; transform: translate(-50%, -50%); }
+.v2-phone.is-left { z-index: 1; transform: translate(calc(-50% - 150px), -47%) rotate(-8deg) scale(0.84); }
+.v2-phone.is-right { z-index: 2; transform: translate(calc(-50% + 150px), -47%) rotate(8deg) scale(0.84); }
+.v2-phone.is-left:hover { transform: translate(calc(-50% - 160px), -49%) rotate(-10deg) scale(0.86); }
+.v2-phone.is-right:hover { transform: translate(calc(-50% + 160px), -49%) rotate(10deg) scale(0.86); }
+.v2-phone:focus-visible { outline: 3px solid var(--v2-brand); outline-offset: 4px; }
+
+/* ---------- 两屏之间的线 ----------
+   每条缝一张 SVG，坐标 1000 宽，横坐标 60 = 内容左边；整张以两屏交界为中线（translateY(-50%)），
+   上半截画在上一屏里、下半截画在下一屏里。颜色用一道硬边渐变在交界处切开，
+   所以从白底屏穿到琥珀屏时，线会从白变深棕。描边不随缩放变粗细（non-scaling-stroke），
+   手机上整张按宽度缩小，线宽和圆点照旧。 */
+.v2-seam {
+    position: absolute;
+    top: 0;
+    left: calc(var(--v2-thread-left) - 60px);
+    width: 1000px;
+    height: 320px;
+    transform: translateY(-50%);
+    z-index: 3;
+    overflow: visible;
+    pointer-events: none;
+}
+.v2-seam.is-to-icon { height: 640px; }
+.v2-seam path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.v2-seam-line { stroke-width: 20; }
+.v2-seam-dot { stroke-width: 35; }
+
+/* ---------- 游戏屏：Stroop ---------- */
+.v2-game { position: relative; display: flex; align-items: center; overflow-x: clip; }
+.v2-game { padding: 180px 0 140px; /* 上边距要让过线的终点圆点（交界下 132 + 半径 17）不碰到标题 */ background: var(--field); color: var(--ink, #FFFFFF); }
+.v2-game-stroop { --field: var(--v2-stroop); --deep: var(--v2-stroop-deep); --soft: var(--v2-stroop-soft); }
+/* 每个游戏用它在 App 里的颜色系，加深到白字够对比；神经元是琥珀，太亮放不了白字，改成浅底深字 */
+.v2-game-nback { --field: #312E81; --deep: #3B37A0; --soft: #E0E7FF; }
+.v2-game-set { --field: #047857; --deep: #065F46; --soft: #D1FAE5; }
+.v2-game-neuron { --field: #FBBF24; --deep: #F59E0B; --soft: #78350F; --ink: #451A03; --thread: #451A03; }
+.v2-game-code { --field: #0F172A; --deep: #1E293B; --soft: #CBD5E1; }
+.v2-flip .v2-game-grid { grid-template-columns: auto minmax(0, 1fr); }
+/* 神经元：上面左标题、右说明，下面盘面居中 */
+.v2-layout-split .v2-game-grid { grid-template-columns: minmax(0, 1fr); gap: 64px; }
+.v2-layout-split .v2-game-copy { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 80px; align-items: start; }
+.v2-layout-split .v2-game-copy > h2 { grid-column: 1; grid-row: 1 / span 5; }
+.v2-layout-split .v2-game-copy > .v2-game-name { grid-column: 2; grid-row: 1; margin-top: 6px; }
+.v2-layout-split .v2-game-copy > .v2-game-skill { grid-column: 2; grid-row: 2; }
+.v2-layout-split .v2-game-copy > p:not(.v2-game-name):not(.v2-game-skill):not(.v2-game-tier) { grid-column: 2; grid-row: 3; }
+.v2-layout-split .v2-game-copy > .v2-game-tier { grid-column: 2; grid-row: 4; }
+.v2-layout-split .v2-game-copy > .v2-game-cta { grid-column: 2; grid-row: 5; justify-self: start; }
+.v2-layout-split .v2-card { justify-self: center; }
+.v2-layout-split .v2-card, .v2-layout-center .v2-card { padding: 40px 48px; }
+/* 密码推理：整屏居中，盘面在文字下面，是六屏里的一个停顿 */
+.v2-layout-center .v2-game-grid { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: 56px; }
+.v2-layout-center .v2-game-copy > p:not(.v2-game-name) { margin-left: auto; margin-right: auto; }
+.v2-flip .v2-card { order: -1; }
+/* 背后的大字：同色系深一档，只是底纹，不承担阅读。负责人喜欢，别删（2026-11-02 删过一次又要了回来） */
+.v2-game-mark {
+    position: absolute;
+    right: -2vw;
+    bottom: -4vw;
+    font-family: var(--v2-round);
+    font-size: 22vw;
+    line-height: 0.8;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: var(--deep);
+    pointer-events: none;
+    user-select: none;
+}
+.v2-game-mark.is-left { right: auto; left: -2vw; }
+.v2-game-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 80px; align-items: center; }
+.v2-game h2 { font-family: var(--v2-round); font-size: clamp(44px, 4.4vw, 64px); line-height: 1.08; font-weight: 800; letter-spacing: -0.02em; }
+.v2-game-name { margin-top: 24px; font-family: var(--v2-round); font-weight: 700; color: var(--soft); }
+/* 练什么：单独一行、小一号，不再用「游戏名 · 练什么」拼在一起 */
+.v2-game-skill { margin: 2px 0 14px; font-size: 14px; color: var(--soft); }
+.v2-game-copy > p:not(.v2-game-name):not(.v2-game-skill) { max-width: 26em; }
+.v2-game-tier { margin-top: 12px; font-size: 14px; color: var(--soft); }
+.v2-game-cta { margin-top: 40px; }
+
+/* 盘面卡：游戏页的底色，倾斜一点放在色块上 */
+.v2-card {
+    position: relative;
+    padding: 56px 48px;
+    border-radius: 40px;
+    background: #F8FAFC;
+    transform: rotate(-1.5deg);
+    transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    font-family: Inter, system-ui, -apple-system, "PingFang SC", sans-serif;
+}
+.v2-card:hover { transform: rotate(-0.5deg) scale(1.01); }
+.v2-card.is-tilt-right { transform: rotate(1.5deg); }
+.v2-card.is-tilt-right:hover { transform: rotate(0.5deg) scale(1.01); }
+.v2-card.is-flat, .v2-card.is-flat:hover { transform: none; }
+
+/* Stroop 盘面：2026-10-28 网页局中实测。字 72/900，与按钮区间距 48；按钮 88 高、圆角 18 */
+.v2-stroop { width: 384px; display: flex; flex-direction: column; align-items: center; gap: 48px; }
+.v2-stroop-word { font-size: 72px; line-height: 72px; font-weight: 900; }
+.v2-stroop-grid { display: grid; grid-template-columns: repeat(2, 186px); gap: 12px; }
+.v2-stroop-grid > span {
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 18px;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+}
+.v2-stroop-grid i { width: 34px; height: 34px; border-radius: 999px; border: 3px solid #FFFFFF; box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.38); }
+.v2-stroop-grid > .ok { background: #10B981; border-color: #10B981; box-shadow: none; transform: scale(1.05); }
+.v2-stroop-grid > .ok i { background: transparent !important; border-color: #FFFFFF; box-shadow: none; }
+
+
+/* N-Back：2026-10-28 网页局中实测。数字卡 96、圆角 24、靛蓝 36/900；按钮 152×64、圆角 16 */
+.v2-nback { width: 384px; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.v2-nback-label { font-size: 10px; line-height: 16px; font-weight: 800; color: #94A3B8; margin-bottom: 8px; }
+.v2-nback-card {
+    width: 96px; height: 96px; display: flex; align-items: center; justify-content: center; margin-bottom: 48px;
+    background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 24px; box-shadow: 0 12px 24px rgba(79, 70, 229, 0.1);
+    color: #4F46E5; font-size: 36px; font-weight: 900;
+}
+.v2-nback-actions { display: grid; grid-template-columns: repeat(2, 152px); gap: 16px; }
+.v2-nback-actions > span {
+    height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 16px; background: #E2E8F0; color: #475569;
+    font-size: 16px; font-weight: 700;
+}
+.v2-nback-actions > .is-match { background: #4F46E5; color: #FFFFFF; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); }
+.v2-nback-actions > .ok { background: #10B981; color: #FFFFFF; transform: scale(1.05); box-shadow: none; }
+
+/* SET（基础档 3×3）：boards.css；选中 border-indigo-500 / bg-indigo-50 / scale .95（App.jsx），成组和错误照 styles.css */
+.v2-set { display: grid; grid-template-columns: repeat(3, 122.67px); gap: 8px; }
+.v2-set > span {
+    position: relative; width: 122.67px; height: 122.67px; display: flex; align-items: center; justify-content: center;
+    background: #FFFFFF; border: 2px solid #F1F5F9; border-radius: 24px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.v2-set svg { width: 40px; height: 40px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform 200ms ease; }
+.v2-set .r { color: #EF4444; } .v2-set .g { color: #10B981; } .v2-set .bl { color: #3B82F6; }
+.v2-set > .is-success { border-color: #10B981; background: #10B981; color: #FFFFFF; transform: scale(1.05); box-shadow: 0 0 0 4px #D1FAE5, 0 10px 18px rgba(16, 185, 129, 0.16); z-index: 1; }
+.v2-set > .is-success svg { transform: scale(1.08); }
+
+/* 神经元计数：boards.css 的场地 384×437 */
+.v2-neuron-wrap { width: 384px; }
+.v2-neuron-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 13px; font-weight: 800; color: #64748B; }
+.v2-neuron-head s, .v2-neuron s { display: block; width: 28px; height: 28px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
+.v2-neuron { position: relative; width: 384px; height: 437px; background: #FFFFFF; border: 1px solid #F1F5F9; border-radius: 32px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); overflow: hidden; }
+.v2-neuron s { position: absolute; transform: translate(-50%, -50%); }
+.v2-neuron-wrap s.tri { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+.v2-neuron-wrap s.circle { border-radius: 50%; }
+.v2-neuron-wrap s.square { border-radius: 4px; }
+.v2-neuron-wrap .purple { background: #A855F7; } .v2-neuron-wrap .green { background: #22C55E; } .v2-neuron-wrap .amber { background: #F59E0B; }
+.v2-neuron-wrap .blue { background: #3B82F6; } .v2-neuron-wrap .rose { background: #F43F5E; }
+
+/* 密码推理：2026-10-28 网页局中实测（三位档） */
+.v2-code { width: 370px; text-align: center; }
+.v2-code-title { font-size: 16px; line-height: 24px; font-weight: 900; color: #1E293B; }
+.v2-code-sub { margin-top: 2px; font-size: 10px; line-height: 13.75px; font-weight: 700; color: #94A3B8; }
+.v2-code-slots { display: flex; justify-content: center; gap: 12px; margin: 12px 0 24px; }
+.v2-code-slots b {
+    width: 64px; height: 70px; display: flex; align-items: center; justify-content: center;
+    background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px;
+    font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif; font-size: 34px; font-weight: 900; color: #94A3B8;
+}
+.v2-code-slots b.is-filled { color: #0F172A; }
+.v2-code-slots b.is-focus { border: 2px solid #4F46E5; }
+.v2-code-clues { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.v2-code-clues div { height: 46px; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #FFFFFF; border: 1px solid #F1F5F9; border-radius: 16px; }
+.v2-code-clues b { flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 9999px; background: #EEF2FF; color: #4F46E5; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; font-weight: 900; }
+.v2-code-clues span { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 16px; font-weight: 900; letter-spacing: 1.92px; color: #1E293B; }
+.v2-code-clues i { flex-shrink: 0; width: 1px; height: 24px; background: #F1F5F9; }
+.v2-code-clues em { font-style: normal; font-size: 11px; line-height: 15px; font-weight: 700; color: #64748B; }
+.v2-code-keys { margin-top: 16px; display: grid; grid-template-columns: repeat(3, 118px); gap: 8px; justify-content: center; }
+.v2-code-keys > span {
+    height: 52px; display: flex; align-items: center; justify-content: center; border: 1px solid #E2E8F0; border-radius: 15px; background: #FFFFFF; color: #0F172A;
+    font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif; font-size: 20px; font-weight: 900;
+}
+.v2-code-keys > .is-text { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; }
+.v2-code-keys > .is-submit { background: #4F46E5; border-color: transparent; color: #FFFFFF; }
+
+/* ---------- 下载：线收进 App 图标 ---------- */
+.v2-download { position: relative; padding: 220px 0 120px; background: var(--v2-brand); color: #FFFFFF; overflow-x: clip; }
+.v2-download .v2-wrap { position: relative; }
+/* 最后一根线在横坐标 +212 处进图标左边缘，纵坐标交界以下 240 正对图标中线（下载区上边距 220，图标上移 40、高 120） */
+.v2-download-icon { position: relative; z-index: 1; width: 120px; height: 120px; border-radius: 22%; margin: -40px 0 40px 210px; border: 3px solid rgba(255, 255, 255, 0.6); }
+.v2-download h2 { font-family: var(--v2-round); font-size: clamp(44px, 4.4vw, 64px); line-height: 1.08; font-weight: 800; letter-spacing: -0.02em; }
+.v2-download-lead { margin-top: 24px; max-width: 26em; font-size: 18px; color: var(--v2-on-brand-muted); }
+.v2-stores { margin-top: 56px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; max-width: 980px; }
+.v2-store {
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 28px; min-height: 168px;
+    padding: 28px; border-radius: 24px; border-bottom: 8px solid #C9C6F5; background: #FFFFFF; color: #0F172A; text-decoration: none;
+    transition: transform 80ms ease, border-bottom-width 80ms ease;
+}
+.v2-store:active { transform: translateY(5px); border-bottom-width: 3px; }
+.v2-store:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 3px; }
+.v2-store-name { font-family: var(--v2-round); font-size: 24px; font-weight: 800; line-height: 1.1; color: var(--v2-brand); }
+.v2-store img { height: 44px; width: auto; }
+.v2-store-action { font-weight: 700; color: #334155; }
+.v2-store.is-primary { background: #FBBF24; border-bottom-color: #B45309; }
+.v2-store.is-primary .v2-store-name, .v2-store.is-primary .v2-store-action { color: #451A03; }
+
+/* ---------- 页脚：浅底 ---------- */
+.v2-footer { padding: 64px 0 32px; background: #F8FAFC; color: #475569; font-size: 14px; }
+.v2-footer-inner { display: flex; justify-content: space-between; align-items: flex-start; gap: 40px; flex-wrap: wrap; }
+.v2-footer-inner p { margin-top: 12px; }
+.v2-footer nav { display: grid; grid-template-columns: repeat(4, auto); gap: 10px 32px; }
+.v2-footer a { color: #0F172A; font-weight: 600; text-decoration: none; }
+.v2-footer a:hover { color: var(--v2-brand); }
+.v2-footer-copy { margin-top: 48px; font-size: 14px; }
+
+
+/* ---------- 滚动动效（只在 html.v2-anim 时生效；减少动效或脚本没跑时，看到的就是终态） ---------- */
+/* 线：从起点画到终点。--len 是路径长度，脚本量出来写上 */
+.v2-anim .v2-seam-line { stroke-dasharray: var(--len, 2000) var(--len, 2000); stroke-dashoffset: var(--len, 2000); transition: stroke-dashoffset 1.3s cubic-bezier(0.65, 0, 0.35, 1); }
+.v2-anim .v2-seam.is-in .v2-seam-line { stroke-dashoffset: 0; }
+.v2-anim .v2-seam-dot { opacity: 0; transition: opacity 260ms ease 1.15s; }
+.v2-anim .v2-seam-dot.is-start { transition-delay: 0s; }
+.v2-anim .v2-seam.is-in .v2-seam-dot { opacity: 1; }
+
+/* 游戏屏：文字依次浮上来，盘面卡片带一点回弹落位（用独立的 translate / scale，不和卡片本身的倾斜打架） */
+.v2-anim .v2-game-copy > * { opacity: 0; translate: 0 18px; transition: opacity 600ms ease, translate 600ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.v2-anim .v2-game.is-in .v2-game-copy > * { opacity: 1; translate: none; }
+.v2-anim .v2-game.is-in .v2-game-copy > :nth-child(2) { transition-delay: 60ms; }
+.v2-anim .v2-game.is-in .v2-game-copy > :nth-child(3) { transition-delay: 120ms; }
+.v2-anim .v2-game.is-in .v2-game-copy > :nth-child(4) { transition-delay: 180ms; }
+.v2-anim .v2-game.is-in .v2-game-copy > :nth-child(5) { transition-delay: 240ms; }
+.v2-anim .v2-game.is-in .v2-game-copy > :nth-child(6) { transition-delay: 300ms; }
+.v2-anim .v2-game .v2-card { opacity: 0; translate: 0 56px; scale: 0.9; transition: opacity 450ms ease 150ms, translate 850ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms, scale 850ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms, transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.v2-anim .v2-game.is-in .v2-card { opacity: 1; translate: none; scale: none; }
+/* 盘面上那一步发生时的过渡：Stroop 按钮变绿、N-Back「匹配」变绿、SET 三张牌依次成组、密码数字一个个填进去 */
+.v2-stroop-grid > span, .v2-nback-actions > span, .v2-set > span { transition: background-color 220ms ease, border-color 220ms ease, color 220ms ease, transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 220ms ease; }
+.v2-code-slots b { transition: color 160ms ease; }
+.v2-code-slots b.is-pending { color: transparent; }
+
+/* 首屏：打开页面时文字依次出现，三台手机从叠在中间展开 */
+.v2-anim .v2-hero-copy > * { opacity: 0; translate: 0 20px; transition: opacity 700ms ease, translate 700ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.v2-anim .v2-hero.is-in .v2-hero-copy > * { opacity: 1; translate: none; }
+.v2-anim .v2-hero.is-in .v2-hero-copy > :nth-child(2) { transition-delay: 80ms; }
+.v2-anim .v2-hero.is-in .v2-hero-copy > :nth-child(3) { transition-delay: 160ms; }
+.v2-anim .v2-hero.is-in .v2-hero-copy > :nth-child(4) { transition-delay: 240ms; }
+.v2-anim .v2-hero.is-in .v2-hero-copy > :nth-child(5) { transition-delay: 320ms; }
+.v2-anim .v2-hero:not(.is-in) .v2-phone { transform: translate(-50%, -46%) scale(0.92); opacity: 0; }
+.v2-anim .v2-phone { transition: transform 900ms cubic-bezier(0.34, 1.3, 0.64, 1), opacity 500ms ease, box-shadow 650ms ease; }
+
+/* 下载区：三张卡依次升起 */
+.v2-anim .v2-download .v2-store, .v2-anim .v2-download h2, .v2-anim .v2-download-lead { opacity: 0; translate: 0 24px; transition: opacity 600ms ease, translate 700ms cubic-bezier(0.34, 1.4, 0.64, 1); }
+.v2-anim .v2-download.is-in .v2-store, .v2-anim .v2-download.is-in h2, .v2-anim .v2-download.is-in .v2-download-lead { opacity: 1; translate: none; }
+.v2-anim .v2-download.is-in .v2-download-lead { transition-delay: 80ms; }
+.v2-anim .v2-download.is-in .v2-store:nth-child(1) { transition-delay: 200ms; }
+.v2-anim .v2-download.is-in .v2-store:nth-child(2) { transition-delay: 300ms; }
+.v2-anim .v2-download.is-in .v2-store:nth-child(3) { transition-delay: 400ms; }
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 1100px) {
+    .v2-hero-grid { grid-template-columns: minmax(0, 1fr) 440px; gap: 40px; }
+    .v2-phones { width: 440px; height: 560px; }
+    .v2-phone { width: 230px; border-radius: 42px; }
+    .v2-phone-screen { border-radius: 32px; }
+    .v2-phone.is-left { transform: translate(calc(-50% - 126px), -47%) rotate(-8deg) scale(0.84); }
+    .v2-phone.is-right { transform: translate(calc(-50% + 126px), -47%) rotate(8deg) scale(0.84); }
+    .v2-hero h1 { font-size: 88px; }
+}
+
+@media (max-width: 899px) {
+    .v2-wrap { padding: 0 20px; }
+    :root { --v2-thread-left: 20px; } /* 和窄屏的内容左边距一致，下载区的线才对得上图标 */
+    .v2-nav-links > a:not(.v2-chunky) { display: none; }
+    .v2-nav-links { gap: 12px; }
+    .v2-wordmark { font-size: 21px; gap: 10px; }
+    .v2-logo { width: 34px; height: 34px; }
+    /* 文字区收紧，让三台手机在第一屏里露出一截 */
+    .v2-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 4px; padding-top: 4px; padding-bottom: 140px; }
+    .v2-hero h1 { font-size: 72px; } /* 手机上仍是全页最大的字（游戏屏标题 40） */
+    .v2-zhname { margin-top: 10px; }
+    .v2-lead { margin-top: 20px; font-size: 18px; }
+    .v2-hero-actions { margin-top: 24px; }
+    .v2-phones { width: 100%; height: 420px; }
+    .v2-phone { width: 180px; padding: 7px; border-radius: 32px; box-shadow: 8px 10px 0 #C9C6F5; }
+    .v2-phone-screen { border-radius: 25px; }
+    .v2-phone.is-left { transform: translate(calc(-50% - 92px), -47%) rotate(-8deg) scale(0.84); }
+    .v2-phone.is-right { transform: translate(calc(-50% + 92px), -47%) rotate(8deg) scale(0.84); }
+    .v2-phone.is-left:hover { transform: translate(calc(-50% - 92px), -47%) rotate(-8deg) scale(0.84); }
+    .v2-phone.is-right:hover { transform: translate(calc(-50% + 92px), -47%) rotate(8deg) scale(0.84); }
+    /* 手机上整张线缩小：线实际用到的横坐标是 60 到约 700，让这 640 个单位正好占满左右各留 20 的屏宽，
+       坐标 60 落在内容左边（20px）。最后一根要对准图标，不缩 */
+    .v2-seam:not(.is-to-icon) {
+        width: calc((100vw - 40px) * 1000 / 640);
+        left: calc(20px - (100vw - 40px) * 60 / 640);
+        height: auto;
+        aspect-ratio: 1000 / 320;
+    }
+    .v2-seam-line { stroke-width: 14; }
+    .v2-seam-dot { stroke-width: 25; }
+    .v2-seam.is-to-icon .v2-seam-line { stroke-width: 20; }
+    .v2-seam.is-to-icon .v2-seam-dot { stroke-width: 35; }
+    .v2-game { padding: 150px 0 120px; }
+    .v2-game-grid, .v2-flip .v2-game-grid { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+    .v2-flip .v2-card { order: 0; }
+    .v2-layout-split .v2-game-copy { display: block; }
+    .v2-layout-center .v2-game-grid { text-align: left; justify-items: stretch; }
+    .v2-download { padding: 220px 0 120px; }
+    .v2-download h2 { font-size: 40px; }
+    html[lang="en"] .v2-game h2, html[lang="en"] .v2-download h2 { font-size: 34px; }
+    .v2-stores { grid-template-columns: minmax(0, 1fr); }
+    .v2-store { min-height: 0; }
+    .v2-footer nav { grid-template-columns: repeat(2, auto); }
+    .v2-game h2 { font-size: 40px; }
+    .v2-game-mark { font-size: 34vw; }
+    .v2-card { justify-self: center; padding: 32px 24px; border-radius: 32px; transform: rotate(-2deg); }
+}
+
+@media (max-width: 479px) {
+    /* 首屏已经有「下载 App」，窄屏导航只留语言切换，不然三样挤一行会折行 */
+    .v2-nav-links .v2-chunky { display: none; }
+    .v2-lang { white-space: nowrap; }
+    .v2-card { padding: 24px 16px; }
+    .v2-stroop, .v2-nback, .v2-set, .v2-neuron-wrap, .v2-code { zoom: 0.78; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .v2-card, .v2-card:hover, .v2-phone { transition: none; }
+}

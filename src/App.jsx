@@ -740,7 +740,7 @@ const RETENTION_VISITOR_KEY = 'prefrontal_lab_visitor_id';
 const OWNER_TOKEN_KEY = 'prefrontal_lab_owner_token';
 const DAILY_STORAGE_KEY = 'prefrontal_lab_daily_v4';
 const SOUND_STORAGE_KEY = 'prefrontal_lab_sound_enabled';
-// 和 iOS 用同一个键名；index.html 的启动脚本也读它，在第一帧之前定好深浅色。
+// 和 iOS 用同一个键名；play.html 的启动脚本也读它，在第一帧之前定好深浅色。
 const APPEARANCE_STORAGE_KEY = 'pfl_appearance';
 const APPEARANCE_OPTIONS = ['system', 'light', 'dark'];
 const WEEKLY_DAILY_GOAL = 5;
