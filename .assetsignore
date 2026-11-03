@@ -1,5 +1,8 @@
 *
 !index.html
+!play.html
+!landing
+!landing/**
 !privacy.html
 !support.html
 !android-privacy.html
