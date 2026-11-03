@@ -175,6 +175,8 @@ html[lang="en"] [data-zh-only] { display: none !important; }
 .v2-game { padding: 180px 0 140px; /* 上边距要让过线的终点圆点（交界下 132 + 半径 17）不碰到标题 */ background: var(--field); color: var(--ink, #FFFFFF); }
 .v2-game-stroop { --field: var(--v2-stroop); --deep: var(--v2-stroop-deep); --soft: var(--v2-stroop-soft); }
 /* 每个游戏用它在 App 里的颜色系，加深到白字够对比；神经元是琥珀，太亮放不了白字，改成浅底深字 */
+/* 舒尔特：品牌靛蓝底白字（负责人 2026-11-02 定），和原来的首屏一个颜色 */
+.v2-game-schulte { --field: var(--v2-brand); --deep: #3D38C4; --soft: #E4E2FA; }
 .v2-game-nback { --field: #312E81; --deep: #3B37A0; --soft: #E0E7FF; }
 .v2-game-set { --field: #047857; --deep: #065F46; --soft: #D1FAE5; }
 .v2-game-neuron { --field: #FBBF24; --deep: #F59E0B; --soft: #78350F; --ink: #451A03; --thread: #451A03; }
@@ -233,6 +235,19 @@ html[lang="en"] [data-zh-only] { display: none !important; }
 .v2-card.is-tilt-right { transform: rotate(1.5deg); }
 .v2-card.is-tilt-right:hover { transform: rotate(0.5deg) scale(1.01); }
 .v2-card.is-flat, .v2-card.is-flat:hover { transform: none; }
+
+/* 舒尔特盘面（基础档 5×5）：screenshots/taptap/boards.css，格子 72、间距 6、圆角 8。
+   点过：游戏里是 20% 靛蓝叠在 #F8FAFC 上，这里直接写叠出来的实色；正在点：缩到 .96，叠一层浅靛蓝和 2px 内描边 */
+.v2-schulte-board { display: grid; grid-template-columns: repeat(5, 72px); gap: 6px; }
+.v2-schulte-board > span {
+    position: relative; width: 72px; height: 72px; display: flex; align-items: center; justify-content: center;
+    background: #FFFFFF; border: 1px solid #F1F5F9; border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    color: #0F172A; font-size: 18px; font-weight: 700; line-height: 1;
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease, transform 160ms ease;
+}
+.v2-schulte-board > .done { background: #D6D6F7; border-color: transparent; color: #FFFFFF; box-shadow: none; }
+.v2-schulte-board > .tap { transform: scale(0.96); }
+.v2-schulte-board > .tap::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: rgba(129, 140, 248, 0.24); box-shadow: inset 0 0 0 2px rgba(99, 102, 241, 0.3); }
 
 /* Stroop 盘面：2026-10-28 网页局中实测。字 72/900，与按钮区间距 48；按钮 88 高、圆角 18 */
 .v2-stroop { width: 384px; display: flex; flex-direction: column; align-items: center; gap: 48px; }
@@ -455,7 +470,7 @@ html[lang="en"] [data-zh-only] { display: none !important; }
     .v2-nav-links .v2-chunky { display: none; }
     .v2-lang { white-space: nowrap; }
     .v2-card { padding: 24px 16px; }
-    .v2-stroop, .v2-nback, .v2-set, .v2-neuron-wrap, .v2-code { zoom: 0.78; }
+    .v2-schulte-board, .v2-stroop, .v2-nback, .v2-set, .v2-neuron-wrap, .v2-code { zoom: 0.78; }
 }
 
 @media (prefers-reduced-motion: reduce) {

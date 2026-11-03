@@ -39,7 +39,7 @@
             window.addEventListener('error', function () { document.documentElement.classList.remove('v2-anim'); });
         }
     </script>
-    <link rel="stylesheet" href="./landing/v2.css?v=20261102l">
+    <link rel="stylesheet" href="./landing/v2.css?v=20261102m">
 </head>
 
 <body>
@@ -48,7 +48,7 @@
         <header class="v2-nav v2-wrap">
             <a class="v2-brand v2-wordmark" href="#top"><img class="v2-logo" src="./landing/app-icon-256.png" alt="" width="40" height="40">Prefrontal Lab</a>
             <nav class="v2-nav-links" aria-label="页面导航" data-i18n-attr="aria-label">
-                <a href="#stroop" data-i18n>六个游戏</a>
+                <a href="#schulte" data-i18n>六个游戏</a>
                 <a href="./play.html" data-i18n>在网页上玩</a>
                 <button type="button" class="v2-lang" id="lang-toggle">EN</button>
                 <a class="v2-chunky v2-chunky-brand v2-chunky-sm" href="#download" data-i18n>下载 App</a>
@@ -83,9 +83,36 @@
         </div>
     </section>
 
+    <!-- ========== 舒尔特：品牌靛蓝，盘面在左 ========== -->
+    <section class="v2-game v2-game-schulte v2-flip" id="schulte">
+        <svg class="v2-seam" viewBox="0 0 1000 320" aria-hidden="true"><defs><linearGradient id="seam-1" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="320"><stop offset="0.5" stop-color="#4843DB" /><stop offset="0.5" stop-color="#FFFFFF" /></linearGradient></defs><path class="v2-seam-line" d="M60 70 V200 Q60 240 100 240 H620 Q660 240 660 280 V292" stroke="url(#seam-1)" /><path class="v2-seam-line" d="M360 240 V300" stroke="url(#seam-1)" /><path class="v2-seam-dot is-start" d="M60 70 h0" stroke="url(#seam-1)" /><path class="v2-seam-dot" d="M660 292 h0" stroke="url(#seam-1)" /><path class="v2-seam-dot" d="M360 300 h0" stroke="url(#seam-1)" /></svg>
+        <span class="v2-game-mark is-left" aria-hidden="true">SCHULTE</span>
+        <div class="v2-wrap v2-game-grid">
+            <div class="v2-game-copy">
+                <h2 data-i18n>从 1 点<br>到 25</h2>
+                <p class="v2-game-name" data-i18n>舒尔特方格</p>
+                <p class="v2-game-skill" data-i18n>练专注力与视觉宽度</p>
+                <p data-i18n>按照数字 1 至 25 的顺序，依次点击方格中的数字。点过的格子会变淡，越往后越要靠余光去找。</p>
+                <p class="v2-game-tier" data-i18n>进阶是盲点模式：点过的格子不留标记，得自己记住点过哪些。</p>
+                <a class="v2-chunky v2-chunky-white v2-game-cta" href="./play.html" data-i18n>在网页上玩</a>
+            </div>
+            <!-- 盘面：screenshots/taptap/boards.css（网页版局中计算样式），1 到 7 已点、正在点 8。
+                 滚到时 1 到 7 按数字顺序亮起来（data-order），再点到 8 -->
+            <div class="v2-card is-tilt-right" data-ui aria-hidden="true">
+                <div class="v2-schulte-board">
+                    <span>16</span><span>24</span><span>12</span><span class="done" data-moment data-order="6">6</span><span>18</span>
+                    <span class="tap" data-moment data-order="8">8</span><span>15</span><span>20</span><span class="done" data-moment data-order="5">5</span><span>22</span>
+                    <span class="done" data-moment data-order="7">7</span><span>13</span><span>9</span><span>19</span><span>14</span>
+                    <span class="done" data-moment data-order="4">4</span><span>17</span><span>21</span><span class="done" data-moment data-order="3">3</span><span>10</span>
+                    <span>23</span><span>11</span><span class="done" data-moment data-order="2">2</span><span class="done" data-moment data-order="1">1</span><span>25</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ========== Stroop：红 ========== -->
     <section class="v2-game v2-game-stroop" id="stroop">
-        <svg class="v2-seam" viewBox="0 0 1000 320" aria-hidden="true"><defs><linearGradient id="seam-1" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="320"><stop offset="0.5" stop-color="#4843DB" /><stop offset="0.5" stop-color="#FFFFFF" /></linearGradient></defs><path class="v2-seam-line" d="M60 70 V240 Q60 290 110 290 H300" stroke="url(#seam-1)" /><path class="v2-seam-dot is-start" d="M60 70 h0" stroke="url(#seam-1)" /><path class="v2-seam-dot" d="M300 290 h0" stroke="url(#seam-1)" /></svg>
+        <svg class="v2-seam" viewBox="0 0 1000 320" aria-hidden="true"><defs><linearGradient id="seam-1b" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="320"><stop offset="0.5" stop-color="#FFFFFF" /><stop offset="0.5" stop-color="#FFFFFF" /></linearGradient></defs><path class="v2-seam-line" d="M660 70 V110 C660 250 90 150 90 262 V292" stroke="url(#seam-1b)" /><path class="v2-seam-dot is-start" d="M660 70 h0" stroke="url(#seam-1b)" /><path class="v2-seam-dot" d="M90 292 h0" stroke="url(#seam-1b)" /></svg>
         <span class="v2-game-mark" aria-hidden="true">STROOP</span>
         <div class="v2-wrap v2-game-grid">
             <div class="v2-game-copy">
@@ -254,7 +281,7 @@
                 <p data-i18n>免费的认知训练小游戏</p>
             </div>
             <nav aria-label="页脚" data-i18n-attr="aria-label">
-                <a href="#top" data-i18n>舒尔特方格</a><a href="#stroop">Stroop</a><a href="#nback">N-Back</a>
+                <a href="#schulte" data-i18n>舒尔特方格</a><a href="#stroop">Stroop</a><a href="#nback">N-Back</a>
                 <a href="#set">SET</a><a href="#neuron" data-i18n>神经元计数</a><a href="#code" data-i18n>密码推理</a>
                 <a href="./support.html" data-i18n>支持</a><a href="./privacy.html" data-i18n>隐私政策</a>
             </nav>
@@ -318,7 +345,11 @@
             "练在干扰中精确统计": "Counting accurately among distractions",
             "练从线索中推理出唯一的密码": "Deducing one unique code from the clues",
             "装在手机上，<br>或者直接在网页上玩": "On your phone,<br>or right on the web",
-            "三个平台是同一套游戏，成绩各自保存。": "The same games on all three; results are saved separately on each."
+            "三个平台是同一套游戏，成绩各自保存。": "The same games on all three; results are saved separately on each.",
+            "从 1 点<br>到 25": "Tap 1<br>to 25",
+            "练专注力与视觉宽度": "Focus and visual span",
+            "按照数字 1 至 25 的顺序，依次点击方格中的数字。点过的格子会变淡，越往后越要靠余光去找。": "Tap numbers from 1 to 25 in order. Tapped cells fade, so the later numbers take more peripheral vision to find.",
+            "进阶是盲点模式：点过的格子不留标记，得自己记住点过哪些。": "Advanced is blind-spot mode: a tapped cell looks untouched — you have to remember which ones you've had."
         };
         var V2_EN_ATTR = {
             "页面导航": "Page navigation",
@@ -411,18 +442,21 @@
                 path.style.setProperty('--len', Math.ceil(path.getTotalLength()) + 2);
             });
             // 盘面上那一步：先拿掉它的状态，进入视野、卡片落定后再按顺序加回去
-            var STATES = ['ok', 'is-success', 'is-filled'];
+            var STATES = ['ok', 'is-success', 'is-filled', 'done', 'tap'];
             document.querySelectorAll('[data-moment]').forEach(function (el) {
                 el.dataset.moment = STATES.filter(function (c) { return el.classList.contains(c); }).join(' ');
                 STATES.forEach(function (c) { el.classList.remove(c); });
                 el.classList.add('is-pending');
             });
             function play(section) {
-                Array.prototype.forEach.call(section.querySelectorAll('[data-moment]'), function (el, i) {
+                var steps = Array.prototype.slice.call(section.querySelectorAll('[data-moment]'));
+                // 舒尔特的格子在 DOM 里是按位置排的，要按数字顺序亮，所以有 data-order 就按它排
+                steps.sort(function (a, b) { return (Number(a.dataset.order) || 0) - (Number(b.dataset.order) || 0); });
+                steps.forEach(function (el, i) {
                     setTimeout(function () {
                         el.classList.remove('is-pending');
                         el.dataset.moment.split(' ').forEach(function (c) { if (c) el.classList.add(c); });
-                    }, 900 + i * 280);
+                    }, 900 + i * (steps.length > 4 ? 170 : 280));
                 });
             }
             var seen = new IntersectionObserver(function (entries) {
